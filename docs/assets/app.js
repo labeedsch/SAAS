@@ -27,23 +27,28 @@ async function load() {
   $('#adminLink').hidden = !(role && ['coordinator','team_member','principal','reviewer'].includes(role.role));
   await loadOwners();
 }
-// مسؤولو المؤشرات: تقرؤهم قاعدة البيانات للفريق فقط (RLS)؛ الزائر والمقيم الخارجي لا يصلهم شيء.
-let owners = { ind: new Map(), dom: new Map() };
+// المسؤولون والمقيمون: تقرؤهم قاعدة البيانات للفريق فقط (RLS)؛ الزائر والمقيم الخارجي لا يصلهم شيء.
+const newOw = () => ({ resp: { ind: new Map(), dom: new Map() }, eval: { ind: new Map(), dom: new Map() } });
+let owners = newOw();
+const isTeam = () => !!(role && ['coordinator','team_member','principal','reviewer'].includes(role.role));
 async function loadOwners() {
-  owners = { ind: new Map(), dom: new Map() };
-  if (!(role && ['coordinator','team_member','principal','reviewer'].includes(role.role))) return;
+  owners = newOw();
+  if (!isTeam()) return;
   const [st, ia, da] = await Promise.all([
     sb.from('staff').select('id,full_name'),
-    sb.from('indicator_assignments').select('cycle_id,indicator_id,staff_id').eq('kind', 'responsible'),
-    sb.from('domain_assignments').select('cycle_id,domain_id,staff_id').eq('kind', 'responsible')]);
+    sb.from('indicator_assignments').select('cycle_id,indicator_id,staff_id,kind'),
+    sb.from('domain_assignments').select('cycle_id,domain_id,staff_id,kind')]);
   if (st.error || ia.error || da.error) { console.error(st.error || ia.error || da.error); return; }
-  const nm = new Map((st.data || []).map(s => [s.id, s.full_name]));
+  const nm = new Map((st.data || []).map(x => [x.id, x.full_name]));
   const add = (m, k, sid) => { const n = nm.get(sid); if (n) m.set(k, [...new Set([...(m.get(k) || []), n])]); };
-  (ia.data || []).forEach(a => add(owners.ind, a.cycle_id + '|' + a.indicator_id, a.staff_id));
-  (da.data || []).forEach(a => add(owners.dom, a.cycle_id + '|' + a.domain_id, a.staff_id));
+  const kk = a => a.kind === 'evaluator' ? 'eval' : 'resp';
+  (ia.data || []).forEach(a => add(owners[kk(a)].ind, a.cycle_id + '|' + a.indicator_id, a.staff_id));
+  (da.data || []).forEach(a => add(owners[kk(a)].dom, a.cycle_id + '|' + a.domain_id, a.staff_id));
 }
-const ownersOf = r => [...new Set([...(owners.ind.get(r.cycle_id + '|' + r.indicator_id) || []), ...(owners.dom.get(r.cycle_id + '|' + r.domain_id) || [])])];
-const isTeam = () => !!(role && ['coordinator','team_member','principal','reviewer'].includes(role.role));
+const ownersOf = (r, kind = 'resp') => [...new Set([...(owners[kind].ind.get(r.cycle_id + '|' + r.indicator_id) || []), ...(owners[kind].dom.get(r.cycle_id + '|' + r.domain_id) || [])])];
+const peopleOf = (rs, kind) => [...new Set(rs.flatMap(r => ownersOf(r, kind)))];
+const NONE = 'لم يُسند بعد';
+const names = a => a.length ? esc(a.join('، ')) : NONE;
 const cycles = () => [...new Map(rows.map(r => [r.cycle_id, r.cycle_name]))];
 const byCycle = id => rows.filter(r => r.cycle_id === id);
 const pubCount = rs => rs.filter(r => r.publish_state === 'published').length;
@@ -59,28 +64,63 @@ function domCards(id, rs) {
     const dr = rs.filter(r => r.domain_id === d.domain_id), p = pubCount(dr), k = DOM[i % 4];
     return `<a class="card" style="--b:var(--c${k}b);--f:var(--c${k}f)" href="#domain/${id}/${d.domain_id}"><span class="ic">${ic(DIC[i % 4])}</span>
       <div class="ct"><h3>${esc(d.domain_name)}</h3><small>${num(p)} من ${num(dr.length)} مؤشراً منشور</small></div><b class="big">${num(pctOf(p, dr.length))}٪</b>
-      <div class="bar"><span style="width:${pctOf(p, dr.length)}%"></span></div></a>`;
+      <div class="bar"><span style="width:${pctOf(p, dr.length)}%"></span></div>${isTeam() ? `<span class="muted">المقيم: ${names(peopleOf(dr, 'eval'))}</span>` : ''}</a>`;
   }).join('')}</div>`;
 }
 
+const MODES = [['domain', 'بالمجال', false], ['resp', 'بالمسؤول', true], ['eval', 'بالمقيم', true], ['full', 'التفاصيل كاملة', false]];
+let hm = { mode: 'domain', q: '' };
+const dColor = r => DOM[Math.max(0, domIdx(r.cycle_id, r.domain_id)) % 4];
+
+function icard(r, full) {
+  const k = dColor(r), pub = r.publish_state === 'published';
+  return `<a class="card icard${full ? ' full' : ''}" style="--b:var(--c${k}b);--f:var(--c${k}f)" href="#ind/${r.cycle_id}/${r.indicator_id}">
+    <div class="ih"><code>${esc(r.indicator_code)}</code><span>${pub ? lvl(r.level_label) + (full ? ` <span class="pct">${num(r.achievement_pct)}٪</span>` : '') : '<span class="lvl none">غير منشور</span>'}</span></div>
+    <p class="idesc">${esc(r.official_text)}</p>
+    ${full && pub && r.justification ? `<p class="ijust"><b>مبررات التقييم:</b> ${esc(r.justification)}</p>` : ''}
+    <div class="imeta"><span><b>المجال:</b> ${esc(r.domain_name)}</span>${full ? `<span><b>المعيار:</b> ${esc(r.standard_name)}</span>` : ''}${isTeam() ? `<span><b>المسؤول:</b> ${names(ownersOf(r, 'resp'))}</span><span><b>المقيم:</b> ${names(ownersOf(r, 'eval'))}</span>` : ''}</div></a>`;
+}
+
+function tabsHtml() {
+  return MODES.filter(m => !m[2] || isTeam()).map(m => `<button type="button" class="tab${hm.mode === m[0] ? ' on' : ''}" data-m="${m[0]}" aria-pressed="${hm.mode === m[0]}">${m[1]}</button>`).join('');
+}
+
+function renderList(cid) {
+  const all = byCycle(cid), q = hm.q.trim().toLowerCase();
+  const rs = all.filter(r => !q || [r.indicator_code, r.official_text, r.domain_name, r.standard_name, ...ownersOf(r, 'resp'), ...ownersOf(r, 'eval')].join(' ').toLowerCase().includes(q)).sort((a, b) => sortCodes(a.indicator_code, b.indicator_code));
+  $('#tabs').innerHTML = tabsHtml(); $('#icount').textContent = `${num(rs.length)} من ${num(all.length)} مؤشراً`;
+  if (!rs.length) { $('#ilist').innerHTML = `<div class="panel"><p class="muted">لا توجد مؤشرات مطابقة للبحث.</p></div>`; return; }
+  let groups;
+  if (hm.mode === 'full') groups = [[null, rs]];
+  else if (hm.mode === 'domain') groups = [...new Map(rs.map(r => [r.domain_code + '|' + r.domain_name, r])).keys()].sort((a, b) => sortCodes(a, b)).map(key => [key.split('|')[1], rs.filter(r => r.domain_code + '|' + r.domain_name === key)]);
+  else {
+    const m = new Map(); rs.forEach(r => { const o = ownersOf(r, hm.mode); (o.length ? o : [NONE]).forEach(n => m.set(n, [...(m.get(n) || []), r])); });
+    groups = [...m].sort((a, b) => (a[0] === NONE) - (b[0] === NONE) || a[0].localeCompare(b[0], 'ar'));
+  }
+  $('#ilist').innerHTML = groups.map(([g, list]) => (g ? `<div class="sec"><h2>${esc(g)}</h2><span class="chip">${num(list.length)} مؤشراً</span></div>` : '') +
+    `<div class="grid icards${hm.mode === 'full' ? ' full' : ''}">${list.map(r => icard(r, hm.mode === 'full')).join('')}</div>`).join('');
+}
+
 function home() {
-  const cs = cycles(); const first = cs[0];
-  const rs = first ? byCycle(first[0]) : [];
-  const pub = first ? pubCount(rs) : 0, pp = pctOf(pub, rs.length);
-  view.innerHTML = `<section class="hero"><div class="hero-txt"><span class="chip">${ic('cal')} ${first ? esc(first[1]) : 'التقويم الذاتي المدرسي'}</span>
+  const cs = cycles(), first = cs[0], rs = first ? byCycle(first[0]) : [];
+  const pub = pubCount(rs);
+  const cnt = k => new Set(rs.map(r => r[k])).size;
+  if (MODES.find(m => m[0] === hm.mode)[2] && !isTeam()) hm.mode = 'domain';
+  view.innerHTML = `<section class="hero compact"><div class="hero-txt"><span class="chip">${ic('cal')} ${first ? esc(first[1]) : 'التقويم الذاتي المدرسي'}</span>
     <h1><span class="gold">التقويم الذاتي</span> الذكي</h1>
-    <h2>نتائج تقويم مدرستنا واضحة للجميع</h2>
-    <p>بوابة شفافة لعرض مجالات التقويم الذاتي ومعاييره ومؤشراته ونتائجه المعتمدة في مدرسة لبيد بن ربيعة المتوسطة، وفق الدليل الإجرائي للتقويم المدرسي الذاتي – هيئة تقويم التعليم والتدريب.</p>
-    <div class="pills"><span class="pill">${ic('check')} نتائج معتمدة</span><span class="pill">${ic('doc')} شواهد موثّقة</span><span class="pill">${ic('shield')} خصوصية محمية</span></div>
-    <p><a class="btn gold" href="#results">استعرض النتائج</a></p>
-    <div class="tiles"><div class="tile"><div><b>${num(4)}</b><span>مجالات</span></div><i>${ic('layers')}</i></div><div class="tile"><div><b>${num(11)}</b><span>معياراً</span></div><i>${ic('bars')}</i></div>
+    <p>نتائج تقويم مدرسة لبيد بن ربيعة المتوسطة: المجالات والمعايير والمؤشرات، وفق دليل هيئة تقويم التعليم والتدريب.</p></div>
+    <div class="tiles"><div class="tile"><div><b>${num(first ? cnt('domain_id') : 4)}</b><span>مجالات</span></div><i>${ic('layers')}</i></div><div class="tile"><div><b>${num(first ? cnt('standard_id') : 11)}</b><span>معياراً</span></div><i>${ic('bars')}</i></div>
     <div class="tile"><div><b>${num(first ? rs.length : 49)}</b><span>مؤشراً</span></div><i>${ic('target')}</i></div>
-    <div class="tile"><div><b>${first ? num(pub) : '—'}</b><span>${first ? 'منشورة' : 'لا دورة منشورة'}</span></div><i>${ic('eye')}</i></div></div></div>
-    <div class="hero-art" aria-hidden="true"><div class="mock">
-      <div class="r"><i style="--k:#2f8f9b"></i><s style="--k:#2f8f9b;--w:72%"></s></div><div class="r"><i style="--k:#e3a63e"></i><s style="--k:#e3a63e;--w:88%"></s></div><div class="r"><i style="--k:#7a52c9"></i><s style="--k:#7a52c9;--w:55%"></s></div></div>
-      <span class="float" style="inset:0 auto auto 4%;background:#eaa83a">${ic('bell')}</span><span class="float" style="inset:40% 0 auto auto;width:46px;height:46px;background:#3fa56f">${ic('check')}</span>
-      <div class="ring"><div class="rg" style="--p:${pp}"><b>${num(pp)}٪</b></div><div><b>نسبة النشر</b><small>${first ? num(pub) + ' من ' + num(rs.length) + ' مؤشراً' : 'بانتظار نشر نتائج الدورة'}</small></div></div></div></section>` +
-    (first && rs.length ? `<div class="sec"><h2>مجالات التقويم</h2><a class="btn soft" href="#cycle/${first[0]}">عرض الدورة</a></div>` + domCards(first[0], rs) : '');
+    <div class="tile"><div><b>${first ? num(pub) : '—'}</b><span>${first ? 'منشورة' : 'لا دورة منشورة'}</span></div><i>${ic('eye')}</i></div></div></section>` +
+    (first && rs.length ? `<div class="sec"><h2>مجالات التقويم</h2></div>` + domCards(first[0], rs) +
+      `<div class="sec"><h2>مؤشرات التقويم</h2><span class="chip" id="icount"></span></div>
+      <div class="toolbar"><div class="tabs" id="tabs" role="group" aria-label="طريقة الفرز"></div><input type="search" id="iq" placeholder="ابحث برقم المؤشر أو نصه…" value="${esc(hm.q)}" aria-label="بحث في المؤشرات"></div>
+      ${isTeam() ? '' : '<p class="muted tnote">الفرز بالمسؤول وبالمقيم متاح لفريق التقويم بعد تسجيل الدخول.</p>'}<div id="ilist"></div>` : noResults());
+  if (first && rs.length) {
+    $('#tabs').onclick = e => { const b = e.target.closest('[data-m]'); if (b && MODES.some(m => m[0] === b.dataset.m && (!m[2] || isTeam()))) { hm.mode = b.dataset.m; renderList(first[0]); } };
+    $('#iq').oninput = e => { hm.q = e.target.value; renderList(first[0]); };
+    renderList(first[0]);
+  }
 }
 
 function results() {
@@ -100,30 +140,38 @@ function cycle(id) {
 const domIdx = (cid, did) => [...new Map(byCycle(cid).map(r => [r.domain_id, r.domain_code]))].sort((a, b) => sortCodes(a[1], b[1])).findIndex(x => x[0] === did);
 const stdsOf = rs => [...new Map(rs.map(r => [r.standard_id, r]))].map(([, r]) => r).sort((a, b) => sortCodes(a.standard_code, b.standard_code));
 
+const lvlChips = rs => { const m = new Map(); rs.filter(r => r.publish_state === 'published').forEach(r => m.set(r.level_label || 'غير مُقيَّم', (m.get(r.level_label || 'غير مُقيَّم') || 0) + 1));
+  return [...m].map(([l, c]) => `<span class="lvl ${LV[l] || 'none'}">${esc(l)} ${num(c)}</span>`).join(''); };
+
 function domain(cid, did) {
   const rs = byCycle(cid).filter(r => r.domain_id === did); if (!rs.length) { view.innerHTML = noResults(); return; }
-  const i = Math.max(0, domIdx(cid, did)), k = DOM[i % 4];
-  view.innerHTML = crumbs([['النتائج', '#results'], [rs[0].cycle_name, '#cycle/' + cid], [rs[0].domain_name]]) +
-    `<div class="sec"><h2>${esc(rs[0].domain_name)}</h2><span class="chip">${num(stdsOf(rs).length)} معايير · ${num(rs.length)} مؤشراً</span></div>
-    <div class="grid">${stdsOf(rs).map(s => {
-      const sr = rs.filter(r => r.standard_id === s.standard_id), p = pubCount(sr);
-      return `<a class="card" style="--b:var(--c${k}b);--f:var(--c${k}f)" href="#standard/${cid}/${s.standard_id}"><span class="ic">${ic(DIC[i % 4])}</span>
-        <div class="ct"><small>المعيار ${esc(s.standard_code)}</small><h3>${esc(s.standard_name)}</h3><small>${num(sr.length)} مؤشراً · ${num(p)} منشور</small></div><b class="big">${num(pctOf(p, sr.length))}٪</b>
-        <div class="bar"><span style="width:${pctOf(p, sr.length)}%"></span></div></a>`; }).join('')}</div>`;
+  const i = Math.max(0, domIdx(cid, did)), k = DOM[i % 4], sts = stdsOf(rs), p = pubCount(rs), d = rs[0];
+  const ev = peopleOf(rs, 'eval'), rp = peopleOf(rs, 'resp');
+  const chips = a => a.length ? a.map(n => `<span class="pchip">${esc(n)}</span>`).join('') : `<span class="muted">${NONE}</span>`;
+  view.innerHTML = crumbs([['النتائج', '#results'], [d.cycle_name, '#cycle/' + cid], [d.domain_name]]) +
+    `<section class="dhead" style="--f:var(--c${k}f)"><span class="dic">${ic(DIC[i % 4])}</span><div><small>المجال ${esc(d.domain_code)}</small><h1>${esc(d.domain_name)}</h1></div>
+      <div class="tiles"><div class="tile"><div><b>${num(sts.length)}</b><span>معايير</span></div><i>${ic('bars')}</i></div><div class="tile"><div><b>${num(rs.length)}</b><span>مؤشراً</span></div><i>${ic('target')}</i></div>
+      <div class="tile"><div><b>${num(p)}</b><span>منشورة</span></div><i>${ic('eye')}</i></div><div class="tile"><div><b>${num(pctOf(p, rs.length))}٪</b><span>نسبة النشر</span></div><i>${ic('check')}</i></div></div></section>` +
+    (isTeam() ? `<div class="people"><div class="pp"><h3>مقيمو المجال</h3><div>${chips(ev)}</div></div><div class="pp"><h3>مسؤولو المجال</h3><div>${chips(rp)}</div></div></div>`
+      : `<p class="muted tnote">بيانات المقيمين والمسؤولين متاحة لفريق التقويم بعد تسجيل الدخول.</p>`) +
+    `<div class="sec"><h2>معايير المجال</h2><span class="chip">${num(sts.length)} معايير</span></div>
+    <div class="grid">${sts.map(s => {
+      const sr = rs.filter(r => r.standard_id === s.standard_id), sp = pubCount(sr);
+      return `<a class="card icard scard" style="--b:var(--c${k}b);--f:var(--c${k}f)" href="#standard/${cid}/${s.standard_id}">
+        <div class="ih"><code>${esc(s.standard_code)}</code><b class="big">${num(pctOf(sp, sr.length))}٪</b></div>
+        <h3>${esc(s.standard_name)}</h3>
+        ${lvlChips(sr) ? `<div class="lvls">${lvlChips(sr)}</div>` : ''}
+        <div class="bar"><span style="width:${pctOf(sp, sr.length)}%"></span></div>
+        <div class="imeta"><span><b>المؤشرات:</b> ${num(sr.length)} · منشور ${num(sp)}</span>${isTeam() ? `<span><b>المقيم:</b> ${names(peopleOf(sr, 'eval'))}</span><span><b>المسؤول:</b> ${names(peopleOf(sr, 'resp'))}</span>` : ''}</div></a>`; }).join('')}</div>`;
 }
 
 function standard(cid, sid) {
   const rs = byCycle(cid).filter(r => r.standard_id === sid).sort((a, b) => sortCodes(a.indicator_code, b.indicator_code));
   if (!rs.length) { view.innerHTML = noResults(); return; }
-  const r0 = rs[0], k = DOM[Math.max(0, domIdx(cid, r0.domain_id)) % 4];
+  const r0 = rs[0];
   view.innerHTML = crumbs([['النتائج', '#results'], [r0.cycle_name, '#cycle/' + cid], [r0.domain_name, `#domain/${cid}/${r0.domain_id}`], [r0.standard_name]]) +
     `<div class="sec"><h2>${esc(r0.standard_name)}</h2><span class="chip">${num(rs.length)} مؤشراً</span></div>
-    <div class="grid icards">${rs.map(r => {
-      const ow = ownersOf(r);
-      return `<a class="card icard" style="--b:var(--c${k}b);--f:var(--c${k}f)" href="#ind/${cid}/${r.indicator_id}">
-        <div class="ih"><code>${esc(r.indicator_code)}</code>${r.publish_state === 'published' ? lvl(r.level_label) : '<span class="lvl none">غير منشور</span>'}</div>
-        <p class="idesc">${esc(r.official_text)}</p>
-        <div class="imeta"><span><b>المجال:</b> ${esc(r.domain_name)}</span>${isTeam() ? `<span><b>المسؤول:</b> ${ow.length ? esc(ow.join('، ')) : 'لم يُسند بعد'}</span>` : ''}</div></a>`; }).join('')}</div>`;
+    <div class="grid icards">${rs.map(r => icard(r, false)).join('')}</div>`;
 }
 
 async function indicator(cid, iid) {
@@ -132,7 +180,7 @@ async function indicator(cid, iid) {
   const pub = r.publish_state === 'published';
   view.innerHTML = crumbs([['النتائج', '#results'], [r.cycle_name, '#cycle/' + cid], [r.domain_name, `#domain/${cid}/${r.domain_id}`], [r.standard_name, `#standard/${cid}/${r.standard_id}`], [r.indicator_code]]) +
     `<div class="panel"><div class="sec" style="margin:0"><h2>المؤشر ${esc(r.indicator_code)}</h2>${pub ? lvl(r.level_label) : '<span class="lvl none">غير منشور</span>'}</div>
-      <p>${esc(r.official_text)}</p><p class="muted">${esc(r.domain_name)} ‹ ${esc(r.standard_name)}</p>${isTeam() ? `<p><b>المسؤول:</b> ${ownersOf(r).length ? esc(ownersOf(r).join('، ')) : 'لم يُسند بعد'}</p>` : ''}</div>` +
+      <p>${esc(r.official_text)}</p><p class="muted">${esc(r.domain_name)} ‹ ${esc(r.standard_name)}</p>${isTeam() ? `<p><b>المسؤول:</b> ${names(ownersOf(r, 'resp'))}<br><b>المقيم:</b> ${names(ownersOf(r, 'eval'))}</p>` : ''}</div>` +
     (pub ? `<div class="panel"><h2>نسبة التحقق</h2><p class="pct" style="font-size:1.8rem;margin:0">${num(r.achievement_pct)}٪</p></div>
       <div class="panel"><h2>مبررات التقييم</h2><p>${esc(r.justification || '—')}</p>${r.strengths ? `<h2>جوانب القوة</h2><p>${esc(r.strengths)}</p>` : ''}</div>`
       : `<div class="panel"><p class="muted">لم يُنشر تقييم هذا المؤشر بعد.</p></div>`) +
