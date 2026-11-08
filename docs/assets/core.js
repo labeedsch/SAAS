@@ -175,7 +175,11 @@ async function openViewer(evidenceId, title, canDownload = true) {
   show(0);
 }
 
+// الدخول باسم مستخدم (أو رقم هوية) أو ببريد: الاسم بلا @ يُحوَّل إلى البريد الداخلي الذي أنشأته دالة admin-users
+const LOGIN_DOMAIN = 'labeed.local';
+const loginEmail = id => { const v = String(id || '').trim().toLowerCase(); return v.includes('@') ? v : v + '@' + LOGIN_DOMAIN; };
+
 window.Pages = {}; window.Act = {};
-window.App = { sb, h, raw, esc, Raw, $, $$, put, L, lab, opts, nf, dt, dtt, today, codeCmp, S, staffName, staffOpts, cycle, role, isCoord, canReview,
+window.App = { loginEmail, sb, h, raw, esc, Raw, $, $$, put, L, lab, opts, nf, dt, dtt, today, codeCmp, S, staffName, staffOpts, cycle, role, isCoord, canReview,
   toast, errMsg, run, must, modal, closeModal, ask, sure, badge, sb_: sb_, table, btn, pageHead, panel, csv, openViewer };
 })();

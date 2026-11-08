@@ -75,13 +75,13 @@ App.reloadStaff = async () => { const r = await sb.from('staff').select('*').ord
 function showLogin(msg = '') {
   $('#shell').hidden = true; const el = $('#login'); el.hidden = false;
   put(el, h`<div class="login"><div class="pn"><h1 style="font-size:1.3rem;margin-bottom:6px">لوحة التقويم الذاتي</h1><p class="muted">مدرسة لبيد بن ربيعة المتوسطة. دخول المنسق وفريق التقويم.</p>
-    <form class="frm" id="lf"><label class="fld"><span>البريد الإلكتروني</span><input id="le" type="email" required autocomplete="username" dir="ltr"></label>
+    <form class="frm" id="lf"><label class="fld"><span>اسم المستخدم أو البريد الإلكتروني</span><input id="le" type="text" required autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false" dir="ltr"></label>
     <label class="fld"><span>كلمة المرور</span><input id="lp" type="password" required autocomplete="current-password" dir="ltr"></label>
     <div class="err" id="lerr" role="alert">${msg}</div><button class="btn pri" type="submit">دخول</button></form>
     <p class="muted" style="margin-top:12px"><a href="./">العودة إلى الموقع العام</a></p></div></div>`);
   $('#lf').onsubmit = async e => {
     e.preventDefault();
-    const { error } = await sb.auth.signInWithPassword({ email: $('#le').value.trim(), password: $('#lp').value });
+    const { error } = await sb.auth.signInWithPassword({ email: App.loginEmail($('#le').value), password: $('#lp').value });
     if (error) { $('#lerr').textContent = 'بيانات الدخول غير صحيحة.'; return; }
     boot();
   };

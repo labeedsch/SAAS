@@ -111,7 +111,14 @@ Act.cycPub = async ({ id, v }) => {
 const staffFields = [{ k: 'full_name', l: 'الاسم الكامل', req: 1 }, { k: 'job_title', l: 'المسمى الوظيفي' }, { k: 'phone', l: 'رقم الجوال (واتساب)', ph: '9665xxxxxxxx', hint: 'بصيغة دولية بلا + أو أصفار' },
   { k: 'whatsapp_opt_in', l: 'موافق على استقبال رسائل واتساب', t: 'checkbox' }, { k: 'is_active', l: 'على رأس العمل', t: 'checkbox', def: true }];
 const genPw = () => { const a = 'abcdefghjkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789'; const r = crypto.getRandomValues(new Uint32Array(14)); return [...r].map(x => a[x % a.length]).join('') + '#7'; };
-const fn = async (body) => { const { data, error } = await sb.functions.invoke('admin-users', { body }); if (error || data?.error) { toast(data?.error || 'تعذّر تنفيذ العملية', true); return null; } return data; };
+// عند رفض الخادم (400/403) يُعيد supabase-js الخطأ بلا جسم الرد؛ نقرأ رسالة الدالة من الاستجابة ليراها المنسق
+const fn = async (body) => {
+  const { data, error } = await sb.functions.invoke('admin-users', { body });
+  if (error) { let m = 'تعذّر تنفيذ العملية'; try { const j = await error.context.json(); if (j?.error) m = j.error; } catch {} toast(m, true); return null; }
+  if (data?.error) { toast(data.error, true); return null; }
+  return data;
+};
+const unameField = { k: 'username', l: 'اسم المستخدم (أو رقم الهوية)', req: 1, ph: 'مثال: ahmed.a', hint: 'حروف لاتينية صغيرة أو أرقام أو . _ - (3 إلى 40 حرفاً، بلا مسافات). يدخل به المستخدم بدل البريد.' };
 Pages.staff = async () => {
   const [prof] = await Promise.all([must(sb.from('profiles').select('*')), App.reloadStaff()]);
   const pm = Object.fromEntries(prof.filter(p => p.staff_id).map(p => [p.staff_id, p]));
@@ -121,12 +128,12 @@ Pages.staff = async () => {
     { h: 'الاسم', f: s => h`<b>${s.full_name}</b><br><small class="muted">${s.job_title || ''}</small>` }, { h: 'الجوال', f: s => h`<span dir="ltr">${s.phone || '—'}</span>` },
     { h: 'واتساب', f: s => s.whatsapp_opt_in ? badge('موافق', 'ok') : badge('—') },
     { h: 'الحالة', f: s => s.is_active ? badge('على رأس العمل', 'ok') : badge('غير نشط') },
-    { h: 'الحساب', f: s => { const p = pm[s.id]; return p ? h`${badge(L.role[p.role], 'info')} ${p.is_active ? '' : badge('موقوف', 'bad')}` : h`<span class="muted">بلا حساب</span>`; } },
+    { h: 'الحساب', f: s => { const p = pm[s.id]; return p ? h`${badge(L.role[p.role], 'info')} ${p.is_active ? '' : badge('موقوف', 'bad')}${p.username ? h`<br><small class="muted">اسم المستخدم: <span dir="ltr">${p.username}</span></small>` : ''}` : h`<span class="muted">بلا حساب</span>`; } },
     { h: '', f: s => { const p = pm[s.id]; return h`<div class="chips">${btn('تعديل', 'stEdit', { id: s.id })}
       ${p ? h`${btn('كلمة مرور', 'acPw', { id: p.id })} ${btn(p.is_active ? 'إيقاف الحساب' : 'تفعيل الحساب', 'acToggle', { id: p.id, v: p.is_active ? '' : '1' })}` : btn('إنشاء حساب', 'acNew', { sid: s.id }, 'pri')}</div>`; } },
   ], S.staff, 'أضف منسوبي المدرسة (المسؤولون عن المؤشرات لا يحتاجون حساباً).'))}
   ${panel('حسابات المقيمين الخارجيين', table([
-    { h: 'الاسم', f: p => p.display_name || '—' }, { h: 'الحالة', f: p => p.is_active ? badge('مفعّل', 'ok') : badge('موقوف', 'bad') },
+    { h: 'الاسم', f: p => p.display_name || '—' }, { h: 'اسم المستخدم', f: p => h`<span dir="ltr">${p.username || '—'}</span>` }, { h: 'الحالة', f: p => p.is_active ? badge('مفعّل', 'ok') : badge('موقوف', 'bad') },
     { h: '', f: p => h`<div class="chips">${btn('كلمة مرور', 'acPw', { id: p.id })} ${btn(p.is_active ? 'إيقاف' : 'تفعيل', 'acToggle', { id: p.id, v: p.is_active ? '' : '1' })}</div>` },
   ], ext, 'لا يوجد مقيم خارجي'), btn('+ مقيم خارجي', 'acExt', {}, 'pri'))}
   <p class="muted">الأدوار: منسق، عضو فريق، مدير المدرسة، مراجع (دخول اللوحة)؛ مقيم خارجي (دخول الموقع العام فقط). المسؤول عن مؤشر لا يحتاج حساباً ويصله رابط خاص.</p>`;
@@ -135,15 +142,15 @@ Act.stNew = async () => { const v = await ask('منسوب جديد', staffFields
 Act.stEdit = async ({ id }) => { const v = await ask('تعديل المنسوب', staffFields, S.staff.find(s => s.id === id)); if (v && await run(sb.from('staff').update(v).eq('id', id), 'حُفظ')) { await App.reloadStaff(); App.refresh(); } };
 Act.acNew = async ({ sid }) => {
   const v = await ask(`إنشاء حساب: ${staffName(sid)}`, [
-    { k: 'email', l: 'البريد الإلكتروني', t: 'email', req: 1 }, { k: 'role', l: 'الدور', t: 'select', req: 1, o: [['team_member', L.role.team_member], ['coordinator', L.role.coordinator], ['principal', L.role.principal], ['reviewer', L.role.reviewer]] },
+    unameField, { k: 'role', l: 'الدور', t: 'select', req: 1, o: [['team_member', L.role.team_member], ['coordinator', L.role.coordinator], ['principal', L.role.principal], ['reviewer', L.role.reviewer]] },
     { k: 'password', l: 'كلمة مرور مؤقتة', req: 1, def: genPw(), hint: 'سجّلها وسلّمها للمستخدم؛ لا تُعرض مرة أخرى' }], { role: 'team_member' }, { submit: 'إنشاء الحساب' });
   if (!v) return; const r = await fn({ action: 'create_user', ...v, staff_id: sid, display_name: staffName(sid) });
-  if (r) { App.modal('تم إنشاء الحساب', h`<p>البريد: <b dir="ltr">${v.email}</b></p><p>كلمة المرور المؤقتة: <b dir="ltr">${v.password}</b></p><p class="muted">انسخها الآن؛ لن تظهر مرة أخرى.</p>`); App.refresh(); }
+  if (r) { App.modal('تم إنشاء الحساب', h`<p>اسم المستخدم: <b dir="ltr">${r.login}</b></p><p>كلمة المرور المؤقتة: <b dir="ltr">${v.password}</b></p><p class="muted">انسخها الآن؛ لن تظهر مرة أخرى.</p>`); App.refresh(); }
 };
 Act.acExt = async () => {
-  const v = await ask('حساب مقيم خارجي', [{ k: 'display_name', l: 'الاسم' }, { k: 'email', l: 'البريد الإلكتروني', t: 'email', req: 1 }, { k: 'password', l: 'كلمة مرور مؤقتة', req: 1, def: genPw() }], {}, { submit: 'إنشاء الحساب' });
+  const v = await ask('حساب مقيم خارجي', [{ k: 'display_name', l: 'الاسم' }, unameField, { k: 'password', l: 'كلمة مرور مؤقتة', req: 1, def: genPw() }], {}, { submit: 'إنشاء الحساب' });
   if (!v) return; const r = await fn({ action: 'create_user', ...v, role: 'external_evaluator' });
-  if (r) { App.modal('تم إنشاء الحساب', h`<p>البريد: <b dir="ltr">${v.email}</b></p><p>كلمة المرور المؤقتة: <b dir="ltr">${v.password}</b></p>`); App.refresh(); }
+  if (r) { App.modal('تم إنشاء الحساب', h`<p>اسم المستخدم: <b dir="ltr">${r.login}</b></p><p>كلمة المرور المؤقتة: <b dir="ltr">${v.password}</b></p><p class="muted">انسخها الآن؛ لن تظهر مرة أخرى.</p>`); App.refresh(); }
 };
 Act.acToggle = async ({ id, v }) => { if (await fn({ action: 'set_active', id, active: !!v })) { toast('تم'); App.refresh(); } };
 Act.acPw = async ({ id }) => { const v = await ask('كلمة مرور جديدة', [{ k: 'password', l: 'كلمة المرور', req: 1, def: genPw() }]); if (v && await fn({ action: 'reset_password', id, password: v.password })) App.modal('تم التغيير', h`<p>كلمة المرور الجديدة: <b dir="ltr">${v.password}</b></p>`); };
