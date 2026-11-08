@@ -368,3 +368,7 @@ body.pub nav a[hidden]{display:none}
 .pcard .bar>span,.pcard .bar span{background:var(--f)!important}
 .pwho>div{flex-direction:row;flex-wrap:wrap;align-items:center}.pwho small{flex-basis:100%}
 .pwho b{flex:1;min-width:0}
+
+.pcard .phead.sm{flex-direction:row;align-items:center;gap:8px;padding:8px 16px;font-size:.82rem}
+.pcard .phead.sm span{display:inline-flex;align-items:center;gap:5px;opacity:.9}.pcard .phead.sm .ico{width:15px;height:15px}
+.pcard .phead.sm b{font-weight:800}
