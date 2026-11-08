@@ -115,8 +115,9 @@ function pcard(r) {
   const who = isTeam()
     ? `<div class="pwho"><div><small>مسؤول المؤشر</small><span class="av">${rp.length ? esc(initials(rp[0])) : ic('users')}</span><b title="${esc(rp.join('، '))}">${firstPlus(rp)}</b></div><div><small>المقيم</small><b title="${esc(ev.join('، '))}">${firstPlus(ev)}</b></div></div>` : '';
   return `<a class="pcard" style="--b:var(--c${k}b);--f:var(--c${k}f)" href="#ind/${r.cycle_id}/${r.indicator_id}">
-    <div class="phead"><span class="ptrail">${esc(r.domain_name)} ‹ ${esc(r.standard_name)}</span><div class="pcode"><small>المؤشر</small><b>${esc(r.indicator_code)}</b></div></div>
-    <div class="pbody"><p class="psub">${esc(r.official_text)}</p>
+    <div class="pimg">${illus(i)}${badge}</div>
+    <div class="pbody"><span class="pchip2">${ic('doc')} ${esc(r.domain_name)} ‹ ${esc(r.standard_name)}</span>
+      <h3>المؤشر ${esc(r.indicator_code)}</h3><p class="psub">${esc(r.official_text)}</p>
       ${who}${stat}
       <div class="bar"><span style="width:${pct}%"></span></div>
       <div class="pfoot"><small>المعيار ${esc(r.standard_code)}</small><span class="pbtn">عرض التفاصيل ${ic('arrow')}</span></div></div></a>`;
