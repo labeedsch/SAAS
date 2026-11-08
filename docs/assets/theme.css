@@ -349,3 +349,22 @@ body.pub nav a[hidden]{display:none}
 .dgrid .dcard .dgo{font-size:.78rem;margin-top:auto}
 @media (max-width:1000px){.dgrid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media (max-width:520px){.dgrid{grid-template-columns:1fr}}
+
+/* بطاقة المؤشر: رأس بلون المجال، مسؤول ومقيم، حالة التقييم */
+.pcard .phead{background:linear-gradient(135deg,var(--f),color-mix(in srgb,var(--f) 62%,#1f2937));color:#fff;padding:14px 18px;display:flex;flex-direction:column;gap:6px}
+.pcard .ptrail{font-size:.8rem;opacity:.92;font-weight:600}
+.pcard .pcode small{font-size:.72rem;opacity:.85;margin-inline-end:6px}.pcard .pcode b{font-size:1.5rem;font-weight:800}
+.pcard .psub{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.pwho{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:10px 0}
+.pwho>div{display:flex;flex-direction:column;gap:4px;padding:8px 10px;border-radius:12px;background:color-mix(in srgb,var(--f) 8%,var(--surface));min-width:0}
+.pwho small{font-size:.7rem;color:var(--muted)} .pwho b{font-size:.85rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pwho .av{width:26px;height:26px;font-size:.72rem;background:var(--f);color:#fff}
+.pstat{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:12px;margin:8px 0;background:color-mix(in srgb,var(--lc,#6b7280) 13%,var(--surface));border:1px solid color-mix(in srgb,var(--lc,#6b7280) 35%,transparent)}
+.pstat.excellence{--lc:var(--c4f)}.pstat.advancement{--lc:var(--c1f)}.pstat.launch{--lc:var(--c3f)}.pstat.preparation{--lc:var(--c5f)}
+.pstat .pst-l{display:flex;align-items:center;gap:5px;font-size:.78rem;color:var(--muted);flex:1}.pstat .ico{width:16px;height:16px}
+.pstat .pst-v{color:var(--lc);font-size:.95rem}.pstat .pst-p{background:var(--lc);color:#fff;border-radius:99px;padding:2px 10px;font-weight:800;font-size:.85rem}
+.pcard .pbtn{background:var(--f);color:#fff}.pcard:hover .pbtn{background:color-mix(in srgb,var(--f) 80%,#000)}
+.pcard .bar span{background:var(--f)}
+.pcard .bar>span,.pcard .bar span{background:var(--f)!important}
+.pwho>div{flex-direction:row;flex-wrap:wrap;align-items:center}.pwho small{flex-basis:100%}
+.pwho b{flex:1;min-width:0}

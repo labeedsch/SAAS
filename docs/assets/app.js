@@ -109,12 +109,16 @@ function pcard(r) {
   const person = isTeam()
     ? `<span class="av">${rp.length ? esc(initials(rp[0])) : ic('users')}</span><div><b title="${esc(rp.join('، '))}">${firstPlus(rp)}</b><small>${ic('users')} المقيم: <span title="${esc(ev.join('، '))}">${firstPlus(ev)}</span></small></div>`
     : `<span class="av">${ic(DIC[i % 4])}</span><div><b>${esc(r.standard_name)}</b><small>${ic('layers')} المعيار ${esc(r.standard_code)}</small></div>`;
+  const stat = pub
+    ? `<div class="pstat ${LV[r.level_label] || 'none'}"><span class="pst-l">${ic('check')} تم التقييم</span><b class="pst-v">${esc(r.level_label || 'منشور')}</b><span class="pst-p">${r.achievement_pct != null ? num(Math.round(r.achievement_pct)) + '٪' : '—'}</span></div>`
+    : `<div class="pstat none"><span class="pst-l">${ic('cal')} لم يُنشر التقييم بعد</span></div>`;
+  const who = isTeam()
+    ? `<div class="pwho"><div><small>مسؤول المؤشر</small><span class="av">${rp.length ? esc(initials(rp[0])) : ic('users')}</span><b title="${esc(rp.join('، '))}">${firstPlus(rp)}</b></div><div><small>المقيم</small><b title="${esc(ev.join('، '))}">${firstPlus(ev)}</b></div></div>` : '';
   return `<a class="pcard" style="--b:var(--c${k}b);--f:var(--c${k}f)" href="#ind/${r.cycle_id}/${r.indicator_id}">
-    <div class="pimg">${illus(i)}${badge}</div>
-    <div class="pbody"><span class="pchip2">${ic('doc')} ${esc(r.domain_name)}</span>
-      <h3>المؤشر ${esc(r.indicator_code)}</h3><p class="psub">${esc(r.official_text)}</p>
-      <div class="pperson">${person}</div>
-      <div class="prow"><span>نسبة التحقق</span><b>${pub ? num(pct) + '٪' : '—'}</b></div><div class="bar"><span style="width:${pct}%"></span></div>
+    <div class="phead"><span class="ptrail">${esc(r.domain_name)} ‹ ${esc(r.standard_name)}</span><div class="pcode"><small>المؤشر</small><b>${esc(r.indicator_code)}</b></div></div>
+    <div class="pbody"><p class="psub">${esc(r.official_text)}</p>
+      ${who}${stat}
+      <div class="bar"><span style="width:${pct}%"></span></div>
       <div class="pfoot"><small>المعيار ${esc(r.standard_code)}</small><span class="pbtn">عرض التفاصيل ${ic('arrow')}</span></div></div></a>`;
 }
 
