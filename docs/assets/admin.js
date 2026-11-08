@@ -25,10 +25,25 @@ const MENU = [
 ];
 const allowed = (r) => r === '*' || r.includes(role());
 
+const CHEV = raw('<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>');
+// القائمة العلوية: عناصر قبل أول مجموعة تظهر مباشرة، وكل مجموعة تُفتح كقائمة منسدلة
 function drawMenu() {
   const cur = location.hash.slice(1).split('/')[0] || 'dashboard';
-  put($('#menu'), h`${MENU.filter(m => m[0] === 'grp' || allowed(m[2])).map(m => m[0] === 'grp' ? h`<div class="grp">${m[1]}</div>` : h`<a href="#${m[0]}" class="${m[0] === cur ? 'on' : ''}">${m[1]}</a>`)}`);
+  const groups = []; let g = { title: null, items: [] }; groups.push(g);
+  for (const m of MENU) { if (m[0] === 'grp') { g = { title: m[1], items: [] }; groups.push(g); } else if (allowed(m[2])) g.items.push(m); }
+  const link = m => h`<a href="#${m[0]}" class="${m[0] === cur ? 'on' : ''}" ${m[0] === cur ? raw('aria-current="page"') : ''}>${m[1]}</a>`;
+  put($('#menu'), h`${groups.filter(x => x.items.length).map(x => x.title === null ? x.items.map(link)
+    : h`<div class="mg"><button type="button" class="mb ${x.items.some(m => m[0] === cur) ? 'on' : ''}" data-mg aria-haspopup="true" aria-expanded="false">${x.title}${CHEV}</button><div class="mdd">${x.items.map(link)}</div></div>`)}`);
 }
+const closeMenus = () => $$('#menu .mg.open').forEach(el => { el.classList.remove('open'); el.querySelector('[data-mg]').setAttribute('aria-expanded', 'false'); });
+document.addEventListener('click', e => {
+  const b = e.target.closest('[data-mg]');
+  if (!b) { closeMenus(); return; }
+  const grp = b.parentElement, was = grp.classList.contains('open');
+  closeMenus();
+  if (!was) { grp.classList.add('open'); b.setAttribute('aria-expanded', 'true'); }
+});
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeMenus(); });
 
 async function boot() {
   const { data: { session } } = await sb.auth.getSession();
@@ -74,7 +89,7 @@ function showLogin(msg = '') {
 
 async function route() {
   const parts = location.hash.slice(1).split('/'); const name = parts[0] || 'dashboard';
-  drawMenu(); $('#side').classList.remove('open');
+  drawMenu();
   const m = MENU.find(x => x[0] === name);
   const view = $('#view');
   if (!Pages[name] || (m && !allowed(m[2]))) { put(view, h`<div class="pn"><p>الصفحة غير متاحة لدورك.</p></div>`); return; }
@@ -96,7 +111,6 @@ document.addEventListener('click', async e => {
 });
 $('#cycSel').onchange = e => { S.cid = e.target.value || null; try { localStorage.setItem('cyc', S.cid || ''); } catch {} route(); };
 $('#out').onclick = async () => { await sb.auth.signOut(); S.me = null; showLogin(); };
-$('#burger').onclick = () => $('#side').classList.toggle('open');
 window.addEventListener('hashchange', route);
 Act.print = () => window.print();
 Act.back = () => history.back();
