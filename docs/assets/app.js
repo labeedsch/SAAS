@@ -78,7 +78,7 @@ function domCards(id, rs) {
     const dr = rs.filter(r => r.domain_id === d.domain_id), p = pubCount(dr), k = DOM[i % 4], pc = pctOf(p, dr.length);
     const nst = new Set(dr.map(r => r.standard_id)).size;
     const keys = ['excellence', 'advancement', 'launch', 'preparation', 'nolevel', 'unpub'].map(key => [key, dr.filter(r => stOf(r) === key).length]).filter(x => x[1]);
-    return `<a class="dcard" style="--b:var(--c${k}b);--f:var(--c${k}f)" href="#domain/${id}/${d.domain_id}">
+    return `<div class="dcard" role="button" tabindex="0" data-fdom="${d.domain_id}" aria-pressed="false" style="--b:var(--c${k}b);--f:var(--c${k}f)">
       <span class="dnum" aria-hidden="true">${num(d.domain_code)}</span>
       <div class="dtop"><span class="dic">${ic(DIC[i % 4])}</span><div class="dtit"><small>المجال ${num(d.domain_code)}</small><h3>${esc(d.domain_name)}</h3></div>
         <div class="dring" style="--p:${pc}" role="img" aria-label="نسبة النشر ${pc}٪"><b>${num(pc)}٪</b></div></div>
@@ -86,7 +86,7 @@ function domCards(id, rs) {
       <div class="dseg" role="img" aria-label="توزيع المستويات">${keys.map(([key, c]) => `<i class="sg ${key}" style="flex:${c}" title="${STL[key]}: ${num(c)}"></i>`).join('')}</div>
       <div class="dleg">${keys.map(([key, c]) => `<span><i class="dot ${key}"></i>${STL[key]} <b>${num(c)}</b></span>`).join('')}</div>
       ${isTeam() ? `<div class="dppl"><span>${ic('users')} المقيم: ${names(peopleOf(dr, 'eval'))}</span></div>` : ''}
-      <span class="dgo">عرض المجال ${ic('arrow')}</span></a>`;
+      <div class="dgo2"><span class="dfil">${ic('search')} فرز المؤشرات</span><a class="dgo" href="#domain/${id}/${d.domain_id}" data-go>الانتقال إلى صفحة المجال ${ic('arrow')}</a></div></div>`;
   }).join('')}</div>`;
 }
 
@@ -115,9 +115,9 @@ function pcard(r) {
   const who = isTeam()
     ? `<div class="pwho"><div><small>مسؤول المؤشر</small><span class="av">${rp.length ? esc(initials(rp[0])) : ic('users')}</span><b title="${esc(rp.join('، '))}">${firstPlus(rp)}</b></div><div><small>المقيم</small><b title="${esc(ev.join('، '))}">${firstPlus(ev)}</b></div></div>` : '';
   return `<a class="pcard" style="--b:var(--c${k}b);--f:var(--c${k}f)" href="#ind/${r.cycle_id}/${r.indicator_id}">
-    <div class="phead sm"><span>${ic('layers')} المجال ${num(r.domain_code)}</span><b>${esc(r.domain_name)}</b></div>
+    <div class="phead sm" data-fdom="${r.domain_id}" title="فرز حسب هذا المجال"><span>${ic('layers')} المجال ${num(r.domain_code)}</span><b>${esc(r.domain_name)}</b><em class="pgo" data-go="#domain/${r.cycle_id}/${r.domain_id}" title="الانتقال إلى صفحة المجال">${ic('arrow')}</em></div>
     <div class="pimg">${illus(i)}${badge}</div>
-    <div class="pbody"><span class="pchip2">${ic('doc')} المعيار ${esc(r.standard_code)} · ${esc(r.standard_name)}</span>
+    <div class="pbody"><span class="pchip2" data-fstd="${r.standard_id}" title="فرز حسب هذا المعيار">${ic('doc')} المعيار ${esc(r.standard_code)} · ${esc(r.standard_name)}<em class="pgo" data-go="#standard/${r.cycle_id}/${r.standard_id}" title="الانتقال إلى صفحة المعيار">${ic('arrow')}</em></span>
       <h3>المؤشر ${esc(r.indicator_code)}</h3><p class="psub">${esc(r.official_text)}</p>
       ${who}${stat}
       <div class="bar"><span style="width:${pct}%"></span></div>
@@ -222,7 +222,7 @@ function home() {
     <div class="h2-panel"><div class="h2-ring" style="--p:${first ? pp : 0}" role="img" aria-label="نسبة النشر ${pp}٪"><div><b>${first ? num(pp) + '٪' : '—'}</b><small>نسبة النشر</small></div></div>
       <div class="h2-stats"><div><b>${num(first ? cnt('domain_id') : 4)}</b><span>مجالات</span></div><div><b>${num(first ? cnt('standard_id') : 11)}</b><span>معياراً</span></div>
         <div><b>${num(first ? rs.length : 49)}</b><span>مؤشراً</span></div><div><b>${first ? num(pub) : '—'}</b><span>${first ? 'منشورة' : 'لا دورة منشورة'}</span></div></div></div></section>` +
-    (first && rs.length ? `<div class="sec"><div><h2>مجالات التقويم</h2><p class="muted sub">اضغط على أي مجال لعرض معاييره ومؤشراته.</p></div></div>` + domCards(first[0], rs) +
+    (first && rs.length ? `<div class="sec"><div><h2>مجالات التقويم</h2><p class="muted sub">اضغط على أي مجال لفرز المؤشرات به، أو انتقل إلى صفحته الكاملة.</p></div></div>` + domCards(first[0], rs) +
       `<div class="sec" id="ihead"><div><h2>مؤشرات التقويم</h2><p class="muted sub">ابحث وافرز وجمّع المؤشرات كما تريد.</p></div><span class="chip" id="icount"></span></div>
       <div class="fbar" id="fbar" role="search"><label class="fsearch">${ic('search')}<input type="search" id="iq" placeholder="ابحث بالرمز أو النص أو المسؤول أو المقيم" value="${esc(hm.q)}" aria-label="بحث في المؤشرات"></label>
         <button type="button" class="fbtn" id="advbtn" aria-expanded="false"></button><div class="pills2" id="pills"></div><div class="vbtns" id="vbtns"></div></div>
@@ -249,7 +249,21 @@ function home() {
       again();
       if (t.dataset && t.dataset.f) { const el = [...document.querySelectorAll('.fopt input')].find(x => x.dataset.f === t.dataset.f && x.dataset.v === t.dataset.v); if (el) el.focus(); }
     };
-    again();
+    const sync = () => document.querySelectorAll('.dcard[data-fdom]').forEach(c => { const on = hm.f.dom.length === 1 && hm.f.dom[0] === c.dataset.fdom && !hm.f.std.length; c.classList.toggle('on', on); c.setAttribute('aria-pressed', on); });
+    const pick = (kind, id) => {
+      if (kind === 'dom') { const same = hm.f.dom.length === 1 && hm.f.dom[0] === id && !hm.f.std.length; hm.f.dom = same ? [] : [id]; hm.f.std = []; hm.open.dom = true; }
+      else { const same = hm.f.std.length === 1 && hm.f.std[0] === id; hm.f.std = same ? [] : [id]; hm.f.dom = []; hm.open.std = true; }
+      again(); sync(); const h = $('#ihead'); if (h && h.scrollIntoView) h.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    };
+    const clickH = e => {
+      const go = e.target.closest('[data-go]');
+      if (go) { e.preventDefault(); e.stopPropagation(); location.hash = go.getAttribute('href') || go.dataset.go; return; }
+      const fs = e.target.closest('[data-fstd]'), fd = e.target.closest('[data-fdom]');
+      if (fs) { e.preventDefault(); pick('std', fs.dataset.fstd); } else if (fd) { e.preventDefault(); pick('dom', fd.dataset.fdom); }
+    };
+    view.onclick = clickH;
+    view.onkeydown = e => { if ((e.key === 'Enter' || e.key === ' ') && e.target.matches('.dcard[data-fdom]')) { e.preventDefault(); pick('dom', e.target.dataset.fdom); } };
+    again(); sync();
   }
 }
 
@@ -375,6 +389,8 @@ function route() {
   const [h, a, b] = location.hash.slice(1).split('/');
   document.querySelectorAll('#nav a').forEach(x => x.classList.toggle('on', x.dataset.n === (h || 'home') || (x.dataset.n === 'results' && ['cycle','domain','standard','ind'].includes(h))));
   window.scrollTo(0, 0);
+  view.onkeydown = null;
+  view.onclick = e => { const go = e.target.closest('[data-go]'); if (go) { e.preventDefault(); location.hash = go.dataset.go; } };
   ({ '': home, home, results, login }[h] || (() => ({ cycle: () => cycle(a), domain: () => domain(a, b), standard: () => standard(a, b), ind: () => indicator(a, b) }[h] || home)()))();
 }
 async function boot() { try { await load(); route(); } catch (e) { view.innerHTML = `<div class="panel"><p class="err">تعذّر تحميل البيانات. أعد المحاولة لاحقاً.</p></div>`; console.error(e); } }
