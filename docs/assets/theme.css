@@ -334,3 +334,18 @@ body.pub nav a[hidden]{display:none}
 .irow{display:flex;align-items:center;gap:12px;padding:10px 14px;background:var(--surface);border:1px solid var(--line,#e5e7eb);border-inline-start:6px solid var(--lv);border-radius:10px;text-decoration:none;color:inherit}
 .irow code{font-weight:800;color:var(--lv);min-width:48px}.irow .itx{flex:1;font-size:.9rem}
 .wcard.glv .wcode{background:var(--lv)} .srow.glv{border-inline-start:6px solid var(--lv)} .srow.glv code{color:var(--lv)}
+
+/* بطاقات المجالات الرئيسية: مدمجة، بحجم واحد، في سطر واحد */
+.dgrid{grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;grid-auto-rows:1fr}
+.dgrid .dcard{padding:14px 14px 12px;gap:9px;border-radius:20px;min-height:0}
+.dgrid .dcard .dnum{display:none}
+.dgrid .dcard .dtop{gap:8px}
+.dgrid .dcard .dic{width:34px;height:34px;flex:none}
+.dgrid .dcard .dtit h3{font-size:.95rem;line-height:1.35}
+.dgrid .dcard .dtit small{font-size:.7rem}
+.dgrid .dcard .dring{width:44px;height:44px;flex:none;font-size:.7rem}
+.dgrid .dcard .dchips{gap:4px}.dgrid .dcard .dchips span{font-size:.68rem;padding:3px 7px}
+.dgrid .dcard .dleg,.dgrid .dcard .dppl{display:none}
+.dgrid .dcard .dgo{font-size:.78rem;margin-top:auto}
+@media (max-width:1000px){.dgrid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:520px){.dgrid{grid-template-columns:1fr}}
