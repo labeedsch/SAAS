@@ -185,3 +185,42 @@ form.f{display:grid;gap:12px;max-width:420px}
 .toolbar.adv .flt2 select{width:100%}
 @media (max-width:640px){.toolbar.adv .flt2{flex:1 1 100%}.toolbar.adv .btn{flex:1 1 100%;justify-content:center}}
 @media (max-width:640px){.toolbar.adv .flt2{flex:1 1 calc(50% - 8px);min-width:0}.toolbar.adv .flt2.grow{flex:1 1 100%}}
+/* ───── شريط الفرز المتقدم (بنمط الخطط الذكية) ───── */
+.fbar{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin:14px 0 10px}
+.fsearch{display:flex;align-items:center;gap:8px;flex:1 1 260px;max-width:380px;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:0 14px;min-height:46px;box-shadow:var(--shadow)}
+.fsearch .ico{width:20px;height:20px;color:var(--muted);flex:none}
+.fsearch input{flex:1;min-width:0;border:0;background:transparent;font:inherit;color:var(--ink);padding:10px 0;outline:0}
+.fsearch:focus-within{outline:2px solid var(--brand);outline-offset:2px}
+.fbtn,.vbtn,.spill{font:inherit;cursor:pointer;display:inline-flex;align-items:center;gap:8px;border-radius:16px;border:1px solid var(--line);background:var(--surface);color:var(--ink);min-height:46px;padding:0 18px;font-weight:600;box-shadow:var(--shadow);transition:transform .12s}
+.fbtn .ico,.vbtn .ico{width:20px;height:20px}
+.fbtn.on,.vbtn.on{background:var(--grad);color:#fff;border-color:transparent}
+.fbtn:focus-visible,.vbtn:focus-visible,.spill:focus-visible,.fhead:focus-visible,.fopt input:focus-visible{outline:2px solid var(--brand);outline-offset:2px}
+.fn{font-style:normal;background:var(--acc,#f0b34a);color:#3b2a06;border-radius:99px;min-width:22px;height:22px;display:inline-grid;place-items:center;font-size:.78rem;font-weight:800;padding:0 6px}
+.pills2{display:flex;flex-wrap:wrap;gap:8px;flex:1 1 auto}
+.spill{min-height:42px;padding:0 14px;border-radius:99px;font-weight:500;box-shadow:none}
+.spill em{font-style:normal;font-size:.78rem;color:var(--muted);font-variant-numeric:tabular-nums}
+.spill.on{background:var(--grad);color:#fff;border-color:transparent;font-weight:700} .spill.on em{color:rgba(255,255,255,.85)}
+.spill.zero:not(.on){opacity:.55}
+.dot{width:9px;height:9px;border-radius:50%;background:var(--muted);flex:none}
+.dot.all{background:var(--brand)} .dot.excellence{background:var(--c4f)} .dot.advancement{background:var(--c1f)} .dot.launch{background:var(--c3f)} .dot.preparation{background:var(--c5f)}
+.spill.on .dot{box-shadow:0 0 0 2px rgba(255,255,255,.7)}
+.vbtns{display:flex;gap:8px;margin-inline-start:auto}
+.fpanel{background:var(--surface);border:1px solid var(--line);border-radius:24px;padding:18px;box-shadow:var(--shadow);margin-bottom:18px}
+.fpanel[hidden]{display:none}
+.frow{display:flex;flex-wrap:wrap;gap:12px;padding-bottom:16px;margin-bottom:16px;border-bottom:1px dashed var(--line);align-items:center}
+.fsel{display:flex;align-items:center;gap:8px;flex:1 1 260px;max-width:380px;border:1px solid var(--line);border-radius:14px;background:var(--surface);padding:0 12px;min-height:46px}
+.fsel .ico{width:20px;height:20px;color:var(--muted);flex:none}
+.fsel select{flex:1;min-width:0;border:0;background:transparent;font:inherit;color:var(--ink);padding:10px 0;cursor:pointer;outline:0}
+.fsel:focus-within{outline:2px solid var(--brand);outline-offset:2px}
+.fgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,250px),1fr));gap:12px;align-items:start}
+.facet{border:1px solid var(--line);border-radius:16px;background:var(--surface);overflow:hidden}
+.fhead{width:100%;display:flex;align-items:center;gap:10px;padding:13px 14px;border:0;background:transparent;font:inherit;color:var(--ink);cursor:pointer;text-align:start}
+.fhead>.ico{width:20px;height:20px;color:var(--brand2);flex:none} .fhead b{flex:1}
+.chev{display:grid;place-items:center;transition:transform .15s} .chev .ico{width:18px;height:18px;color:var(--muted)} .facet.open .chev{transform:rotate(180deg)}
+.fbody{max-height:268px;overflow:auto;padding:2px 10px 10px;display:flex;flex-direction:column;gap:2px;border-top:1px solid var(--line)}
+.fopt{display:flex;align-items:center;gap:10px;padding:8px 6px;border-radius:10px;cursor:pointer;font-size:.92rem}
+.fopt:hover{background:var(--soft)} .fopt span{flex:1;min-width:0} .fopt em{font-style:normal;color:var(--muted);font-size:.82rem;font-variant-numeric:tabular-nums}
+.fopt input{width:18px;height:18px;accent-color:var(--brand);flex:none;cursor:pointer} .fopt.zero{opacity:.5}
+/* عرض القائمة */
+.lrows{margin:14px 0 24px} .lrow{align-items:center} .lrow p{line-height:1.8} .lmeta{display:block;color:var(--muted);font-size:.84rem;margin-top:2px}
+@media (max-width:760px){.fsearch{max-width:none;flex-basis:100%}.vbtns{margin-inline-start:0;width:100%}.vbtn{flex:1;justify-content:center}.pills2{flex-basis:100%}.fsel{max-width:none;flex-basis:100%}}

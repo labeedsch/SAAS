@@ -15,7 +15,9 @@ const IC = {
 };
 Object.assign(IC, {
   arrow:'<path d="M19 12H5M11 6l-6 6 6 6"/>', users:'<circle cx="9" cy="8" r="3"/><path d="M3 19c0-3 3-5 6-5s6 2 6 5M16 5a3 3 0 010 6M18 14c2 .6 3 2.2 3 5"/>',
-  reset:'<path d="M4 12a8 8 0 108-8H7M7 4L4 7l3 3"/>' });
+  reset:'<path d="M4 12a8 8 0 108-8H7M7 4L4 7l3 3"/>', search:'<circle cx="11" cy="11" r="6"/><path d="M20 20l-4-4"/>',
+  grid:'<rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="7" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/><rect x="13" y="13" width="7" height="7" rx="1.5"/>',
+  list:'<path d="M9 6h11M9 12h11M9 18h11M4 6h.01M4 12h.01M4 18h.01"/>', chev:'<path d="M7 10l5 5 5-5"/>' });
 const ic = n => `<svg class="ico" viewBox="0 0 24 24" aria-hidden="true">${IC[n]}</svg>`;
 const DIC = ['book', 'bars', 'target', 'shield'];
 let rows = [], session = null, role = null;
@@ -99,37 +101,94 @@ function pcard(r) {
       <div class="pfoot"><small>المعيار ${esc(r.standard_code)}</small><span class="pbtn">عرض التفاصيل ${ic('arrow')}</span></div></div></a>`;
 }
 
-// فرز متقدم: الفلاتر يضبطها المستخدم، والبطاقات كلها متتالية بلا تجميع
+// ───────── الفرز المتقدم: نفس آلية الخطط الذكية ببيانات التقويم ─────────
 const NOP = '__none';
-let hm = { dom: '', resp: '', eval: '', q: '' };
-const optList = (vals, cur) => vals.map(([v, t]) => `<option value="${esc(v)}"${cur === v ? ' selected' : ''}>${esc(t)}</option>`).join('');
-function filtersHtml(rs) {
-  const doms = [...new Map(rs.map(r => [r.domain_id, r]))].map(([, r]) => r).sort((a, b) => sortCodes(a.domain_code, b.domain_code));
-  const sel = (id, label, first, opts) => `<label class="flt2"><span>${label}</span><select id="${id}" aria-label="${label}"><option value="">${first}</option>${opts}</select></label>`;
-  let h = sel('f-dom', 'المجال', 'كل المجالات', optList(doms.map(d => [d.domain_id, d.domain_name]), hm.dom));
-  if (isTeam()) for (const [id, key, label] of [['f-resp', 'resp', 'المسؤول'], ['f-eval', 'eval', 'المقيم (المنفذ)']]) {
-    const ns = peopleOf(rs, key).sort((a, b) => a.localeCompare(b, 'ar'));
-    h += sel(id, label, 'الكل', optList([...ns.map(n => [n, n]), [NOP, 'غير مُسند']], hm[key]));
-  }
-  return h;
-}
-function matches(r) {
-  if (hm.dom && r.domain_id !== hm.dom) return false;
-  for (const key of ['resp', 'eval']) { if (!hm[key] || !isTeam()) continue; const o = ownersOf(r, key); if (hm[key] === NOP ? o.length : !o.includes(hm[key])) return false; }
+const ST = [['excellence', 'التميز'], ['advancement', 'التقدم'], ['launch', 'الانطلاق'], ['preparation', 'التهيئة'], ['unpub', 'غير منشور']];
+const STL = { ...Object.fromEntries(ST), nolevel: 'منشور بلا مستوى' };
+const stOf = r => r.publish_state !== 'published' ? 'unpub' : (LV[r.level_label] || 'nolevel');
+const FACETS = [['dom', 'المجال', 'layers', false], ['std', 'المعيار', 'doc', false], ['eval', 'المقيم (المنفذ)', 'users', true], ['resp', 'المسؤول', 'users', true]];
+const SORTS = [['code', 'ترتيب: الرمز'], ['pct_desc', 'ترتيب: نسبة التحقق (الأعلى)'], ['pct_asc', 'ترتيب: نسبة التحقق (الأدنى)'], ['level', 'ترتيب: المستوى']];
+const GROUPS = [['none', 'بدون تجميع', false], ['dom', 'تجميع: المجال', false], ['std', 'تجميع: المعيار', false], ['level', 'تجميع: المستوى', false], ['resp', 'تجميع: المسؤول', true], ['eval', 'تجميع: المقيم (المنفذ)', true]];
+const freshHm = () => ({ q: '', st: '', sort: 'code', group: 'none', view: 'cards', adv: false, f: { dom: [], std: [], eval: [], resp: [] }, open: { dom: true, eval: true, std: false, resp: false } });
+let hm = freshHm();
+
+const fvals = (r, k) => { if (k === 'dom') return [r.domain_id]; if (k === 'std') return [r.standard_id]; const o = ownersOf(r, k); return o.length ? o : [NOP]; };
+function pass(r, skip) {
+  if (skip !== 'st' && hm.st && stOf(r) !== hm.st) return false;
+  for (const [k, , , team] of FACETS) { if (k === skip || !hm.f[k].length || (team && !isTeam())) continue; if (!fvals(r, k).some(v => hm.f[k].includes(v))) return false; }
   const q = hm.q.trim().toLowerCase();
   return !q || [r.indicator_code, r.official_text, r.domain_name, r.standard_name, ...ownersOf(r, 'resp'), ...ownersOf(r, 'eval')].join(' ').toLowerCase().includes(q);
 }
+function facetOpts(k, all) {
+  if (k === 'dom') return [...new Map(all.map(r => [r.domain_id, r]))].map(([id, r]) => [id, r.domain_name, r.domain_code]).sort((a, b) => sortCodes(a[2], b[2]));
+  if (k === 'std') return [...new Map(all.map(r => [r.standard_id, r]))].map(([id, r]) => [id, `${r.standard_code} · ${r.standard_name}`, r.standard_code]).sort((a, b) => sortCodes(a[2], b[2]));
+  return [...peopleOf(all, k).sort((a, b) => a.localeCompare(b, 'ar')).map(n => [n, n]), [NOP, 'غير مُسند']];
+}
+const lrank = r => { const i = ST.findIndex(x => x[0] === stOf(r)); return i < 0 ? 3.5 : i; };
+const pctv = r => r.publish_state === 'published' ? Number(r.achievement_pct) || 0 : -1;
+function sortRows(rs) {
+  const a = [...rs], c = (x, y) => sortCodes(x.indicator_code, y.indicator_code);
+  if (hm.sort === 'pct_desc') a.sort((x, y) => pctv(y) - pctv(x) || c(x, y));
+  else if (hm.sort === 'pct_asc') a.sort((x, y) => (pctv(x) < 0) - (pctv(y) < 0) || pctv(x) - pctv(y) || c(x, y));
+  else if (hm.sort === 'level') a.sort((x, y) => lrank(x) - lrank(y) || c(x, y));
+  else a.sort(c);
+  return a;
+}
+function groupRows(rs) {
+  const g = hm.group; if (g === 'none' || (!isTeam() && (g === 'resp' || g === 'eval'))) return [[null, rs]];
+  const m = new Map(), add = (key, label, r) => { const e = m.get(key) || { label, list: [] }; e.list.push(r); m.set(key, e); };
+  rs.forEach(r => {
+    if (g === 'dom') add(r.domain_code, r.domain_name, r);
+    else if (g === 'std') add(r.standard_code, `المعيار ${r.standard_code} · ${r.standard_name}`, r);
+    else if (g === 'level') add(String(lrank(r)), STL[stOf(r)], r);
+    else { const o = ownersOf(r, g); (o.length ? o : [NOP]).forEach(n => add(n, n === NOP ? 'غير مُسند' : n, r)); }
+  });
+  const people = g === 'resp' || g === 'eval';
+  return [...m].sort((a, b) => people ? (a[0] === NOP) - (b[0] === NOP) || a[1].label.localeCompare(b[1].label, 'ar') : sortCodes(a[0], b[0])).map(([, e]) => [e.label, e.list]);
+}
+
+function lrow(r) {
+  const pub = r.publish_state === 'published';
+  return `<a class="ind lrow" href="#ind/${r.cycle_id}/${r.indicator_id}"><code>${esc(r.indicator_code)}</code>
+    <p>${esc(r.official_text)}<small class="lmeta">${esc(r.domain_name)} · المعيار ${esc(r.standard_code)}${isTeam() ? ` · المسؤول: ${names(ownersOf(r, 'resp'))} · المقيم: ${names(ownersOf(r, 'eval'))}` : ''}</small></p>
+    ${pub ? `${lvl(r.level_label)} <span class="pct">${num(r.achievement_pct)}٪</span>` : '<span class="lvl none">غير منشور</span>'}</a>`;
+}
+function pillsHtml(all) {
+  const base = all.filter(r => pass(r, 'st'));
+  const keys = [...ST.map(x => x[0])]; if (all.some(r => stOf(r) === 'nolevel')) keys.splice(4, 0, 'nolevel');
+  const mk = (key, label, n) => `<button type="button" class="spill${hm.st === key ? ' on' : ''}${n ? '' : ' zero'}" data-st="${key}" aria-pressed="${hm.st === key}"><i class="dot ${key || 'all'}"></i>${label}<em>${num(n)}</em></button>`;
+  return mk('', 'الكل', base.length) + keys.map(k => mk(k, STL[k], base.filter(r => stOf(r) === k).length)).join('');
+}
+function panelHtml(all) {
+  const sel = (id, ico, opts, cur) => `<label class="fsel">${ic(ico)}<select id="${id}">${opts.map(o => `<option value="${o[0]}"${cur === o[0] ? ' selected' : ''}>${o[1]}</option>`).join('')}</select></label>`;
+  return `<div class="frow">${sel('f-sort', 'bars', SORTS, hm.sort)}${sel('f-group', 'layers', GROUPS.filter(g => !g[2] || isTeam()), hm.group)}<button type="button" class="btn soft" data-reset>${ic('reset')} إعادة ضبط</button></div>
+    <div class="fgrid">${FACETS.filter(f => !f[3] || isTeam()).map(([k, title, icon]) => {
+      const open = hm.open[k], n = hm.f[k].length;
+      return `<section class="facet${open ? ' open' : ''}"><button type="button" class="fhead" data-fh="${k}" aria-expanded="${open}">${ic(icon)}<b>${title}</b>${n ? `<em class="fn">${num(n)}</em>` : ''}<span class="chev">${ic('chev')}</span></button>` +
+        (open ? `<div class="fbody">${facetOpts(k, all).map(([v, t]) => { const c = all.filter(r => pass(r, k) && fvals(r, k).includes(v)).length;
+          return `<label class="fopt${c ? '' : ' zero'}"><input type="checkbox" data-f="${k}" data-v="${esc(v)}"${hm.f[k].includes(v) ? ' checked' : ''}><span>${esc(t)}</span><em>${num(c)}</em></label>`; }).join('')}</div>` : '') + `</section>`; }).join('')}</div>`;
+}
+
 function renderList(cid) {
-  const all = byCycle(cid), rs = all.filter(matches).sort((a, b) => sortCodes(a.indicator_code, b.indicator_code));
+  const all = byCycle(cid), rs = sortRows(all.filter(r => pass(r)));
   $('#icount').textContent = `${num(rs.length)} من ${num(all.length)} مؤشراً`;
-  $('#ilist').innerHTML = rs.length ? `<div class="pgrid">${rs.map(pcard).join('')}</div>` : `<div class="panel"><p class="muted">لا توجد مؤشرات مطابقة. غيّر الفلاتر أو أعد ضبطها.</p></div>`;
+  $('#pills').innerHTML = pillsHtml(all);
+  const nf = Object.entries(hm.f).filter(([k]) => isTeam() || k === 'dom' || k === 'std').reduce((n, [, a]) => n + a.length, 0);
+  $('#advbtn').className = 'fbtn' + (hm.adv ? ' on' : ''); $('#advbtn').setAttribute('aria-expanded', hm.adv);
+  $('#advbtn').innerHTML = `${ic('layers')} الفرز المتقدم${nf ? ` <em class="fn">${num(nf)}</em>` : ''}`;
+  $('#vbtns').innerHTML = [['list', 'عرض القائمة'], ['cards', 'عرض البطاقات']].map(([v, t]) => `<button type="button" class="vbtn${hm.view === v ? ' on' : ''}" data-view="${v}" aria-pressed="${hm.view === v}">${ic(v === 'cards' ? 'grid' : 'list')} <span>${t}</span></button>`).join('');
+  const fp = $('#fpanel'); fp.hidden = !hm.adv;
+  if (hm.adv) { const sc = [...document.querySelectorAll('.fbody')].map(e => e.scrollTop); fp.innerHTML = panelHtml(all); [...document.querySelectorAll('.fbody')].forEach((e, i) => { e.scrollTop = sc[i] || 0; }); }
+  $('#ilist').innerHTML = rs.length ? groupRows(rs).map(([g, list]) => (g ? `<div class="sec"><h2>${esc(g)}</h2><span class="chip">${num(list.length)} مؤشراً</span></div>` : '') +
+    (hm.view === 'list' ? `<div class="lrows">${list.map(lrow).join('')}</div>` : `<div class="pgrid">${list.map(pcard).join('')}</div>`)).join('')
+    : `<div class="panel"><p class="muted">لا توجد مؤشرات مطابقة. غيّر الفلاتر أو أعد ضبطها.</p></div>`;
 }
 
 function home() {
   const cs = cycles(), first = cs[0], rs = first ? byCycle(first[0]) : [];
   const pub = pubCount(rs);
   const cnt = k => new Set(rs.map(r => r[k])).size;
-  if (!isTeam()) { hm.resp = ''; hm.eval = ''; }
+  if (!isTeam()) { hm.f.eval = []; hm.f.resp = []; if (hm.group === 'resp' || hm.group === 'eval') hm.group = 'none'; }
   view.innerHTML = `<section class="hero compact"><div class="hero-txt"><span class="chip">${ic('cal')} ${first ? esc(first[1]) : 'التقويم الذاتي المدرسي'}</span>
     <h1><span class="gold">التقويم الذاتي</span> الذكي</h1>
     <p>نتائج تقويم مدرسة لبيد بن ربيعة المتوسطة: المجالات والمعايير والمؤشرات، وفق دليل هيئة تقويم التعليم والتدريب.</p></div>
@@ -138,16 +197,31 @@ function home() {
     <div class="tile"><div><b>${first ? num(pub) : '—'}</b><span>${first ? 'منشورة' : 'لا دورة منشورة'}</span></div><i>${ic('eye')}</i></div></div></section>` +
     (first && rs.length ? `<div class="sec"><h2>مجالات التقويم</h2></div>` + domCards(first[0], rs) +
       `<div class="sec"><h2>مؤشرات التقويم</h2><span class="chip" id="icount"></span></div>
-      <div class="toolbar adv" role="search"><div class="filters" id="filters">${filtersHtml(rs)}</div>
-        <label class="flt2 grow"><span>بحث</span><input type="search" id="iq" placeholder="رقم المؤشر أو نصه…" value="${esc(hm.q)}" aria-label="بحث في المؤشرات"></label>
-        <button type="button" class="btn soft" id="freset">${ic('reset')} إعادة ضبط</button></div>
-      ${isTeam() ? '' : '<p class="muted tnote">الفلترة بالمسؤول وبالمقيم متاحة لفريق التقويم بعد تسجيل الدخول.</p>'}<div id="ilist"></div>` : noResults());
+      <div class="fbar" id="fbar" role="search"><label class="fsearch">${ic('search')}<input type="search" id="iq" placeholder="ابحث بالرمز أو النص أو المسؤول أو المقيم" value="${esc(hm.q)}" aria-label="بحث في المؤشرات"></label>
+        <button type="button" class="fbtn" id="advbtn" aria-expanded="false"></button><div class="pills2" id="pills"></div><div class="vbtns" id="vbtns"></div></div>
+      <div class="fpanel" id="fpanel" hidden></div>
+      ${isTeam() ? '' : '<p class="muted tnote">الفلترة والتجميع بالمسؤول وبالمقيم متاحة لفريق التقويم بعد تسجيل الدخول.</p>'}<div id="ilist"></div>` : noResults());
   if (first && rs.length) {
-    const cid = first[0], on = (id, key) => { const el = $(id); if (el) el.onchange = e => { hm[key] = e.target.value; renderList(cid); }; };
-    on('#f-dom', 'dom'); on('#f-resp', 'resp'); on('#f-eval', 'eval');
-    $('#iq').oninput = e => { hm.q = e.target.value; renderList(cid); };
-    $('#freset').onclick = () => { hm = { dom: '', resp: '', eval: '', q: '' }; home(); };
-    renderList(cid);
+    const cid = first[0], again = () => renderList(cid);
+    $('#iq').oninput = e => { hm.q = e.target.value; again(); };
+    $('#fbar').onclick = e => {
+      const st = e.target.closest('[data-st]'), vw = e.target.closest('[data-view]'), ab = e.target.closest('#advbtn');
+      if (st) hm.st = st.dataset.st === hm.st ? '' : st.dataset.st; else if (vw) hm.view = vw.dataset.view; else if (ab) hm.adv = !hm.adv; else return;
+      again();
+    };
+    $('#fpanel').onclick = e => {
+      const fh = e.target.closest('[data-fh]');
+      if (fh) { hm.open[fh.dataset.fh] = !hm.open[fh.dataset.fh]; again(); }
+      else if (e.target.closest('[data-reset]')) { hm = { ...freshHm(), view: hm.view, adv: hm.adv }; $('#iq').value = ''; again(); }
+    };
+    $('#fpanel').onchange = e => {
+      const t = e.target;
+      if (t.dataset && t.dataset.f) { const a = hm.f[t.dataset.f], i = a.indexOf(t.dataset.v); if (i < 0) a.push(t.dataset.v); else a.splice(i, 1); }
+      else if (t.id === 'f-sort') hm.sort = t.value; else if (t.id === 'f-group') hm.group = t.value; else return;
+      again();
+      if (t.dataset && t.dataset.f) { const el = [...document.querySelectorAll('.fopt input')].find(x => x.dataset.f === t.dataset.f && x.dataset.v === t.dataset.v); if (el) el.focus(); }
+    };
+    again();
   }
 }
 
