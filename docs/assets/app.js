@@ -13,6 +13,9 @@ const IC = {
   bars:'<path d="M5 20V10M12 20V4M19 20v-7"/>', target:'<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/>',
   book:'<path d="M5 4h9a4 4 0 014 4v12H9a4 4 0 01-4-4z"/><path d="M5 16a4 4 0 014-4h9"/>', eye:'<path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>'
 };
+Object.assign(IC, {
+  arrow:'<path d="M19 12H5M11 6l-6 6 6 6"/>', users:'<circle cx="9" cy="8" r="3"/><path d="M3 19c0-3 3-5 6-5s6 2 6 5M16 5a3 3 0 010 6M18 14c2 .6 3 2.2 3 5"/>',
+  reset:'<path d="M4 12a8 8 0 108-8H7M7 4L4 7l3 3"/>' });
 const ic = n => `<svg class="ico" viewBox="0 0 24 24" aria-hidden="true">${IC[n]}</svg>`;
 const DIC = ['book', 'bars', 'target', 'shield'];
 let rows = [], session = null, role = null;
@@ -68,44 +71,65 @@ function domCards(id, rs) {
   }).join('')}</div>`;
 }
 
-const MODES = [['domain', 'بالمجال', false], ['resp', 'بالمسؤول', true], ['eval', 'بالمقيم', true], ['full', 'التفاصيل كاملة', false]];
-let hm = { mode: 'domain', q: '' };
+// رسوم المجالات الأربعة (أصلية، بنمط مسطّح: خطوط كحلية وتعبئة تيل وذهبي)
+const SP = (x, y, c = '#4a9fa8') => `<path transform="translate(${x} ${y})" d="M0-8L2-2 8 0 2 2 0 8-2 2-8 0-2-2z" fill="${c}"/>`;
+const ILL = [
+  `<rect x="115" y="34" width="90" height="34" rx="8" fill="#4a9fa8" stroke="#1d3b63" stroke-width="5"/><path d="M160 68v22M92 90h136M92 90v18M160 90v18M228 90v18" stroke="#1d3b63" stroke-width="5" fill="none" stroke-linecap="round"/><rect x="58" y="108" width="68" height="30" rx="7" fill="#fff" stroke="#1d3b63" stroke-width="5"/><rect x="126" y="108" width="68" height="30" rx="7" fill="#fff" stroke="#1d3b63" stroke-width="5"/><rect x="194" y="108" width="68" height="30" rx="7" fill="#fff" stroke="#1d3b63" stroke-width="5"/><circle cx="160" cy="51" r="9" fill="#f0b34a"/>`,
+  `<path d="M160 58c-20-14-48-14-70-6v86c22-8 50-8 70 6 20-14 48-14 70-6V52c-22-8-50-8-70 6z" fill="#fff" stroke="#1d3b63" stroke-width="5" stroke-linejoin="round"/><path d="M160 58v86" stroke="#1d3b63" stroke-width="5"/><path d="M105 78c12-3 25-2 38 3M105 98c12-3 25-2 38 3M177 81c13-5 26-6 38-3M177 101c13-5 26-6 38-3" stroke="#4a9fa8" stroke-width="5" fill="none" stroke-linecap="round"/><circle cx="236" cy="138" r="14" fill="#f0b34a" stroke="#1d3b63" stroke-width="4"/>`,
+  `<rect x="82" y="104" width="40" height="40" rx="6" fill="#4a9fa8" stroke="#1d3b63" stroke-width="5"/><rect x="140" y="80" width="40" height="64" rx="6" fill="#fff" stroke="#1d3b63" stroke-width="5"/><rect x="198" y="56" width="40" height="88" rx="6" fill="#4a9fa8" stroke="#1d3b63" stroke-width="5"/><path d="M92 82l48-26 36 12 50-30" stroke="#4fa66b" stroke-width="6" fill="none" stroke-linecap="round" stroke-linejoin="round"/><circle cx="226" cy="38" r="9" fill="#f0b34a"/>`,
+  `<path d="M160 36l62 22v40c0 32-26 50-62 62-36-12-62-30-62-62V58z" fill="#4a9fa8" stroke="#1d3b63" stroke-width="5" stroke-linejoin="round"/><path d="M130 98l22 22 40-44" stroke="#fff" stroke-width="9" fill="none" stroke-linecap="round" stroke-linejoin="round"/><circle cx="222" cy="150" r="13" fill="#f0b34a" stroke="#1d3b63" stroke-width="4"/>`];
+const illus = i => `<svg class="pill-art" viewBox="0 0 320 190" aria-hidden="true"><ellipse cx="160" cy="160" rx="92" ry="9" fill="#cfe3e8"/>${ILL[i % 4]}${SP(52, 56)}${SP(272, 112)}${SP(272, 36, '#f0b34a')}</svg>`;
+const initials = n => String(n).trim().split(/\s+/).slice(0, 2).map(w => (w.replace(/^ال/, '') || w)[0]).join('');
+const firstPlus = a => a.length ? esc(a[0]) + (a.length > 1 ? ` <small>(+${num(a.length - 1)})</small>` : '') : NONE;
 const dColor = r => DOM[Math.max(0, domIdx(r.cycle_id, r.domain_id)) % 4];
 
-function icard(r, full) {
-  const k = dColor(r), pub = r.publish_state === 'published';
-  return `<a class="card icard${full ? ' full' : ''}" style="--b:var(--c${k}b);--f:var(--c${k}f)" href="#ind/${r.cycle_id}/${r.indicator_id}">
-    <div class="ih"><code>${esc(r.indicator_code)}</code><span>${pub ? lvl(r.level_label) + (full ? ` <span class="pct">${num(r.achievement_pct)}٪</span>` : '') : '<span class="lvl none">غير منشور</span>'}</span></div>
-    <p class="idesc">${esc(r.official_text)}</p>
-    ${full && pub && r.justification ? `<p class="ijust"><b>مبررات التقييم:</b> ${esc(r.justification)}</p>` : ''}
-    <div class="imeta"><span><b>المجال:</b> ${esc(r.domain_name)}</span>${full ? `<span><b>المعيار:</b> ${esc(r.standard_name)}</span>` : ''}${isTeam() ? `<span><b>المسؤول:</b> ${names(ownersOf(r, 'resp'))}</span><span><b>المقيم:</b> ${names(ownersOf(r, 'eval'))}</span>` : ''}</div></a>`;
+function pcard(r) {
+  const k = dColor(r), i = Math.max(0, domIdx(r.cycle_id, r.domain_id)), pub = r.publish_state === 'published';
+  const rp = ownersOf(r, 'resp'), ev = ownersOf(r, 'eval'), pct = pub ? Number(r.achievement_pct) || 0 : 0;
+  const badge = pub ? `<span class="sbadge ${LV[r.level_label] || 'none'}"><b>${esc(r.level_label || 'منشور')}</b><i>${ic('check')}</i></span>` : `<span class="sbadge none"><b>غير منشور</b><i>${ic('cal')}</i></span>`;
+  const person = isTeam()
+    ? `<span class="av">${rp.length ? esc(initials(rp[0])) : ic('users')}</span><div><b title="${esc(rp.join('، '))}">${firstPlus(rp)}</b><small>${ic('users')} المقيم: <span title="${esc(ev.join('، '))}">${firstPlus(ev)}</span></small></div>`
+    : `<span class="av">${ic(DIC[i % 4])}</span><div><b>${esc(r.standard_name)}</b><small>${ic('layers')} المعيار ${esc(r.standard_code)}</small></div>`;
+  return `<a class="pcard" style="--b:var(--c${k}b);--f:var(--c${k}f)" href="#ind/${r.cycle_id}/${r.indicator_id}">
+    <div class="pimg">${illus(i)}${badge}</div>
+    <div class="pbody"><span class="pchip2">${ic('doc')} ${esc(r.domain_name)}</span>
+      <h3>المؤشر ${esc(r.indicator_code)}</h3><p class="psub">${esc(r.official_text)}</p>
+      <div class="pperson">${person}</div>
+      <div class="prow"><span>نسبة التحقق</span><b>${pub ? num(pct) + '٪' : '—'}</b></div><div class="bar"><span style="width:${pct}%"></span></div>
+      <div class="pfoot"><small>المعيار ${esc(r.standard_code)}</small><span class="pbtn">عرض التفاصيل ${ic('arrow')}</span></div></div></a>`;
 }
 
-function tabsHtml() {
-  return MODES.filter(m => !m[2] || isTeam()).map(m => `<button type="button" class="tab${hm.mode === m[0] ? ' on' : ''}" data-m="${m[0]}" aria-pressed="${hm.mode === m[0]}">${m[1]}</button>`).join('');
-}
-
-function renderList(cid) {
-  const all = byCycle(cid), q = hm.q.trim().toLowerCase();
-  const rs = all.filter(r => !q || [r.indicator_code, r.official_text, r.domain_name, r.standard_name, ...ownersOf(r, 'resp'), ...ownersOf(r, 'eval')].join(' ').toLowerCase().includes(q)).sort((a, b) => sortCodes(a.indicator_code, b.indicator_code));
-  $('#tabs').innerHTML = tabsHtml(); $('#icount').textContent = `${num(rs.length)} من ${num(all.length)} مؤشراً`;
-  if (!rs.length) { $('#ilist').innerHTML = `<div class="panel"><p class="muted">لا توجد مؤشرات مطابقة للبحث.</p></div>`; return; }
-  let groups;
-  if (hm.mode === 'full') groups = [[null, rs]];
-  else if (hm.mode === 'domain') groups = [...new Map(rs.map(r => [r.domain_code + '|' + r.domain_name, r])).keys()].sort((a, b) => sortCodes(a, b)).map(key => [key.split('|')[1], rs.filter(r => r.domain_code + '|' + r.domain_name === key)]);
-  else {
-    const m = new Map(); rs.forEach(r => { const o = ownersOf(r, hm.mode); (o.length ? o : [NONE]).forEach(n => m.set(n, [...(m.get(n) || []), r])); });
-    groups = [...m].sort((a, b) => (a[0] === NONE) - (b[0] === NONE) || a[0].localeCompare(b[0], 'ar'));
+// فرز متقدم: الفلاتر يضبطها المستخدم، والبطاقات كلها متتالية بلا تجميع
+const NOP = '__none';
+let hm = { dom: '', resp: '', eval: '', q: '' };
+const optList = (vals, cur) => vals.map(([v, t]) => `<option value="${esc(v)}"${cur === v ? ' selected' : ''}>${esc(t)}</option>`).join('');
+function filtersHtml(rs) {
+  const doms = [...new Map(rs.map(r => [r.domain_id, r]))].map(([, r]) => r).sort((a, b) => sortCodes(a.domain_code, b.domain_code));
+  const sel = (id, label, first, opts) => `<label class="flt2"><span>${label}</span><select id="${id}" aria-label="${label}"><option value="">${first}</option>${opts}</select></label>`;
+  let h = sel('f-dom', 'المجال', 'كل المجالات', optList(doms.map(d => [d.domain_id, d.domain_name]), hm.dom));
+  if (isTeam()) for (const [id, key, label] of [['f-resp', 'resp', 'المسؤول'], ['f-eval', 'eval', 'المقيم (المنفذ)']]) {
+    const ns = peopleOf(rs, key).sort((a, b) => a.localeCompare(b, 'ar'));
+    h += sel(id, label, 'الكل', optList([...ns.map(n => [n, n]), [NOP, 'غير مُسند']], hm[key]));
   }
-  $('#ilist').innerHTML = groups.map(([g, list]) => (g ? `<div class="sec"><h2>${esc(g)}</h2><span class="chip">${num(list.length)} مؤشراً</span></div>` : '') +
-    `<div class="grid icards${hm.mode === 'full' ? ' full' : ''}">${list.map(r => icard(r, hm.mode === 'full')).join('')}</div>`).join('');
+  return h;
+}
+function matches(r) {
+  if (hm.dom && r.domain_id !== hm.dom) return false;
+  for (const key of ['resp', 'eval']) { if (!hm[key] || !isTeam()) continue; const o = ownersOf(r, key); if (hm[key] === NOP ? o.length : !o.includes(hm[key])) return false; }
+  const q = hm.q.trim().toLowerCase();
+  return !q || [r.indicator_code, r.official_text, r.domain_name, r.standard_name, ...ownersOf(r, 'resp'), ...ownersOf(r, 'eval')].join(' ').toLowerCase().includes(q);
+}
+function renderList(cid) {
+  const all = byCycle(cid), rs = all.filter(matches).sort((a, b) => sortCodes(a.indicator_code, b.indicator_code));
+  $('#icount').textContent = `${num(rs.length)} من ${num(all.length)} مؤشراً`;
+  $('#ilist').innerHTML = rs.length ? `<div class="pgrid">${rs.map(pcard).join('')}</div>` : `<div class="panel"><p class="muted">لا توجد مؤشرات مطابقة. غيّر الفلاتر أو أعد ضبطها.</p></div>`;
 }
 
 function home() {
   const cs = cycles(), first = cs[0], rs = first ? byCycle(first[0]) : [];
   const pub = pubCount(rs);
   const cnt = k => new Set(rs.map(r => r[k])).size;
-  if (MODES.find(m => m[0] === hm.mode)[2] && !isTeam()) hm.mode = 'domain';
+  if (!isTeam()) { hm.resp = ''; hm.eval = ''; }
   view.innerHTML = `<section class="hero compact"><div class="hero-txt"><span class="chip">${ic('cal')} ${first ? esc(first[1]) : 'التقويم الذاتي المدرسي'}</span>
     <h1><span class="gold">التقويم الذاتي</span> الذكي</h1>
     <p>نتائج تقويم مدرسة لبيد بن ربيعة المتوسطة: المجالات والمعايير والمؤشرات، وفق دليل هيئة تقويم التعليم والتدريب.</p></div>
@@ -114,12 +138,16 @@ function home() {
     <div class="tile"><div><b>${first ? num(pub) : '—'}</b><span>${first ? 'منشورة' : 'لا دورة منشورة'}</span></div><i>${ic('eye')}</i></div></div></section>` +
     (first && rs.length ? `<div class="sec"><h2>مجالات التقويم</h2></div>` + domCards(first[0], rs) +
       `<div class="sec"><h2>مؤشرات التقويم</h2><span class="chip" id="icount"></span></div>
-      <div class="toolbar"><div class="tabs" id="tabs" role="group" aria-label="طريقة الفرز"></div><input type="search" id="iq" placeholder="ابحث برقم المؤشر أو نصه…" value="${esc(hm.q)}" aria-label="بحث في المؤشرات"></div>
-      ${isTeam() ? '' : '<p class="muted tnote">الفرز بالمسؤول وبالمقيم متاح لفريق التقويم بعد تسجيل الدخول.</p>'}<div id="ilist"></div>` : noResults());
+      <div class="toolbar adv" role="search"><div class="filters" id="filters">${filtersHtml(rs)}</div>
+        <label class="flt2 grow"><span>بحث</span><input type="search" id="iq" placeholder="رقم المؤشر أو نصه…" value="${esc(hm.q)}" aria-label="بحث في المؤشرات"></label>
+        <button type="button" class="btn soft" id="freset">${ic('reset')} إعادة ضبط</button></div>
+      ${isTeam() ? '' : '<p class="muted tnote">الفلترة بالمسؤول وبالمقيم متاحة لفريق التقويم بعد تسجيل الدخول.</p>'}<div id="ilist"></div>` : noResults());
   if (first && rs.length) {
-    $('#tabs').onclick = e => { const b = e.target.closest('[data-m]'); if (b && MODES.some(m => m[0] === b.dataset.m && (!m[2] || isTeam()))) { hm.mode = b.dataset.m; renderList(first[0]); } };
-    $('#iq').oninput = e => { hm.q = e.target.value; renderList(first[0]); };
-    renderList(first[0]);
+    const cid = first[0], on = (id, key) => { const el = $(id); if (el) el.onchange = e => { hm[key] = e.target.value; renderList(cid); }; };
+    on('#f-dom', 'dom'); on('#f-resp', 'resp'); on('#f-eval', 'eval');
+    $('#iq').oninput = e => { hm.q = e.target.value; renderList(cid); };
+    $('#freset').onclick = () => { hm = { dom: '', resp: '', eval: '', q: '' }; home(); };
+    renderList(cid);
   }
 }
 
@@ -171,7 +199,7 @@ function standard(cid, sid) {
   const r0 = rs[0];
   view.innerHTML = crumbs([['النتائج', '#results'], [r0.cycle_name, '#cycle/' + cid], [r0.domain_name, `#domain/${cid}/${r0.domain_id}`], [r0.standard_name]]) +
     `<div class="sec"><h2>${esc(r0.standard_name)}</h2><span class="chip">${num(rs.length)} مؤشراً</span></div>
-    <div class="grid icards">${rs.map(r => icard(r, false)).join('')}</div>`;
+    <div class="pgrid">${rs.map(pcard).join('')}</div>`;
 }
 
 async function indicator(cid, iid) {
