@@ -289,3 +289,37 @@ body.pub #adminLink{color:var(--goldink);background:var(--acc2soft)}
 .dcard:hover .dgo{gap:14px}
 @media (prefers-reduced-motion:reduce){.dcard,.dgo{transition:none}.dcard:hover{transform:none}}
 body.pub nav a[hidden]{display:none}
+
+/* ═════ صفحة المجال ═════ */
+.hero2.dhero{background:linear-gradient(135deg,var(--f),color-mix(in srgb,var(--f) 52%,#0d3b66))}
+.dhero .h2-ring::before{background:color-mix(in srgb,var(--f) 50%,#0d3b66)}
+.dh-title{display:flex;align-items:center;gap:16px;margin:16px 0 4px}
+.dh-ic{display:grid;place-items:center;flex:none;width:68px;height:68px;border-radius:22px;background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.38);box-shadow:0 10px 22px rgba(6,40,52,.2)} .dh-ic .ico{width:34px;height:34px;color:#fff}
+.dh-title small{color:rgba(255,255,255,.85);font-weight:700} .dhero h1{margin:0;font-size:clamp(1.8rem,4.4vw,2.8rem)}
+.dh-seg{margin-top:14px;max-width:560px} .dhero .dseg{background:rgba(255,255,255,.22);height:12px}
+.dhero .dleg{color:rgba(255,255,255,.85);margin-top:10px} .dhero .dleg b{color:#fff}
+.dhero .sg.unpub{background:rgba(255,255,255,.5)} .dhero .dot.unpub{background:rgba(255,255,255,.55)}
+.dhero .h2-cta{margin-top:20px}
+.crumbs+.dhero{margin-top:2px}
+/* بطاقات المعايير: أفقية عريضة */
+.wgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,540px),1fr));gap:16px;margin:14px 0 24px}
+.wcard{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:20px;align-items:center;padding:16px 18px 16px 22px;border-radius:26px;text-decoration:none;color:var(--ink);background:linear-gradient(150deg,var(--b),var(--surface) 58%);border:1px solid color-mix(in srgb,var(--f) 24%,var(--line));box-shadow:var(--shadow);transition:transform .15s,box-shadow .15s}
+.wcard:hover{transform:translateY(-3px);box-shadow:var(--shadow2)} .wcard:focus-visible,.srow:focus-visible{outline:3px solid var(--f);outline-offset:3px}
+.wcode{align-self:stretch;min-width:92px;display:grid;place-content:center;gap:2px;text-align:center;padding:12px 16px;border-radius:20px;color:#fff;background:linear-gradient(160deg,var(--f),color-mix(in srgb,var(--f) 58%,#0d3b66));box-shadow:0 8px 18px color-mix(in srgb,var(--f) 32%,transparent)}
+.wcode small{font-size:.78rem;opacity:.9} .wcode b{font-size:1.7rem;font-weight:800;direction:ltr;line-height:1.2}
+.wmain{display:flex;flex-direction:column;gap:10px;min-width:0} .wmain h3{font-size:1.15rem;font-weight:800;line-height:1.5}
+.wmain .dppl{display:flex;flex-wrap:wrap;gap:4px 18px}
+.wside{display:flex;flex-direction:column;align-items:center;gap:10px}
+.wcard:hover .dgo{gap:14px}
+@media (max-width:640px){.wcard{grid-template-columns:auto minmax(0,1fr);gap:14px;padding:14px}.wside{grid-column:1/-1;flex-direction:row;justify-content:space-between}.wcode{min-width:70px;padding:10px}.wcode b{font-size:1.35rem}}
+/* قائمة المعايير */
+.srows{display:flex;flex-direction:column;gap:10px;margin:14px 0 24px}
+.srow{display:grid;grid-template-columns:auto minmax(0,1fr) auto 170px auto 22px;gap:16px;align-items:center;padding:14px 18px;border-radius:18px;background:var(--surface);border:1px solid var(--line);color:var(--ink);text-decoration:none;box-shadow:var(--shadow);transition:border-color .15s,box-shadow .15s}
+.srow:hover{border-color:color-mix(in srgb,var(--f) 45%,var(--line));box-shadow:var(--shadow2)}
+.srow code{background:var(--b);color:var(--f);padding:4px 14px;border-radius:10px;font-weight:800;direction:ltr}
+.sname b{display:block;font-size:1.02rem} .sname small{display:block;color:var(--muted);font-size:.82rem;margin-top:2px}
+.scnt{color:var(--muted);font-size:.86rem;white-space:nowrap} .spct{font-variant-numeric:tabular-nums;color:var(--f);font-size:1.05rem}
+.srow>.ico{width:20px;height:20px;color:var(--f)}
+@media (max-width:820px){.srow{grid-template-columns:auto minmax(0,1fr) auto 22px;row-gap:8px}.srow .dseg{display:none}.scnt{grid-column:2/-1;grid-row:2}}
+@media (prefers-reduced-motion:reduce){.wcard{transition:none}.wcard:hover{transform:none}}
+.dhero+.tnote{margin-top:14px}
