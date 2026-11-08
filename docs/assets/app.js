@@ -22,6 +22,14 @@ const ic = n => `<svg class="ico" viewBox="0 0 24 24" aria-hidden="true">${IC[n]
 const DIC = ['book', 'bars', 'target', 'shield'];
 let rows = [], session = null, role = null;
 
+// عتبات المستويات (تُحمَّل من evaluation_levels، وهذه قيم احتياطية مطابقة لها)
+let THR = [['excellence', 90], ['advancement', 75], ['launch', 50], ['preparation', 0]];
+// مستوى مجموعة مؤشرات: متوسط نسب المؤشرات المنشورة (طريقة مؤقتة غير واردة في الدليل) — رمادي إن لم يوجد منشور
+const grpLevel = rs => { const v = rs.filter(r => r.publish_state === 'published' && r.achievement_pct != null).map(r => +r.achievement_pct);
+  if (!v.length) return { key: 'none', avg: null };
+  const avg = v.reduce((a, b) => a + b, 0) / v.length, t = THR.find(x => avg >= x[1]);
+  return { key: t ? t[0] : 'preparation', avg }; };
+const GL = { excellence: 'التميز', advancement: 'التقدم', launch: 'الانطلاق', preparation: 'التهيئة', none: 'بلا تقييم منشور' };
 async function load() {
   const { data, error } = await sb.from('public_results').select('*').order('indicator_code');
   if (error) throw error; rows = data || [];
@@ -30,6 +38,7 @@ async function load() {
   if (session) { const { data: p } = await sb.from('profiles').select('role,display_name').eq('id', session.user.id).maybeSingle(); role = p; }
   $('#loginLink').textContent = session ? 'خروج' : 'دخول';
   $('#adminLink').hidden = !(role && ['coordinator','team_member','principal','reviewer'].includes(role.role));
+  try { const { data: lv } = await sb.from('evaluation_levels').select('code,min_pct'); if (lv && lv.length) THR = lv.filter(x => x.min_pct != null).map(x => [x.code, +x.min_pct]).sort((a, b) => b[1] - a[1]); } catch (e) {}
   await loadOwners();
 }
 // المسؤولون والمقيمون: تقرؤهم قاعدة البيانات للفريق فقط (RLS)؛ الزائر والمقيم الخارجي لا يصلهم شيء.
@@ -266,11 +275,12 @@ let sv = 'cards';
 function domain(cid, did) {
   const rs = byCycle(cid).filter(r => r.domain_id === did); if (!rs.length) { view.innerHTML = noResults(); return; }
   const i = Math.max(0, domIdx(cid, did)), k = DOM[i % 4], sts = stdsOf(rs), p = pubCount(rs), pc = pctOf(p, rs.length), d = rs[0];
-  const ev = peopleOf(rs, 'eval'), rp = peopleOf(rs, 'resp');
+  const gl = grpLevel(rs), ev = peopleOf(rs, 'eval'), rp = peopleOf(rs, 'resp');
   const chips = a => a.length ? a.map(n => `<span class="pchip">${esc(n)}</span>`).join('') : `<span class="muted">${NONE}</span>`;
   view.innerHTML = crumbs([['النتائج', '#results'], [d.cycle_name, '#cycle/' + cid], [d.domain_name]]) +
-    `<section class="hero2 dhero" style="--f:var(--c${k}f)"><div class="h2-txt"><span class="chip">${ic('cal')} ${esc(d.cycle_name)}</span>
+    `<section class="hero2 dhero glv ${gl.key}"><div class="h2-txt"><span class="chip">${ic('cal')} ${esc(d.cycle_name)}</span>
       <div class="dh-title"><span class="dh-ic">${ic(DIC[i % 4])}</span><div><small>المجال ${num(d.domain_code)}</small><h1>${esc(d.domain_name)}</h1></div></div>
+      <span class="glbadge">مستوى المجال: ${GL[gl.key]}${gl.avg != null ? ' · ' + num(Math.round(gl.avg)) + '٪' : ''}</span>
       <p class="h2-p">يضم هذا المجال ${num(sts.length)} معايير و${num(rs.length)} مؤشراً، منها ${num(p)} منشورة.</p>
       <div class="dh-seg">${segHtml(rs)}</div>
       <div class="h2-cta"><button type="button" class="btn gold" id="goStd">استعرض المعايير ${ic('arrow')}</button><a class="btn ghost" href="#home">الرئيسية</a></div></div>
@@ -279,21 +289,23 @@ function domain(cid, did) {
           <div><b>${num(p)}</b><span>منشورة</span></div><div><b>${num(rs.length - p)}</b><span>غير منشورة</span></div></div></div></section>` +
     (isTeam() ? `<div class="people"><div class="pp"><h3>مقيمو المجال</h3><div>${chips(ev)}</div></div><div class="pp"><h3>مسؤولو المجال</h3><div>${chips(rp)}</div></div></div>`
       : `<p class="muted tnote">بيانات المقيمين والمسؤولين متاحة لفريق التقويم بعد تسجيل الدخول.</p>`) +
-    `<div class="sec" id="shead"><div><h2>معايير المجال</h2><p class="muted sub">اضغط على أي معيار لعرض مؤشراته.</p></div><div class="vbtns" id="svbtns"></div></div><div id="slist"></div>`;
+    `<div class="sec" id="shead"><div><h2>معايير المجال</h2><p class="muted sub">اضغط على أي معيار لعرض مؤشراته.</p></div><div class="vbtns" id="svbtns"></div></div><div id="slist"></div>
+    <div class="sec"><div><h2>مؤشرات المجال</h2><p class="muted sub">ملوّنة بمستوى كل مؤشر.</p></div></div><div class="irows">${rs.slice().sort((a, b) => sortCodes(a.indicator_code, b.indicator_code)).map(r => { const pub = r.publish_state === 'published';
+      return `<a class="irow glv ${pub ? (LV[r.level_label] || 'none') : 'none'}" href="#ind/${cid}/${r.indicator_id}"><code>${esc(r.indicator_code)}</code><span class="itx">${esc(r.official_text)}</span><span class="glbadge s">${pub ? esc(r.level_label || 'منشور') + (r.achievement_pct != null ? ' · ' + num(Math.round(r.achievement_pct)) + '٪' : '') : 'غير منشور'}</span></a>`; }).join('')}</div>`;
 
   const card = s => {
     const sr = rs.filter(r => r.standard_id === s.standard_id), sp = pubCount(sr), sc = pctOf(sp, sr.length);
-    return `<a class="wcard" style="--b:var(--c${k}b);--f:var(--c${k}f)" href="#standard/${cid}/${s.standard_id}">
+    const g = grpLevel(sr); return `<a class="wcard glv ${g.key}" style="--b:var(--c${k}b)" href="#standard/${cid}/${s.standard_id}">
       <span class="wcode"><small>المعيار</small><b>${esc(s.standard_code)}</b></span>
       <div class="wmain"><h3>${esc(s.standard_name)}</h3>
-        <div class="dchips"><span>${ic('target')} ${num(sr.length)} مؤشراً</span><span>${ic('eye')} ${num(sp)} منشور</span></div>
+        <div class="dchips"><span class="glbadge s">${GL[g.key]}${g.avg != null ? ' · ' + num(Math.round(g.avg)) + '٪' : ''}</span><span>${ic('target')} ${num(sr.length)} مؤشراً</span><span>${ic('eye')} ${num(sp)} منشور</span></div>
         ${segHtml(sr)}
         ${isTeam() ? `<div class="dppl"><span>${ic('users')} المقيم: ${names(peopleOf(sr, 'eval'))}</span><span>${ic('users')} المسؤول: ${names(peopleOf(sr, 'resp'))}</span></div>` : ''}</div>
       <div class="wside"><div class="dring" style="--p:${sc}" role="img" aria-label="نسبة النشر ${sc}٪"><b>${num(sc)}٪</b></div><span class="dgo">عرض المؤشرات ${ic('arrow')}</span></div></a>`;
   };
   const row = s => {
     const sr = rs.filter(r => r.standard_id === s.standard_id), sp = pubCount(sr), sc = pctOf(sp, sr.length), ks = lcounts(sr);
-    return `<a class="srow" style="--b:var(--c${k}b);--f:var(--c${k}f)" href="#standard/${cid}/${s.standard_id}"><code>${esc(s.standard_code)}</code>
+    const g = grpLevel(sr); return `<a class="srow glv ${g.key}" style="--b:var(--c${k}b)" href="#standard/${cid}/${s.standard_id}"><code>${esc(s.standard_code)}</code>
       <div class="sname"><b>${esc(s.standard_name)}</b>${isTeam() ? `<small>المقيم: ${names(peopleOf(sr, 'eval'))} · المسؤول: ${names(peopleOf(sr, 'resp'))}</small>` : ''}</div>
       <span class="scnt">${num(sr.length)} مؤشراً · ${num(sp)} منشور</span>
       <div class="dseg" role="img" aria-label="توزيع المستويات">${ks.map(([key, c]) => `<i class="sg ${key}" style="flex:${c}" title="${STL[key]}: ${num(c)}"></i>`).join('')}</div>
