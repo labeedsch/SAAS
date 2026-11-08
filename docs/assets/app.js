@@ -1,5 +1,5 @@
 (() => {
-const sb = supabase.createClient(APP_CONFIG.supabaseUrl, APP_CONFIG.supabaseKey);
+const sb = App.sb;
 const $ = s => document.querySelector(s), view = $('#view');
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const LV = { 'التميز':'excellence','التقدم':'advancement','الانطلاق':'launch','التهيئة':'preparation' };
@@ -15,6 +15,7 @@ async function load() {
   role = null;
   if (session) { const { data: p } = await sb.from('profiles').select('role,display_name').eq('id', session.user.id).maybeSingle(); role = p; }
   $('#loginLink').textContent = session ? 'خروج' : 'دخول';
+  $('#adminLink').hidden = !(role && ['coordinator','team_member','principal','reviewer'].includes(role.role));
 }
 const cycles = () => [...new Map(rows.map(r => [r.cycle_id, r.cycle_name]))];
 const byCycle = id => rows.filter(r => r.cycle_id === id);
@@ -72,13 +73,17 @@ async function indicator(cid, iid) {
     (pub ? `<div class="panel"><h2>نسبة التحقق</h2><p class="pct" style="font-size:1.8rem;margin:0">${num(r.achievement_pct)}٪</p></div>
       <div class="panel"><h2>مبررات التقييم</h2><p>${esc(r.justification || '—')}</p>${r.strengths ? `<h2>جوانب القوة</h2><p>${esc(r.strengths)}</p>` : ''}</div>`
       : `<div class="panel"><p class="muted">لم يُنشر تقييم هذا المؤشر بعد.</p></div>`) +
-    (count ? `<div class="panel"><h2>الشواهد (${num(count)})</h2>${evidenceBlock()}</div>` : '');
+    (count ? `<div class="panel"><h2>الشواهد (${num(count)})</h2>${await evidenceBlock(cid, iid)}</div>` : '');
 }
-function evidenceBlock() {
-  if (role && ['external_evaluator','coordinator','team_member','principal','reviewer'].includes(role.role))
-    return `<p class="muted">عرض الشواهد للمستخدمين المصرح لهم يُفعَّل في المرحلة القادمة.</p>`;
+async function evidenceBlock(cid, iid) {
+  if (role && ['external_evaluator','coordinator','team_member','principal','reviewer'].includes(role.role)) {
+    const { data } = await sb.from('evidence').select('id,title,description,evidence_date,category').eq('cycle_id', cid).eq('indicator_id', iid).eq('status', 'approved');
+    if (!data?.length) return `<p class="muted">لا توجد شواهد معتمدة معروضة.</p>`;
+    return `<div class="ev-list">${data.map(e => `<div class="ind" style="align-items:center"><p><b>${esc(e.title)}</b>${e.description ? `<br><small class="muted">${esc(e.description)}</small>` : ''}</p><button type="button" class="btn sm pri" data-ev="${esc(e.id)}" data-t="${esc(e.title)}">معاينة</button></div>`).join('')}</div>`;
+  }
   return `<div class="lock"><svg class="ico" viewBox="0 0 24 24"><rect x="4" y="11" width="16" height="9" rx="2"/><path d="M8 11V8a4 4 0 018 0v3"/></svg><span>الشاهد محجوب حفاظاً على خصوصية البيانات، والاطلاع عليه متاح للمستخدمين المصرح لهم.</span></div>`;
 }
+document.addEventListener('click', e => { const b = e.target.closest('[data-ev]'); if (b) App.openViewer(b.dataset.ev, b.dataset.t, true); });
 
 function login() {
   if (session) { sb.auth.signOut().then(() => { location.hash = '#home'; boot(); }); return; }
