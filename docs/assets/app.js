@@ -65,11 +65,19 @@ function noResults() { return `<div class="panel"><h2>لا توجد نتائج �
 const pctOf = (p, n) => n ? Math.round(p / n * 100) : 0;
 function domCards(id, rs) {
   const doms = [...new Map(rs.map(r => [r.domain_id, r]))].map(([, r]) => r).sort((a, b) => sortCodes(a.domain_code, b.domain_code));
-  return `<div class="grid g4">${doms.map((d, i) => {
-    const dr = rs.filter(r => r.domain_id === d.domain_id), p = pubCount(dr), k = DOM[i % 4];
-    return `<a class="card" style="--b:var(--c${k}b);--f:var(--c${k}f)" href="#domain/${id}/${d.domain_id}"><span class="ic">${ic(DIC[i % 4])}</span>
-      <div class="ct"><h3>${esc(d.domain_name)}</h3><small>${num(p)} من ${num(dr.length)} مؤشراً منشور</small></div><b class="big">${num(pctOf(p, dr.length))}٪</b>
-      <div class="bar"><span style="width:${pctOf(p, dr.length)}%"></span></div>${isTeam() ? `<span class="muted">المقيم: ${names(peopleOf(dr, 'eval'))}</span>` : ''}</a>`;
+  return `<div class="dgrid">${doms.map((d, i) => {
+    const dr = rs.filter(r => r.domain_id === d.domain_id), p = pubCount(dr), k = DOM[i % 4], pc = pctOf(p, dr.length);
+    const nst = new Set(dr.map(r => r.standard_id)).size;
+    const keys = ['excellence', 'advancement', 'launch', 'preparation', 'nolevel', 'unpub'].map(key => [key, dr.filter(r => stOf(r) === key).length]).filter(x => x[1]);
+    return `<a class="dcard" style="--b:var(--c${k}b);--f:var(--c${k}f)" href="#domain/${id}/${d.domain_id}">
+      <span class="dnum" aria-hidden="true">${num(d.domain_code)}</span>
+      <div class="dtop"><span class="dic">${ic(DIC[i % 4])}</span><div class="dtit"><small>المجال ${num(d.domain_code)}</small><h3>${esc(d.domain_name)}</h3></div>
+        <div class="dring" style="--p:${pc}" role="img" aria-label="نسبة النشر ${pc}٪"><b>${num(pc)}٪</b></div></div>
+      <div class="dchips"><span>${ic('bars')} ${num(nst)} معايير</span><span>${ic('target')} ${num(dr.length)} مؤشراً</span><span>${ic('eye')} ${num(p)} منشور</span></div>
+      <div class="dseg" role="img" aria-label="توزيع المستويات">${keys.map(([key, c]) => `<i class="sg ${key}" style="flex:${c}" title="${STL[key]}: ${num(c)}"></i>`).join('')}</div>
+      <div class="dleg">${keys.map(([key, c]) => `<span><i class="dot ${key}"></i>${STL[key]} <b>${num(c)}</b></span>`).join('')}</div>
+      ${isTeam() ? `<div class="dppl"><span>${ic('users')} المقيم: ${names(peopleOf(dr, 'eval'))}</span></div>` : ''}
+      <span class="dgo">عرض المجال ${ic('arrow')}</span></a>`;
   }).join('')}</div>`;
 }
 
@@ -189,20 +197,25 @@ function home() {
   const pub = pubCount(rs);
   const cnt = k => new Set(rs.map(r => r[k])).size;
   if (!isTeam()) { hm.f.eval = []; hm.f.resp = []; if (hm.group === 'resp' || hm.group === 'eval') hm.group = 'none'; }
-  view.innerHTML = `<section class="hero compact"><div class="hero-txt"><span class="chip">${ic('cal')} ${first ? esc(first[1]) : 'التقويم الذاتي المدرسي'}</span>
+  const pp = pctOf(pub, rs.length);
+  view.innerHTML = `<section class="hero2"><div class="h2-txt"><span class="chip">${ic('cal')} ${first ? esc(first[1]) : 'التقويم الذاتي المدرسي'}</span>
     <h1><span class="gold">التقويم الذاتي</span> الذكي</h1>
-    <p>نتائج تقويم مدرسة لبيد بن ربيعة المتوسطة: المجالات والمعايير والمؤشرات، وفق دليل هيئة تقويم التعليم والتدريب.</p></div>
-    <div class="tiles"><div class="tile"><div><b>${num(first ? cnt('domain_id') : 4)}</b><span>مجالات</span></div><i>${ic('layers')}</i></div><div class="tile"><div><b>${num(first ? cnt('standard_id') : 11)}</b><span>معياراً</span></div><i>${ic('bars')}</i></div>
-    <div class="tile"><div><b>${num(first ? rs.length : 49)}</b><span>مؤشراً</span></div><i>${ic('target')}</i></div>
-    <div class="tile"><div><b>${first ? num(pub) : '—'}</b><span>${first ? 'منشورة' : 'لا دورة منشورة'}</span></div><i>${ic('eye')}</i></div></div></section>` +
-    (first && rs.length ? `<div class="sec"><h2>مجالات التقويم</h2></div>` + domCards(first[0], rs) +
-      `<div class="sec"><h2>مؤشرات التقويم</h2><span class="chip" id="icount"></span></div>
+    <p class="h2-sch">مدرسة لبيد بن ربيعة المتوسطة</p>
+    <p class="h2-p">بوابة شفافة تعرض مجالات التقويم الذاتي ومعاييره ومؤشراته ونتائجه المعتمدة، وفق دليل هيئة تقويم التعليم والتدريب.</p>
+    <div class="h2-cta"><button type="button" class="btn gold" id="goInd">استعرض المؤشرات ${ic('arrow')}</button><a class="btn ghost" href="#results">نتائج الدورات</a></div>
+    <div class="pills"><span class="pill">${ic('check')} نتائج معتمدة</span><span class="pill">${ic('doc')} شواهد موثّقة</span><span class="pill">${ic('shield')} خصوصية محمية</span></div></div>
+    <div class="h2-panel"><div class="h2-ring" style="--p:${first ? pp : 0}" role="img" aria-label="نسبة النشر ${pp}٪"><div><b>${first ? num(pp) + '٪' : '—'}</b><small>نسبة النشر</small></div></div>
+      <div class="h2-stats"><div><b>${num(first ? cnt('domain_id') : 4)}</b><span>مجالات</span></div><div><b>${num(first ? cnt('standard_id') : 11)}</b><span>معياراً</span></div>
+        <div><b>${num(first ? rs.length : 49)}</b><span>مؤشراً</span></div><div><b>${first ? num(pub) : '—'}</b><span>${first ? 'منشورة' : 'لا دورة منشورة'}</span></div></div></div></section>` +
+    (first && rs.length ? `<div class="sec"><div><h2>مجالات التقويم</h2><p class="muted sub">اضغط على أي مجال لعرض معاييره ومؤشراته.</p></div></div>` + domCards(first[0], rs) +
+      `<div class="sec" id="ihead"><div><h2>مؤشرات التقويم</h2><p class="muted sub">ابحث وافرز وجمّع المؤشرات كما تريد.</p></div><span class="chip" id="icount"></span></div>
       <div class="fbar" id="fbar" role="search"><label class="fsearch">${ic('search')}<input type="search" id="iq" placeholder="ابحث بالرمز أو النص أو المسؤول أو المقيم" value="${esc(hm.q)}" aria-label="بحث في المؤشرات"></label>
         <button type="button" class="fbtn" id="advbtn" aria-expanded="false"></button><div class="pills2" id="pills"></div><div class="vbtns" id="vbtns"></div></div>
       <div class="fpanel" id="fpanel" hidden></div>
       ${isTeam() ? '' : '<p class="muted tnote">الفلترة والتجميع بالمسؤول وبالمقيم متاحة لفريق التقويم بعد تسجيل الدخول.</p>'}<div id="ilist"></div>` : noResults());
   if (first && rs.length) {
     const cid = first[0], again = () => renderList(cid);
+    $('#goInd').onclick = () => { const h = $('#ihead'); if (h && h.scrollIntoView) h.scrollIntoView({ behavior: 'smooth', block: 'start' }); };
     $('#iq').oninput = e => { hm.q = e.target.value; again(); };
     $('#fbar').onclick = e => {
       const st = e.target.closest('[data-st]'), vw = e.target.closest('[data-view]'), ab = e.target.closest('#advbtn');
@@ -251,7 +264,7 @@ function domain(cid, did) {
   const ev = peopleOf(rs, 'eval'), rp = peopleOf(rs, 'resp');
   const chips = a => a.length ? a.map(n => `<span class="pchip">${esc(n)}</span>`).join('') : `<span class="muted">${NONE}</span>`;
   view.innerHTML = crumbs([['النتائج', '#results'], [d.cycle_name, '#cycle/' + cid], [d.domain_name]]) +
-    `<section class="dhead" style="--f:var(--c${k}f)"><span class="dic">${ic(DIC[i % 4])}</span><div><small>المجال ${esc(d.domain_code)}</small><h1>${esc(d.domain_name)}</h1></div>
+    `<section class="dhead" style="--f:var(--c${k}f)"><span class="dic">${ic(DIC[i % 4])}</span><div><small>المجال ${num(d.domain_code)}</small><h1>${esc(d.domain_name)}</h1></div>
       <div class="tiles"><div class="tile"><div><b>${num(sts.length)}</b><span>معايير</span></div><i>${ic('bars')}</i></div><div class="tile"><div><b>${num(rs.length)}</b><span>مؤشراً</span></div><i>${ic('target')}</i></div>
       <div class="tile"><div><b>${num(p)}</b><span>منشورة</span></div><i>${ic('eye')}</i></div><div class="tile"><div><b>${num(pctOf(p, rs.length))}٪</b><span>نسبة النشر</span></div><i>${ic('check')}</i></div></div></section>` +
     (isTeam() ? `<div class="people"><div class="pp"><h3>مقيمو المجال</h3><div>${chips(ev)}</div></div><div class="pp"><h3>مسؤولو المجال</h3><div>${chips(rp)}</div></div></div>`
