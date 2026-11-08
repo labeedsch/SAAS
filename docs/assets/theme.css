@@ -107,3 +107,11 @@ form.f{display:grid;gap:12px;max-width:420px}
 @media (max-width:900px){.hero{grid-template-columns:1fr;padding:24px 20px}.hero-art{min-height:310px;order:-1}.mock{inset:18px 6% 96px 0}.tiles{grid-template-columns:repeat(2,1fr)}}
 @media (max-width:760px){.hero h2{font-size:1.15rem}nav{justify-content:flex-start;overflow-x:auto;flex-wrap:nowrap}.card{grid-template-columns:auto 1fr}.card .big{grid-column:2;justify-self:start}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+/* بطاقات المؤشرات داخل صفحة المعيار */
+.grid.icards{grid-template-columns:repeat(auto-fill,minmax(min(100%,340px),1fr))}
+.card.icard{display:flex;flex-direction:column;align-items:stretch;gap:12px;padding:20px 18px 16px}
+.icard .ih{display:flex;align-items:center;justify-content:space-between;gap:8px;position:relative;z-index:1}
+.icard .ih code{background:var(--b,var(--brandsoft));color:var(--f,var(--brand2));padding:3px 12px;border-radius:10px;font-weight:800;direction:ltr}
+.icard .idesc{margin:0;line-height:1.8;position:relative;z-index:1;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.icard .imeta{display:flex;flex-direction:column;gap:4px;font-size:.84rem;color:var(--muted);border-top:1px dashed var(--line);padding-top:10px;position:relative;z-index:1}
+.icard .imeta b{color:var(--ink2)}

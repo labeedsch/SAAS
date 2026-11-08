@@ -25,7 +25,25 @@ async function load() {
   if (session) { const { data: p } = await sb.from('profiles').select('role,display_name').eq('id', session.user.id).maybeSingle(); role = p; }
   $('#loginLink').textContent = session ? 'خروج' : 'دخول';
   $('#adminLink').hidden = !(role && ['coordinator','team_member','principal','reviewer'].includes(role.role));
+  await loadOwners();
 }
+// مسؤولو المؤشرات: تقرؤهم قاعدة البيانات للفريق فقط (RLS)؛ الزائر والمقيم الخارجي لا يصلهم شيء.
+let owners = { ind: new Map(), dom: new Map() };
+async function loadOwners() {
+  owners = { ind: new Map(), dom: new Map() };
+  if (!(role && ['coordinator','team_member','principal','reviewer'].includes(role.role))) return;
+  const [st, ia, da] = await Promise.all([
+    sb.from('staff').select('id,full_name'),
+    sb.from('indicator_assignments').select('cycle_id,indicator_id,staff_id').eq('kind', 'responsible'),
+    sb.from('domain_assignments').select('cycle_id,domain_id,staff_id').eq('kind', 'responsible')]);
+  if (st.error || ia.error || da.error) { console.error(st.error || ia.error || da.error); return; }
+  const nm = new Map((st.data || []).map(s => [s.id, s.full_name]));
+  const add = (m, k, sid) => { const n = nm.get(sid); if (n) m.set(k, [...new Set([...(m.get(k) || []), n])]); };
+  (ia.data || []).forEach(a => add(owners.ind, a.cycle_id + '|' + a.indicator_id, a.staff_id));
+  (da.data || []).forEach(a => add(owners.dom, a.cycle_id + '|' + a.domain_id, a.staff_id));
+}
+const ownersOf = r => [...new Set([...(owners.ind.get(r.cycle_id + '|' + r.indicator_id) || []), ...(owners.dom.get(r.cycle_id + '|' + r.domain_id) || [])])];
+const isTeam = () => !!(role && ['coordinator','team_member','principal','reviewer'].includes(role.role));
 const cycles = () => [...new Map(rows.map(r => [r.cycle_id, r.cycle_name]))];
 const byCycle = id => rows.filter(r => r.cycle_id === id);
 const pubCount = rs => rs.filter(r => r.publish_state === 'published').length;
@@ -79,21 +97,42 @@ function cycle(id) {
   view.innerHTML = crumbs([['النتائج', '#results'], [rs[0].cycle_name]]) + domCards(id, rs);
 }
 
+const domIdx = (cid, did) => [...new Map(byCycle(cid).map(r => [r.domain_id, r.domain_code]))].sort((a, b) => sortCodes(a[1], b[1])).findIndex(x => x[0] === did);
+const stdsOf = rs => [...new Map(rs.map(r => [r.standard_id, r]))].map(([, r]) => r).sort((a, b) => sortCodes(a.standard_code, b.standard_code));
+
 function domain(cid, did) {
   const rs = byCycle(cid).filter(r => r.domain_id === did); if (!rs.length) { view.innerHTML = noResults(); return; }
-  const sts = [...new Map(rs.map(r => [r.standard_id, r]))].map(([, r]) => r).sort((a, b) => sortCodes(a.standard_code, b.standard_code));
+  const i = Math.max(0, domIdx(cid, did)), k = DOM[i % 4];
   view.innerHTML = crumbs([['النتائج', '#results'], [rs[0].cycle_name, '#cycle/' + cid], [rs[0].domain_name]]) +
-    sts.map(s => `<div class="sec"><h2>${esc(s.standard_name)}</h2></div>` + rs.filter(r => r.standard_id === s.standard_id).sort((a, b) => sortCodes(a.indicator_code, b.indicator_code)).map(r =>
-      `<a class="ind" href="#ind/${cid}/${r.indicator_id}"><code>${esc(r.indicator_code)}</code><p>${esc(r.official_text)}</p>${r.publish_state === 'published' ? `${lvl(r.level_label)} <span class="pct">${num(r.achievement_pct)}٪</span>` : '<span class="lvl none">غير منشور</span>'}</a>`).join('')).join('');
+    `<div class="sec"><h2>${esc(rs[0].domain_name)}</h2><span class="chip">${num(stdsOf(rs).length)} معايير · ${num(rs.length)} مؤشراً</span></div>
+    <div class="grid">${stdsOf(rs).map(s => {
+      const sr = rs.filter(r => r.standard_id === s.standard_id), p = pubCount(sr);
+      return `<a class="card" style="--b:var(--c${k}b);--f:var(--c${k}f)" href="#standard/${cid}/${s.standard_id}"><span class="ic">${ic(DIC[i % 4])}</span>
+        <div class="ct"><small>المعيار ${esc(s.standard_code)}</small><h3>${esc(s.standard_name)}</h3><small>${num(sr.length)} مؤشراً · ${num(p)} منشور</small></div><b class="big">${num(pctOf(p, sr.length))}٪</b>
+        <div class="bar"><span style="width:${pctOf(p, sr.length)}%"></span></div></a>`; }).join('')}</div>`;
+}
+
+function standard(cid, sid) {
+  const rs = byCycle(cid).filter(r => r.standard_id === sid).sort((a, b) => sortCodes(a.indicator_code, b.indicator_code));
+  if (!rs.length) { view.innerHTML = noResults(); return; }
+  const r0 = rs[0], k = DOM[Math.max(0, domIdx(cid, r0.domain_id)) % 4];
+  view.innerHTML = crumbs([['النتائج', '#results'], [r0.cycle_name, '#cycle/' + cid], [r0.domain_name, `#domain/${cid}/${r0.domain_id}`], [r0.standard_name]]) +
+    `<div class="sec"><h2>${esc(r0.standard_name)}</h2><span class="chip">${num(rs.length)} مؤشراً</span></div>
+    <div class="grid icards">${rs.map(r => {
+      const ow = ownersOf(r);
+      return `<a class="card icard" style="--b:var(--c${k}b);--f:var(--c${k}f)" href="#ind/${cid}/${r.indicator_id}">
+        <div class="ih"><code>${esc(r.indicator_code)}</code>${r.publish_state === 'published' ? lvl(r.level_label) : '<span class="lvl none">غير منشور</span>'}</div>
+        <p class="idesc">${esc(r.official_text)}</p>
+        <div class="imeta"><span><b>المجال:</b> ${esc(r.domain_name)}</span>${isTeam() ? `<span><b>المسؤول:</b> ${ow.length ? esc(ow.join('، ')) : 'لم يُسند بعد'}</span>` : ''}</div></a>`; }).join('')}</div>`;
 }
 
 async function indicator(cid, iid) {
   const r = byCycle(cid).find(x => x.indicator_id === iid); if (!r) { view.innerHTML = noResults(); return; }
   const { count } = await sb.from('public_evidence_stubs').select('id', { count: 'exact', head: true }).eq('cycle_id', cid).eq('indicator_id', iid).eq('status', 'approved');
   const pub = r.publish_state === 'published';
-  view.innerHTML = crumbs([['النتائج', '#results'], [r.cycle_name, '#cycle/' + cid], [r.domain_name, `#domain/${cid}/${r.domain_id}`], [r.indicator_code]]) +
+  view.innerHTML = crumbs([['النتائج', '#results'], [r.cycle_name, '#cycle/' + cid], [r.domain_name, `#domain/${cid}/${r.domain_id}`], [r.standard_name, `#standard/${cid}/${r.standard_id}`], [r.indicator_code]]) +
     `<div class="panel"><div class="sec" style="margin:0"><h2>المؤشر ${esc(r.indicator_code)}</h2>${pub ? lvl(r.level_label) : '<span class="lvl none">غير منشور</span>'}</div>
-      <p>${esc(r.official_text)}</p><p class="muted">${esc(r.domain_name)} ‹ ${esc(r.standard_name)}</p></div>` +
+      <p>${esc(r.official_text)}</p><p class="muted">${esc(r.domain_name)} ‹ ${esc(r.standard_name)}</p>${isTeam() ? `<p><b>المسؤول:</b> ${ownersOf(r).length ? esc(ownersOf(r).join('، ')) : 'لم يُسند بعد'}</p>` : ''}</div>` +
     (pub ? `<div class="panel"><h2>نسبة التحقق</h2><p class="pct" style="font-size:1.8rem;margin:0">${num(r.achievement_pct)}٪</p></div>
       <div class="panel"><h2>مبررات التقييم</h2><p>${esc(r.justification || '—')}</p>${r.strengths ? `<h2>جوانب القوة</h2><p>${esc(r.strengths)}</p>` : ''}</div>`
       : `<div class="panel"><p class="muted">لم يُنشر تقييم هذا المؤشر بعد.</p></div>`) +
@@ -125,9 +164,9 @@ function login() {
 
 function route() {
   const [h, a, b] = location.hash.slice(1).split('/');
-  document.querySelectorAll('#nav a').forEach(x => x.classList.toggle('on', x.dataset.n === (h || 'home') || (x.dataset.n === 'results' && ['cycle','domain','ind'].includes(h))));
+  document.querySelectorAll('#nav a').forEach(x => x.classList.toggle('on', x.dataset.n === (h || 'home') || (x.dataset.n === 'results' && ['cycle','domain','standard','ind'].includes(h))));
   window.scrollTo(0, 0);
-  ({ '': home, home, results, login }[h] || (() => ({ cycle: () => cycle(a), domain: () => domain(a, b), ind: () => indicator(a, b) }[h] || home)()))();
+  ({ '': home, home, results, login }[h] || (() => ({ cycle: () => cycle(a), domain: () => domain(a, b), standard: () => standard(a, b), ind: () => indicator(a, b) }[h] || home)()))();
 }
 async function boot() { try { await load(); route(); } catch (e) { view.innerHTML = `<div class="panel"><p class="err">تعذّر تحميل البيانات. أعد المحاولة لاحقاً.</p></div>`; console.error(e); } }
 window.addEventListener('hashchange', route);
