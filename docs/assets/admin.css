@@ -232,3 +232,31 @@ a.db-chip.warn{background:var(--c3b);color:var(--c3f);border-color:color-mix(in 
 .mp-ul li{display:grid;grid-template-columns:70px 1fr auto auto auto;gap:10px;align-items:center;padding:8px 10px;border-radius:12px;border-inline-start:4px solid var(--line);background:var(--soft)}
 .mp-ul li.ok{border-color:var(--c4f)} .mp-ul li.info{border-color:var(--c1f)} .mp-ul li.warn{border-color:var(--c3f)} .mp-ul li.me{background:color-mix(in srgb,var(--brand) 10%,var(--surface));outline:1px solid var(--brand)}
 @media (max-width:700px){.mp-ul li{grid-template-columns:60px 1fr auto}.mp-ul li small{grid-column:2/-1}}
+
+/* ===== الترويسة الثابتة لكل صفحات لوحة التحكم ===== */
+#pghead{background:var(--surface);border-bottom:1px solid var(--line);box-shadow:0 6px 16px rgba(13,43,69,.06)}
+.pgh{display:flex;align-items:center;gap:6px 18px;padding-block:9px;flex-wrap:wrap}
+.pgt{display:grid;gap:0;min-width:0} .pgt small{color:var(--brand);font-weight:700;font-size:.78rem;line-height:1.3} .pgt h1{margin:0;font-size:1.2rem;line-height:1.3;color:var(--ink)}
+.pgd{flex:1 1 280px;margin:0;color:var(--muted);font-size:.9rem;line-height:1.5;padding-inline-start:18px;border-inline-start:2px solid var(--line)}
+.pgx{display:flex;align-items:center;gap:10px;margin-inline-start:auto} .pgx .lu{color:var(--muted);font-size:.8rem;white-space:nowrap} .pgx .btn .ico{width:15px;height:15px;margin-inline-end:4px;vertical-align:-3px}
+#lbar{height:3px;background:transparent;overflow:hidden;position:relative}
+body.busy #lbar::after{content:"";position:absolute;inset-block:0;inset-inline-start:-40%;width:40%;background:linear-gradient(90deg,transparent,var(--gold),transparent);animation:lb 1s ease-in-out infinite}
+@keyframes lb{to{inset-inline-start:100%}}
+/* أقسام الصفحات: الاسم يظهر في الترويسة الثابتة فلا يتكرر داخل المحتوى */
+.tbody>.ph h1{display:none} .tbody>.ph:not(:has(.pa>*)){display:none} .tbody>.ph{justify-content:flex-end;padding:8px 12px;margin-bottom:12px}
+/* انتقالات بسيطة */
+#view{transition:opacity .15s ease} #view.dim{opacity:.5;pointer-events:none}
+#view.in{animation:vin .26s ease both} #view.in-s .tbody{animation:vin .22s ease both}
+@keyframes vin{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.skel{display:grid;gap:14px} .skel i{display:block;border-radius:18px;background:linear-gradient(90deg,var(--soft) 25%,var(--surface) 50%,var(--soft) 75%);background-size:200% 100%;animation:sk 1.2s linear infinite}
+.skel .s1{height:48px;width:55%} .skel .s2{height:150px} .skel .s3{height:220px} @keyframes sk{to{background-position:-200% 0}}
+@media (prefers-reduced-motion:reduce){#view.in,#view.in-s .tbody,.skel i,body.busy #lbar::after{animation:none} #view{transition:none}}
+@media (max-width:700px){.pgd{flex-basis:100%;padding-inline-start:0;border:0;order:3;font-size:.85rem}.pgx{order:2}.pgx .lu{display:none}.pgt h1{font-size:1.05rem}}
+@media print{#pghead,#lbar{display:none!important}}
+.astick{top:calc(-1 * var(--hh,0px))} #view:focus{outline:none}
+@media (max-width:700px){
+  #menu{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;width:100%}
+  #menu>a{justify-content:center;text-align:center;white-space:normal;line-height:1.25;padding:16px 4px 6px;font-size:.8rem;min-height:50px}
+  #menu>a .nb{position:absolute;top:2px;inset-inline-end:2px;min-width:18px;height:18px;font-size:.68rem;padding:0 4px}
+  .sb{gap:6px}
+}

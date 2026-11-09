@@ -25,7 +25,7 @@ const allowed = (r) => r === '*' || r.includes(role());
 function drawMenu() {
   const cur0 = location.hash.slice(1).split('/')[0] || 'dashboard', cur = HUB_OF[cur0] || cur0;
   const nb = App.hubBadges ? App.hubBadges(App.lastAlerts) : {};
-  put($('#menu'), h`${MENU.filter(m => !m[3] && allowed(m[2])).map(m => h`<a href="#${m[0]}" class="${m[0] === cur ? 'on' : ''}" ${m[0] === cur ? raw('aria-current="page"') : ''}>${m[1]}${nb[m[0]] ? h` <span class="nb" aria-label="${nb[m[0]]} إجراء">${nb[m[0]] > 99 ? '99+' : nb[m[0]]}</span>` : ''}</a>`)}`);
+  put($('#menu'), h`${MENU.filter(m => !m[3] && allowed(m[2])).map(m => h`<a href="#${m[0]}" class="${m[0] === cur ? 'on' : ''}" ${m[0] === cur ? raw('aria-current="page"') : ''}>${m[1]}${nb[m[0]] ? h` <span class="nb" aria-label="${nb[m[0]]} إجراء">${nb[m[0]] > 99 ? '99+' : App.nf(nb[m[0]])}</span>` : ''}</a>`)}`);
 }
 App.drawMenu = drawMenu;
 
@@ -72,24 +72,75 @@ function showLogin(msg = '') {
   };
 }
 
-async function route() {
+/* ===== الترويسة الثابتة: اسم الصفحة وما تحويه، بنمط واحد في كل صفحات لوحة التحكم ===== */
+const DETAIL = {
+  ind: ['المؤشرات', 'صفحة المؤشر', 'النص الرسمي للمؤشر ومسؤوله ومقيّمه وشواهده وتقييمه ومبرراته وزياراته ومهامه وسجل تعديلاته.', 'inds'],
+  meeting: ['الاجتماعات', 'تفاصيل الاجتماع', 'المحاور والدعوات وتأكيد الحضور والحضور الفعلي والمحضر والقرارات.', 'team'],
+  visit: ['الزيارات الفنية', 'تفاصيل الزيارة', 'بطاقات المؤشرات والملاحظات والتوصيات والإجراءات المطلوبة ومتابعتها.', 'team'],
+};
+function headFor(name, args) {
+  const d = DETAIL[name]; if (d) return { kick: App.HUBS?.[d[3]]?.title || d[0], title: d[1], desc: d[2] };
+  const hub = App.HUBS?.[name]; if (!hub) { const m = MENU.find(x => x[0] === name); return { kick: 'لوحة التحكم', title: m?.[1] || '', desc: '' }; }
+  const tabs = hub.tabs.filter(t => allowed(t[2])), t = tabs.find(x => x[0] === args[0]) || tabs[0];
+  return { kick: hub.title, title: t?.[1] || hub.title, desc: t?.[3] || '' };
+}
+const hhmm = d => d.toLocaleTimeString('ar-SA', { hour: 'numeric', minute: '2-digit' });
+function drawHead(hd) {
+  App.head = hd || App.head; const x = App.head; if (!x) return;
+  put($('#pghead'), h`<div class="wrap pgh"><div class="pgt"><small>${x.kick}</small><h1>${x.title}</h1></div><p class="pgd">${x.desc}</p>
+    <div class="pgx"><span class="lu" title="آخر تحديث للبيانات">${App.stamp ? 'حُدِّثت ' + hhmm(App.stamp) : ''}</span><button class="btn sm" type="button" data-a="refreshNow" aria-label="تحديث البيانات">${App.ICO_REFRESH}تحديث</button></div></div>`);
+  document.title = x.title + ' | لوحة التقويم الذاتي';
+}
+App.ICO_REFRESH = raw('<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11a8 8 0 1 0-2.3 5.7M20 4v7h-7"/></svg>');
+Act.refreshNow = async () => { await App.refresh(); toast('حُدِّثت البيانات'); };
+
+/* ===== التوجيه: انتقال هادئ، لا وميض، وتجاهل الاستجابات المتأخرة ===== */
+let seq = 0, curKey = null;
+const SKEL = raw('<div class="skel" aria-busy="true" aria-label="جارٍ التحميل"><i class="s1"></i><i class="s2"></i><i class="s3"></i></div>');
+async function route(opt = {}) {
   const parts = location.hash.slice(1).split('/'); let name = parts[0] || 'dashboard', args = parts.slice(1);
-  drawMenu();
   const m = MENU.find(x => x[0] === name);               // الصلاحية تُفحص على الاسم الأصلي قبل التحويل إلى تبويب
   const hub = HUB_OF[name];
   if (!['ind', 'meeting', 'visit'].includes(name) && hub && Pages[hub] && (!m || allowed(m[2]))) { args = [name === 'indmap' ? 'map' : name, ...args]; name = hub; }
-  const view = $('#view');
-  if (!Pages[name] || (m && !allowed(m[2]))) { put(view, h`<div class="pn"><p>الصفحة غير متاحة لدورك.</p></div>`); return; }
-  put(view, h`<p class="muted">جارٍ التحميل…</p>`);
+  const my = opt.silent ? seq : ++seq, view = $('#view'), keep = !!opt.keep, key = name + '/' + (args[0] || '');
+  const sameHub = curKey && curKey.split('/')[0] === name;
+  drawMenu(); if (!opt.silent) drawHead(headFor(name, args));
+  if (!Pages[name] || (m && !allowed(m[2]))) { put(view, h`<div class="pn"><p>الصفحة غير متاحة لدورك.</p></div>`); curKey = null; return; }
+  if (!opt.silent) {
+    document.body.classList.add('busy');
+    if (sameHub || keep) view.classList.add('dim'); else put(view, SKEL);   // داخل القسم نفسه يبقى المحتوى القديم باهتاً حتى يجهز الجديد
+  }
+  let out;
   try {
     const r = await Pages[name](args);
     const body = r.html || r, dc = App.cycle(), banner = dc?.name === 'الدورة التجريبية' && !dc.results_published
       ? raw(`<div class="demobar" role="status"><span>أنت تعرض <b>الدورة التجريبية</b>: كل ما فيها بيانات تجريبية للمعاينة وغير منشورة.</span>${isCoord() ? '<button type="button" class="btn sm bad" data-a="demoClear">حذف البيانات التجريبية</button>' : ''}</div>`) : '';
-    put(view, banner ? h`${banner}${body}` : body); if (r.after) r.after(view);
-  } catch (e) { console.error(e); put(view, h`<div class="pn"><p class="err">تعذّر تحميل الصفحة: ${App.errMsg(e)}</p></div>`); }
-  window.scrollTo(0, 0);
+    out = { html: banner ? h`${banner}${body}` : body, after: r.after };
+  } catch (e) { console.error(e); out = { html: h`<div class="pn"><p class="err">تعذّر تحميل الصفحة: ${App.errMsg(e)}</p></div>` }; }
+  if (my !== seq) return;                                  // وصل المستخدم إلى صفحة أحدث أثناء التحميل
+  const y = window.scrollY;
+  put(view, out.html); if (out.after) out.after(view);
+  view.classList.remove('dim'); document.body.classList.remove('busy');
+  App.stamp = new Date(); curKey = key;
+  if (opt.silent || keep) { window.scrollTo(0, y); drawHead(); return; }
+  view.classList.remove('in'); void view.offsetWidth; view.classList.add(sameHub ? 'in-s' : 'in'); setTimeout(() => view.classList.remove('in', 'in-s'), 400);
+  drawHead(); window.scrollTo({ top: 0, behavior: sameHub ? 'smooth' : 'auto' });
+  view.focus({ preventScroll: true });
 }
-App.refresh = async () => { const y = window.scrollY; App.dropCache?.(); await route(); window.scrollTo(0, y); };
+App.refresh = async () => { App.dropCache?.(); await route({ keep: true }); };
+
+/* ===== تحديث حيّ: شارات القائمة تتجدد دورياً، والصفحات التشغيلية تتجدد صامتة عند عدم انشغال المستخدم ===== */
+let lastPoll = Date.now();
+const LIVE = new Set(['dashboard/overview', 'dashboard/alerts', 'dashboard/', 'team/overview', 'team/']);
+async function poll() {
+  if (document.hidden || !S.me || !S.cid) return;
+  lastPoll = Date.now(); App.dropCache?.();
+  try { await App.alerts(); drawMenu(); } catch { return; }
+  const ae = document.activeElement, busyEdit = ae && /^(INPUT|TEXTAREA|SELECT)$/.test(ae.tagName), modal = $('[role="dialog"]');
+  if (LIVE.has(curKey) && !busyEdit && !modal) route({ silent: true });
+}
+setInterval(poll, 60000);
+document.addEventListener('visibilitychange', () => { if (!document.hidden && Date.now() - lastPoll > 30000) poll(); });
 
 document.addEventListener('click', async e => {
   const el = e.target.closest('[data-a]'); if (!el) return;
@@ -100,7 +151,10 @@ document.addEventListener('click', async e => {
 });
 $('#cycSel').onchange = e => { S.cid = e.target.value || null; try { localStorage.setItem('cyc', S.cid || ''); } catch {} route(); };
 $('#out').onclick = async () => { await sb.auth.signOut(); S.me = null; showLogin(); };
-window.addEventListener('hashchange', route);
+window.addEventListener('hashchange', () => route());
+// الشريط العلوي (الشعار) يختفي عند التمرير ويبقى شريط الأقسام وترويسة الصفحة ثابتَين
+const setHH = () => document.documentElement.style.setProperty('--hh', ($('.astick header')?.offsetHeight || 0) + 'px');
+window.addEventListener('resize', setHH); setHH(); setTimeout(setHH, 600);
 Act.print = () => window.print();
 Act.back = () => history.back();
 boot();

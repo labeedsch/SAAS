@@ -16,6 +16,7 @@ const INDS = [
   ['evidence', 'الشواهد', '*', 'الشواهد المرفوعة وحالة مراجعتها واعتمادها، ومعاينة ملفاتها.'],
   ['map', 'خريطة التقدم', '*', 'كل معيار ومؤشراته بحالتها ومقيّمها وشواهدها، لمعرفة أين يتوقف العمل.'],
 ];
+(App.HUBS ||= {}).dashboard = { title: 'لوحة المتابعة الشاملة', tabs: DASH }; App.HUBS.inds = { title: 'إدارة المؤشرات', tabs: INDS };
 App.DASH_TABS = DASH.map(t => t[0]).filter(t => t !== 'overview');
 App.INDS_TABS = INDS.map(t => t[0]).filter(t => t !== 'list');
 

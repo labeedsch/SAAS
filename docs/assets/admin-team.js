@@ -13,6 +13,7 @@ const PLAT = [['staff', 'الأعضاء والحسابات', CO, 'منسوبو �
 const ok = r => r === '*' || r.includes(role());
 App.TEAM_TABS = TABS.map(t => t[0]).filter(t => t !== 'overview');
 App.PLATFORM_TABS = PLAT.map(t => t[0]);
+(App.HUBS ||= {}).team = { title: 'إدارة الفريق', tabs: TABS }; App.HUBS.platform = { title: 'إدارة المنصة', tabs: PLAT };
 App.teamTabAllowed = t => { const x = [...TABS, ...PLAT].find(y => y[0] === t); return !x || ok(x[2]); };
 
 /* ===== فحوص الجاهزية: كل بند محسوب من بيانات حقيقية ===== */
@@ -128,8 +129,7 @@ function readinessPanel(D) {
 }
 
 /* ===== التبويبات ===== */
-const shell = (title, sub, base, tabs, tab, bg, extra, body, after) => ({ html: h`<div class="ph"><h1>${title}</h1><div class="pa"><span class="muted">${sub}</span></div></div>
-  <nav class="tt" aria-label="أقسام ${title}">${tabs.map(t => h`<a href="#${base}/${t[0]}" class="${t[0] === tab ? 'on' : ''}" ${t[0] === tab ? raw('aria-current="page"') : ''}>${t[1]}${bg[t[0]] ? h` <span class="tb">${nf(bg[t[0]])}</span>` : ''}</a>`)}</nav>${tabs.find(t => t[0] === tab)?.[3] ? h`<p class="tdesc">${tabs.find(t => t[0] === tab)[3]}</p>` : ''}${extra}<div class="tbody">${body}</div>`, after });
+const shell = (title, sub, base, tabs, tab, bg, extra, body, after) => ({ html: h`<nav class="tt" aria-label="أقسام ${title}">${tabs.map(t => h`<a href="#${base}/${t[0]}" class="${t[0] === tab ? 'on' : ''}" ${t[0] === tab ? raw('aria-current="page"') : ''}>${t[1]}${bg[t[0]] ? h` <span class="tb">${nf(bg[t[0]])}</span>` : ''}</a>`)}</nav>${extra}<div class="tbody">${body}</div>`, after });
 App.shell = shell;
 async function badges() {
   try {
