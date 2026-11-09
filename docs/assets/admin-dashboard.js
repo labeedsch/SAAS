@@ -214,22 +214,79 @@ const logLine = (l, D) => {
   return { who, what, t: l.created_at };
 };
 
-/* ===== لوحة المتابعة: شاشة واحدة واضحة (ما المطلوب مني الآن؟) ===== */
+/* ===== اللوحة الشاملة: نظرة كاملة على المنصة، ولكل قسم نافذته ===== */
+const win = (cls, icon, title, href, linkLabel, body) => h`<section class="win ${cls}"><header><span class="db-gi">${ico(icon)}</span><h2>${title}</h2><a class="btn sm" href="${href}">${linkLabel}</a></header>${body}</section>`;
+const ms = (label, v, tone = '') => h`<div class="ms ${tone}"><b>${nf(v)}</b><small>${label}</small></div>`;
+const mini = (xs, empty) => xs.length ? h`<ul class="wl">${xs}</ul>` : h`<p class="muted empty">${empty}</p>`;
 Pages.dashboard = async () => {
   const nc = App.needCycle(); if (nc) return nc;
   const [D, A] = await Promise.all([App.data(), App.alerts()]); App.drawMenu?.();
-  const c = App.cycle(), co = isCoord();
+  const { ref, om, resp, evid, tasks, meetings, vis, cards, profs, log } = D, c = App.cycle(), co = isCoord(), T = tod();
   const readSet = new Set(D.reads.filter(r => r.profile_id === S.me.id).map(r => r.announcement_id));
-  const strip = D.anns.filter(a => a.priority !== 'normal' && (co || !readSet.has(a.id)));
-  const agenda = App.agendaHtml ? App.agendaHtml(D, 7) : null;
+  const stOf = i => om[i.id]?.eval_status || 'not_evaluated';
+  const cnt = st => ref.inds.filter(i => stOf(i) === st).length;
+  const nInd = ref.inds.length, nOk = cnt('approved'), nSub = cnt('submitted'), nDr = cnt('draft'), nNo = cnt('not_evaluated');
+  const doms = ref.domains.map(d => { const xs = ref.inds.filter(i => i.dom?.id === d.id), ok = xs.filter(i => stOf(i) === 'approved').length; return { d, n: xs.length, ok, done: xs.length > 0 && ok === xs.length }; });
+  const stds = ref.standards.map(s => { const xs = ref.inds.filter(i => i.std?.id === s.id); return xs.length > 0 && xs.every(i => stOf(i) === 'approved'); });
+  const domDone = doms.filter(x => x.done).length, stdDone = stds.filter(Boolean).length;
+  const pct = nInd ? Math.round(nOk / nInd * 100) : 0;
+  const left = c.end_date ? dayDiff(c.end_date) : null;
+  // الشواهد
+  const evOk = evid.filter(e => e.status === 'approved').length, evPend = evid.filter(e => ['new', 'under_review'].includes(e.status)).length, evFix = evid.filter(e => e.status === 'needs_completion').length;
+  // المهام (المعتمدة فقط)
+  const tk = tasks.filter(t => t.approval === 'approved'), tkDone = tk.filter(t => t.status === 'completed').length;
+  const tkLate = tk.filter(t => !['completed', 'cancelled'].includes(t.status) && (t.status === 'overdue' || (t.due_date && String(t.due_date).slice(0, 10) < T))).length;
+  const tkRun = tk.filter(t => ['new', 'in_progress'].includes(t.status)).length - tk.filter(t => ['new', 'in_progress'].includes(t.status) && (t.due_date && String(t.due_date).slice(0, 10) < T)).length;
+  const tkRev = tasks.filter(t => t.status === 'awaiting_review').length, tkProp = tasks.filter(t => t.approval === 'proposed').length;
+  const nextM = meetings.filter(m => m.status === 'scheduled' && dayDiff(m.meeting_date) >= 0).sort((a, b) => String(a.meeting_date).localeCompare(b.meeting_date))[0];
+  const nextV = vis.filter(v => !['done', 'completed', 'cancelled'].includes(v.status) && v.visit_date && dayDiff(v.visit_date) >= 0).sort((a, b) => String(a.visit_date).localeCompare(b.visit_date))[0];
+  const openCards = cards.filter(k => k.followup !== 'closed').length;
+  // المنصة
+  const hasEv = new Set(resp.filter(r => r.kind === 'evaluator').map(r => r.indicator_id)), hasRs = new Set(resp.filter(r => r.kind === 'responsible').map(r => r.indicator_id));
+  const noEv = ref.inds.filter(i => !hasEv.has(i.id)).length, noRs = ref.inds.filter(i => !hasRs.has(i.id)).length;
+  const staffAct = S.staff.filter(s => s.is_active).length, accounts = profs.filter(p => p.is_active && p.role !== 'external_evaluator').length;
+  const accSet = new Set(profs.filter(p => p.is_active && p.staff_id).map(p => p.staff_id));
+  const evNoAcc = new Set(resp.filter(r => r.kind === 'evaluator' && !accSet.has(r.staff_id)).map(r => r.staff_id)).size;
+  // الإجراءات: أهم العناصر عبر المجموعات
+  const items = A.groups.flatMap(g => g.items.map(i => ({ ...i, _g: g.title }))).sort((a, b) => SEV[b.tone] - SEV[a.tone]);
+  const strip = D.anns.slice().sort((a, b) => (b.priority !== 'normal') - (a.priority !== 'normal'));
+
   return h`
-  ${strip.length ? h`<div class="db-strip" role="region" aria-label="إعلانات مهمة">${ico('mega')}<div>${strip.slice(0, 2).map(a => h`<a href="#ann" class="${a.priority}"><b>${L.prio[a.priority]}:</b> ${a.title}</a>`)}</div></div>` : ''}
-  <header class="db-top"><div><h1>${co ? 'ما ينتظرك' : 'مهامك'}</h1><small class="muted">${c.name}</small></div>
-    <a class="db-chip ${A.total ? 'warn' : 'ok'}" href="#alerts">${A.total ? nf(A.total) + ' إجراء معلّق' : 'لا شيء معلّق'}</a></header>
+  ${strip.length ? h`<div class="db-strip" role="region" aria-label="الإعلانات">${ico('mega')}<div>${strip.slice(0, 5).map(a => h`<a href="#ann" class="${a.priority}">${a.priority !== 'normal' ? h`<b>${L.prio[a.priority]}:</b> ` : ''}${a.title}${!co && !readSet.has(a.id) ? h` <i class="db-dot" title="لم تطّلع عليه"></i>` : ''}</a>`)}</div><a class="btn sm" href="#ann">كل الإعلانات</a></div>` : ''}
 
-  ${A.groups.length ? h`<section class="pn"><div class="pnh"><h2>إجراءات تحتاج قرارك</h2></div><div class="db-ac">${A.groups.map(g => groupCard(g, 3))}</div></section>` : h`<section class="pn"><p class="muted empty">لا توجد إجراءات معلّقة. كل شيء منجز.</p></section>`}
+  <section class="cmp"><div class="cmp-h"><div><small>${c.name} · ${L.cycle[c.status] || ''}${c.academic_year ? ' · ' + c.academic_year : ''}</small><h2>إنجاز التقويم الذاتي</h2>
+      <p class="muted">${left == null ? 'لم يُحدَّد تاريخ نهاية الدورة.' : left >= 0 ? 'متبقٍ ' + nf(left) + ' يوماً على نهاية الدورة (' + dt(c.end_date) + ')' : 'تجاوزت الدورة نهايتها بـ ' + nf(-left) + ' يوماً'}</p></div>
+    <div class="cmp-p" role="img" aria-label="${pct}٪ من المؤشرات معتمدة"><b>${nf(pct)}٪</b><span class="mp-bar big"><i style="width:${pct}%"></i></span><small>${nf(nOk)} من ${nf(nInd)} مؤشراً معتمداً</small></div></div>
+    <div class="cmp-t">${ms('مجالات منجزة من ' + nf(doms.length), domDone, 'ok')}${ms('مجالات متبقية', doms.length - domDone, doms.length - domDone ? 'warn' : '')}${ms('معايير منجزة من ' + nf(stds.length), stdDone, 'ok')}${ms('مؤشرات متبقية', nInd - nOk, nInd - nOk ? 'warn' : '')}${ms('شواهد معتمدة من ' + nf(evid.length), evOk)}${ms('مهام منجزة من ' + nf(tk.length), tkDone)}</div>
+    <div class="cmp-d">${doms.map(({ d, n, ok, done }, i) => h`<a href="#inds/map" class="cd ${done ? 'done' : ''}" style="--f:var(--c${i % 4}f);--b:var(--c${i % 4}b)"><b>${d.name_ar}</b><span class="mp-bar"><i style="width:${n ? Math.round(ok / n * 100) : 0}%"></i></span><small>${done ? 'منجز' : 'متبقٍ ' + nf(n - ok) + ' من ' + nf(n)}</small></a>`)}</div></section>
 
-  ${panel('الأسبوع القادم', agenda || h`<p class="muted empty">لا مواعيد ولا اجتماعات ولا مهام خلال الأسبوع القادم.</p>`, h`<a class="btn sm" href="#team/overview">إدارة الفريق</a>`)}`;
+  <div class="wins">
+  ${win('w-act ' + (A.bySev.bad ? 'bad' : A.total ? 'warn' : 'ok'), 'bell', 'إجراءات تحتاج قرارك', '#dashboard/alerts', 'كل التنبيهات (' + nf(A.total) + ')',
+    h`<div class="ms-row">${ms('عاجل', A.bySev.bad, A.bySev.bad ? 'bad' : '')}${ms('يحتاج متابعة', A.bySev.warn, A.bySev.warn ? 'warn' : '')}${ms('للعلم', A.bySev.info)}</div>${mini(items.slice(0, 4).map(itemHtml), 'لا توجد إجراءات معلّقة. كل شيء منجز.')}${items.length > 4 ? h`<a class="db-more" href="#dashboard/alerts">وعرض ${nf(items.length - 4)} آخر</a>` : ''}`)}
+
+  ${win('w-week', 'cal', 'الأسبوع القادم', '#team/overview', 'أجندة الفريق', (App.agendaHtml && App.agendaHtml(D, 7, 6)) || h`<p class="muted empty">لا اجتماعات ولا زيارات ولا مواعيد ولا مهام خلال الأسبوع القادم.</p>`)}
+
+  ${win('w-ind', 'note', 'إدارة المؤشرات', '#inds/list', 'فتح المؤشرات',
+    h`<div class="ms-row">${ms('معتمد', nOk, 'ok')}${ms('بانتظار الاعتماد', nSub, nSub ? 'info' : '')}${ms('مسودة', nDr)}${ms('لم يُقيَّم', nNo, nNo ? 'warn' : '')}</div>
+    <div class="ms-row">${ms('شواهد بانتظار المراجعة', evPend, evPend ? 'info' : '')}${ms('شواهد تحتاج استكمالاً', evFix, evFix ? 'warn' : '')}${ms('بلا مقيّم', noEv, noEv ? 'warn' : '')}${ms('بلا مسؤول', noRs, noRs ? 'warn' : '')}</div>
+    <div class="wb"><a class="btn sm" href="#inds/evidence">مراجعة الشواهد</a><a class="btn sm" href="#inds/map">خريطة التقدم</a></div>`)}
+
+  ${win('w-team', 'task', 'إدارة الفريق', '#team/overview', 'فتح إدارة الفريق',
+    h`<div class="ms-row">${ms('قيد التنفيذ', Math.max(tkRun, 0), 'info')}${ms('متأخرة', tkLate, tkLate ? 'bad' : '')}${ms(co ? 'بانتظار المراجعة' : 'مقترحة', co ? tkRev : tkProp, (co ? tkRev : tkProp) ? 'warn' : '')}${ms('مكتملة', tkDone, 'ok')}</div>
+    <ul class="wl"><li><span>${ico('cal')} الاجتماع القادم</span><b>${nextM ? h`<a href="#meeting/${nextM.id}">${nextM.title}</a> <small class="muted">${dt(nextM.meeting_date)}${nextM.start_time ? ' · ' + String(nextM.start_time).slice(0, 5) : ''}</small>` : h`<small class="muted">لا يوجد</small>`}</b></li>
+    <li><span>${ico('visit')} الزيارة القادمة</span><b>${nextV ? h`<a href="#visit/${nextV.id}">${nextV.target_party || 'زيارة فنية'}</a> <small class="muted">${dt(nextV.visit_date)}</small>` : h`<small class="muted">لا يوجد</small>`}</b></li>
+    <li><span>${ico('clip')} إجراءات زيارات مفتوحة</span><b>${nf(openCards)}</b></li></ul>
+    <div class="wb"><a class="btn sm" href="#team/tasks">المهام</a><a class="btn sm" href="#team/meetings">الاجتماعات</a><a class="btn sm" href="#team/visits">الزيارات</a></div>`)}
+
+  ${win('w-plat', 'users', 'إدارة المنصة', '#platform/staff', 'فتح إدارة المنصة',
+    h`<div class="ms-row">${ms('منسوبون', staffAct)}${ms('حسابات فعّالة', accounts)}${ms('مقيّمون بلا حساب', evNoAcc, evNoAcc ? 'warn' : '')}${ms('إعلانات سارية', D.anns.length)}</div>
+    <ul class="wl"><li><span>${ico('note')} الدورة الحالية</span><b>${c.name} <small class="muted">${L.cycle[c.status] || ''}</small></b></li><li><span>${ico('cal')} عدد الدورات</span><b>${nf(S.cycles.length)}</b></li></ul>
+    <div class="wb"><a class="btn sm" href="#platform/assign">الإسناد</a><a class="btn sm" href="#platform/cycles">الدورات</a>${co ? h`<a class="btn sm" href="#platform/wa">واتساب</a>` : ''}</div>`)}
+
+  ${win('w-rep', 'doc', 'التقارير وسجل النشاط', '#dashboard/reports', 'التقارير',
+    log.length ? h`<ul class="wl log">${log.slice(0, 4).map(l => { const x = logLine(l, D); return h`<li><span><b>${x.who}</b> · ${x.what}</span><small class="muted">${ago(x.t)}</small></li>`; })}</ul><div class="wb"><a class="btn sm" href="#dashboard/log">سجل النشاط كاملاً</a></div>`
+      : h`<p class="muted empty">تقارير الدورة والمجالات والمعايير والمؤشرات والشواهد والمهام للعرض والطباعة والتصدير.</p><div class="wb"><a class="btn sm" href="#dashboard/reports">فتح التقارير</a></div>`)}
+  </div>`;
 };
 
 /* ===== صفحة التنبيهات ===== */
