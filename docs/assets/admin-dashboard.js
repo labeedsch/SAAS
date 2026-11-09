@@ -327,6 +327,9 @@ Pages.dashboard = async () => {
   <div class="kcs">${kc('teal', 'layers', 'كل المؤشرات', nf(nInd), pct, 'المعتمد منها ' + nf(nOk) + ' · افتح خريطة التقدم', '#inds/map', true)}${kc('ok', 'check', 'معتمد', nf(nOk), nInd ? nOk / nInd * 100 : 0, 'عرض المؤشرات المعتمدة', '#inds/list/approved')}${kc('info', 'clock', 'بانتظار الاعتماد', nf(nSub), nInd ? nSub / nInd * 100 : 0, nSub ? (co ? 'راجع واعتمد الآن' : 'أُرسلت للمراجعة') : 'لا شيء ينتظر', '#inds/list/submitted')}${kc('mute', 'note', 'مسودة', nf(nDr), nInd ? nDr / nInd * 100 : 0, nDr ? 'تقييمات تحتاج إكمالاً' : 'لا مسودات', '#inds/list/draft')}${kc('warn', 'alert', 'لم يُقيَّم', nf(nNo), nInd ? nNo / nInd * 100 : 0, nNo ? 'ابدأ التقييم' : 'اكتمل التقييم', '#inds/list/not_evaluated')}${kc('bad', 'users', 'بلا مقيّم', nf(noEv), nInd ? noEv / nInd * 100 : 0, noEv ? (co ? 'أسنِد مقيّماً الآن' : 'يحتاج إسناداً') : 'كل المؤشرات مسندة', '#platform/assign')}</div>
 
   <div class="wins">
+  <section class="win w-cal"><header><span class="db-gi">${ico('cal')}</span><h2>التقويم والأجندة</h2><a class="btn sm" href="#team/cal">تقويم الفريق</a></header>
+    <div class="wc"><div id="wcal" class="calbox">${calHtml()}</div><div id="wag" class="agbox">${agHtml()}</div></div></section>
+
   ${win('w-act ' + (A.bySev.bad ? 'bad' : A.total ? 'warn' : 'ok'), 'bell', 'إجراءات تحتاج قرارك', '#alerts', 'كل التنبيهات (' + nf(A.total) + ')',
     h`${mini(items.slice(0, 4).map(itemHtml), 'لا توجد إجراءات معلّقة. كل شيء منجز.')}${items.length > 4 ? h`<a class="db-more" href="#alerts">وعرض ${nf(items.length - 4)} آخر</a>` : ''}
     ${nstrip([{ ico: 'alert', label: 'عاجل', v: A.bySev.bad, tone: 'bad', href: '#alerts' }, { ico: 'clock', label: 'يحتاج متابعة', v: A.bySev.warn, tone: 'warn', href: '#alerts' }, { ico: 'bell', label: 'للعلم', v: A.bySev.info, tone: 'info', href: '#alerts' }])}`)}
@@ -336,8 +339,6 @@ Pages.dashboard = async () => {
     <div class="wb"><a class="btn sm" href="#inds/evidence">مراجعة الشواهد</a><a class="btn sm" href="#inds/map">خريطة التقدم</a></div>
     ${nstrip([{ ico: 'clip', label: 'شواهد بانتظار المراجعة', v: evPend, tone: 'info', href: '#inds/evidence/new' }, { ico: 'alert', label: 'شواهد تحتاج استكمالاً', v: evFix, tone: 'warn', href: '#inds/evidence/needs_completion' }])}`)}
 
-  <section class="win w-cal"><header><span class="db-gi">${ico('cal')}</span><h2>التقويم والأجندة</h2><a class="btn sm" href="#team/cal">تقويم الفريق</a></header>
-    <div class="wc"><div id="wcal" class="calbox">${calHtml()}</div><div id="wag" class="agbox">${agHtml()}</div></div></section>
 
   <div class="wins3">
   ${win('w-team', 'task', 'إدارة الفريق', '#team/overview', 'فتح إدارة الفريق',
