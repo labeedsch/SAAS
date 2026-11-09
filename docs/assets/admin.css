@@ -79,7 +79,7 @@ body.noscroll{overflow:hidden}
 .kv{display:grid;grid-template-columns:140px 1fr;gap:6px 12px} .kv dt{color:var(--muted)} .kv dd{margin:0}
 .link{color:var(--brand);text-decoration:none;cursor:pointer;background:none;border:0;padding:0;font:inherit}
 @media (max-width:900px){
-  #pubnav{display:none}
+  #pubnav{order:3;flex:1 1 100%;justify-content:flex-start;gap:2px;overflow-x:auto} #pubnav a{padding:6px 12px;font-size:.92rem}
   .sb{flex-wrap:wrap}
   #menu{flex:1 1 100%}
   #menu .mg{position:static}

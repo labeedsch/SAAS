@@ -5,12 +5,18 @@
 <title>تأكيد حضور الاجتماع | لبيد بن ربيعة</title>
 <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap">
-<link rel="stylesheet" href="assets/theme.css?v=20261110c">
+<link rel="stylesheet" href="assets/theme.css?v=20261110d">
 </head>
-<body>
+<body class="pub">
+<header><div class="wrap top">
+  <a class="bm" href="./"><svg viewBox="0 0 64 64" aria-hidden="true"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#22b3b8"/><stop offset="1" stop-color="#0d3b66"/></linearGradient></defs><path d="M30 4c2 14 8 20 24 24-16 4-22 10-24 26-2-16-8-22-24-26 16-4 22-10 24-24z" fill="url(#g)"/><path d="M50 4c.8 5 3 7.2 8 8-5 .8-7.2 3-8 8-.8-5-3-7.2-8-8 5-.8 7.2-3 8-8z" fill="#f0b34a"/></svg><span><b>التقويم الذاتي الذكي</b><small>مدرسة لبيد بن ربيعة المتوسطة</small></span></a>
+  <nav aria-label="روابط الموقع" style="flex:1"></nav>
+  <span class="moe"><b>وزارة التعليم</b><small>Ministry of Education</small></span>
+</div></header>
+
 <main class="wrap" style="max-width:560px;padding-block:7vh"><div class="panel" id="box"><p class="muted">جارٍ التحميل…</p></div></main>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
-<script src="assets/config.js?v=20261110c"></script>
+<script src="assets/config.js?v=20261110d"></script>
 <script>
 (async () => {
   const sb = supabase.createClient(APP_CONFIG.supabaseUrl, APP_CONFIG.supabaseKey), box = document.getElementById('box');
