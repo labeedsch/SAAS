@@ -181,6 +181,7 @@ async function taskForm(base = {}, existing = null) {
   else r = await run(sb.from('tasks').insert({ ...v, cycle_id: S.cid, proposed_by: S.me.id, approval: 'proposed', status: 'new' }), 'أُرسل الاقتراح للمنسق');
   if (r) { if (co && !existing && v.assignee_staff_id) waReport([await queueWa('task_new', v.assignee_staff_id, { عنوان: v.title, موعد: v.due_date ? dt(v.due_date) : '—', مخرج: v.required_output || '—' }, null)]); App.refresh(); }
 }
+App.taskForm = taskForm;
 Pages.tasks = async () => {
   const nc = App.needCycle(); if (nc) return nc;
   let ts = await must(sb.from('tasks').select('*').eq('cycle_id', S.cid).order('created_at', { ascending: false }));

@@ -110,7 +110,7 @@ async function overview() {
   const card = t => h`<a class="tm-kc ${isLate(t) ? 'bad' : ''}" href="#team/tasks"><b>${t.title}</b><small>${staffName(t.assignee_staff_id)}${t.due_date ? ' · ' + dueTxt(t.due_date) : ' · بلا موعد'}</small></a>`;
   const vplan = D.vis.filter(v => v.status === 'planned').sort((a, b) => a.visit_date.localeCompare(b.visit_date));
   const rows = teamRows(D);
-  const quick = co ? h`<div class="tm-quick"><a class="btn sm pri" href="#team/tasks">+ مهمة</a><a class="btn sm pri" href="#team/meetings">+ اجتماع</a><a class="btn sm pri" href="#team/visits">+ زيارة فنية</a><a class="btn sm" href="#team/cal">+ موعد إغلاق</a></div>` : '';
+  const quick = co ? h`<div class="tm-quick">${btn('+ مهمة', 'qTask', {}, 'sm pri')}${btn('+ اجتماع', 'qMeeting', {}, 'sm pri')}${btn('+ زيارة فنية', 'qVisit', {}, 'sm pri')}${btn('+ موعد إغلاق', 'qDeadline', {}, 'sm')}</div>` : '';
   return h`${quick}
   ${gs.length ? panel(h`${di('bell')}${co ? 'ينتظر قرارك الآن' : 'يخصّك الآن'}`, h`<div class="db-ac">${gs.map(g => App.groupCard(g, 4))}</div>`, h`<a class="btn sm" href="#alerts">كل التنبيهات</a>`) : ''}
   ${panel(h`${di('cal')}الأجندة: ما هو قادم`, shown.length ? agendaSections(shown) : h`<p class="muted empty">لا اجتماعات ولا زيارات ولا مواعيد ولا مهام ذات موعد خلال الشهر القادم.</p>`)}
@@ -136,6 +136,8 @@ function readinessPanel(D) {
 const TICO = { overview: 'bars', reports: 'doc', log: 'history', list: 'note', evidence: 'clip', map: 'flag', tasks: 'task', meetings: 'cal', visits: 'visit', cal: 'cal', staff: 'users', assign: 'user', ann: 'mega', cycles: 'layers', wa: 'bell' };
 const shell = (title, sub, base, tabs, tab, bg, extra, body, after) => ({ html: h`<nav class="tt" aria-label="أقسام ${title}">${tabs.map(t => h`<a href="#${base}/${t[0]}" class="${t[0] === tab ? 'on' : ''}" ${t[0] === tab ? raw('aria-current="page"') : ''}>${TICO[t[0]] ? App.ico(TICO[t[0]]) : ''}${t[1]}${bg[t[0]] ? h` <span class="tb">${nf(bg[t[0]])}</span>` : ''}</a>`)}</nav>${extra}<div class="tbody">${body}</div>`, after });
 App.shell = shell;
+// إجراءات الإنشاء السريع: تفتح نموذج الإنشاء مباشرة من النظرة العامة بدل مجرد الانتقال إلى التبويب
+Act.qTask = () => App.taskForm(); Act.qMeeting = () => Act.mtNew(); Act.qVisit = () => Act.vsNew(); Act.qDeadline = () => App.dlForm({});
 async function badges() {
   try {
     const D = await App.data(), co = isCoord(), me = S.me.staff_id, out = {};
