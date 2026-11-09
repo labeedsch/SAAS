@@ -339,6 +339,7 @@ Pages.dashboard = async () => {
   <section class="win w-cal"><header><span class="db-gi">${ico('cal')}</span><h2>التقويم والأجندة</h2><a class="btn sm" href="#team/cal">تقويم الفريق</a></header>
     <div class="wc"><div id="wcal" class="calbox">${calHtml()}</div><div id="wag" class="agbox">${agHtml()}</div></div></section>
 
+  <div class="wins3">
   ${win('w-team', 'task', 'إدارة الفريق', '#team/overview', 'فتح إدارة الفريق',
     h`<ul class="wl"><li><span>${ico('cal')} الاجتماع القادم</span><b>${nextM ? h`<a href="#meeting/${nextM.id}">${nextM.title}</a> <small class="muted">${dt(nextM.meeting_date)}${nextM.start_time ? ' · ' + String(nextM.start_time).slice(0, 5) : ''}</small>` : h`<small class="muted">لا يوجد</small>`}</b></li>
     <li><span>${ico('visit')} الزيارة القادمة</span><b>${nextV ? h`<a href="#visit/${nextV.id}">${nextV.target_party || 'زيارة فنية'}</a> <small class="muted">${dt(nextV.visit_date)}</small>` : h`<small class="muted">لا يوجد</small>`}</b></li>
@@ -354,6 +355,7 @@ Pages.dashboard = async () => {
   ${win('w-rep', 'doc', 'التقارير وسجل النشاط', '#dashboard/reports', 'التقارير',
     log.length ? h`<ul class="wl log">${log.slice(0, 4).map(l => { const x = logLine(l, D); return h`<li><span><b>${x.who}</b> · ${x.what}</span><small class="muted">${ago(x.t)}</small></li>`; })}</ul><div class="wb"><a class="btn sm" href="#dashboard/log">سجل النشاط كاملاً</a></div>`
       : h`<p class="muted empty">تقارير الدورة والمجالات والمعايير والمؤشرات والشواهد والمهام للعرض والطباعة والتصدير.</p><div class="wb"><a class="btn sm" href="#dashboard/reports">فتح التقارير</a></div>`)}
+  </div>
   </div>`;
 };
 
