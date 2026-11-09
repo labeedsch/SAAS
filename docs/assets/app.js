@@ -29,6 +29,7 @@ const grpLevel = rs => { const v = rs.filter(r => r.publish_state === 'published
   if (!v.length) return { key: 'none', avg: null };
   const avg = v.reduce((a, b) => a + b, 0) / v.length, t = THR.find(x => avg >= x[1]);
   return { key: t ? t[0] : 'preparation', avg }; };
+const resOf = rs => { const g = grpLevel(rs); return { g, txt: g.avg != null ? num(Math.round(g.avg)) + '٪' : '—', name: GL[g.key], p: g.avg != null ? Math.round(g.avg) : 0 }; };
 const GL = { excellence: 'التميز', advancement: 'التقدم', launch: 'الانطلاق', preparation: 'التهيئة', none: 'بلا تقييم منشور' };
 async function load() {
   const { data, error } = await sb.from('public_results').select('*').order('indicator_code');
@@ -81,7 +82,7 @@ function domCards(id, rs) {
     return `<div class="dcard" role="button" tabindex="0" data-fdom="${d.domain_id}" aria-pressed="false" style="--b:var(--c${k}b);--f:var(--c${k}f)">
       <span class="dnum" aria-hidden="true">${num(d.domain_code)}</span>
       <div class="dtop"><span class="dic">${ic(DIC[i % 4])}</span><div class="dtit"><small>المجال ${num(d.domain_code)}</small><h3>${esc(d.domain_name)}</h3></div>
-        <div class="dring" style="--p:${pc}" role="img" aria-label="نسبة النشر ${pc}٪"><b>${num(pc)}٪</b></div></div>
+        ${(() => { const q = resOf(dr); return `<div class="dres glv ${q.g.key}" role="img" aria-label="النتيجة ${q.txt}، ${q.name}"><b>${q.txt}</b><span>${q.name}</span></div>`; })()}</div>
       <div class="dchips"><span>${ic('bars')} ${num(nst)} معايير</span><span>${ic('target')} ${num(dr.length)} مؤشراً</span><span>${ic('eye')} ${num(p)} منشور</span></div>
       <div class="dseg" role="img" aria-label="توزيع المستويات">${keys.map(([key, c]) => `<i class="sg ${key}" style="flex:${c}" title="${STL[key]}: ${num(c)}"></i>`).join('')}</div>
       <div class="dleg">${keys.map(([key, c]) => `<span><i class="dot ${key}"></i>${STL[key]} <b>${num(c)}</b></span>`).join('')}</div>
@@ -300,11 +301,10 @@ function domain(cid, did) {
   view.innerHTML = crumbs([['النتائج', '#results'], [d.cycle_name, '#cycle/' + cid], [d.domain_name]]) +
     `<section class="hero2 dhero glv ${gl.key}"><div class="h2-txt"><span class="chip">${ic('cal')} ${esc(d.cycle_name)}</span>
       <div class="dh-title"><span class="dh-ic">${ic(DIC[i % 4])}</span><div><small>المجال ${num(d.domain_code)}</small><h1>${esc(d.domain_name)}</h1></div></div>
-      <span class="glbadge">مستوى المجال: ${GL[gl.key]}${gl.avg != null ? ' · ' + num(Math.round(gl.avg)) + '٪' : ''}</span>
       <p class="h2-p">يضم هذا المجال ${num(sts.length)} معايير و${num(rs.length)} مؤشراً، منها ${num(p)} منشورة.</p>
       <div class="dh-seg">${segHtml(rs)}</div>
       <div class="h2-cta"><button type="button" class="btn gold" id="goStd">استعرض المعايير ${ic('arrow')}</button><a class="btn ghost" href="#home">الرئيسية</a></div></div>
-      <div class="h2-panel"><div class="h2-ring" style="--p:${pc}" role="img" aria-label="نسبة النشر ${pc}٪"><div><b>${num(pc)}٪</b><small>نسبة النشر</small></div></div>
+      <div class="h2-panel"><div class="h2-ring" style="--p:${resOf(rs).p}" role="img" aria-label="نتيجة المجال ${resOf(rs).txt}، ${resOf(rs).name}"><div><b>${resOf(rs).txt}</b><small class="lvn">${resOf(rs).name}</small></div></div>
         <div class="h2-stats"><div><b>${num(sts.length)}</b><span>معايير</span></div><div><b>${num(rs.length)}</b><span>مؤشراً</span></div>
           <div><b>${num(p)}</b><span>منشورة</span></div><div><b>${num(rs.length - p)}</b><span>غير منشورة</span></div></div></div></section>` +
     (isTeam() ? `<div class="people"><div class="pp"><h3>مقيمو المجال</h3><div>${chips(ev)}</div></div><div class="pp"><h3>مسؤولو المجال</h3><div>${chips(rp)}</div></div></div>`
@@ -318,10 +318,10 @@ function domain(cid, did) {
     const g = grpLevel(sr); return `<a class="wcard glv ${g.key}" style="--b:var(--c${k}b)" href="#standard/${cid}/${s.standard_id}">
       <span class="wcode"><small>المعيار</small><b>${esc(s.standard_code)}</b></span>
       <div class="wmain"><h3>${esc(s.standard_name)}</h3>
-        <div class="dchips"><span class="glbadge s">${GL[g.key]}${g.avg != null ? ' · ' + num(Math.round(g.avg)) + '٪' : ''}</span><span>${ic('target')} ${num(sr.length)} مؤشراً</span><span>${ic('eye')} ${num(sp)} منشور</span></div>
+        <div class="dchips"><span>${ic('target')} ${num(sr.length)} مؤشراً</span><span>${ic('eye')} ${num(sp)} منشور</span></div>
         ${segHtml(sr)}
         ${isTeam() ? `<div class="dppl"><span>${ic('users')} المقيم: ${names(peopleOf(sr, 'eval'))}</span><span>${ic('users')} المسؤول: ${names(peopleOf(sr, 'resp'))}</span></div>` : ''}</div>
-      <div class="wside"><div class="dring" style="--p:${sc}" role="img" aria-label="نسبة النشر ${sc}٪"><b>${num(sc)}٪</b></div><span class="dgo">عرض المؤشرات ${ic('arrow')}</span></div></a>`;
+      <div class="wside"><div class="dres" role="img" aria-label="النتيجة ${resOf(sr).txt}، ${resOf(sr).name}"><b>${resOf(sr).txt}</b><span>${resOf(sr).name}</span></div><span class="dgo">عرض المؤشرات ${ic('arrow')}</span></div></a>`;
   };
   const row = s => {
     const sr = rs.filter(r => r.standard_id === s.standard_id), sp = pubCount(sr), sc = pctOf(sp, sr.length), ks = lcounts(sr);
@@ -329,7 +329,7 @@ function domain(cid, did) {
       <div class="sname"><b>${esc(s.standard_name)}</b>${isTeam() ? `<small>المقيم: ${names(peopleOf(sr, 'eval'))} · المسؤول: ${names(peopleOf(sr, 'resp'))}</small>` : ''}</div>
       <span class="scnt">${num(sr.length)} مؤشراً · ${num(sp)} منشور</span>
       <div class="dseg" role="img" aria-label="توزيع المستويات">${ks.map(([key, c]) => `<i class="sg ${key}" style="flex:${c}" title="${STL[key]}: ${num(c)}"></i>`).join('')}</div>
-      <b class="spct">${num(sc)}٪</b>${ic('arrow')}</a>`;
+      <b class="spct">${resOf(sr).txt}<small>${resOf(sr).name}</small></b>${ic('arrow')}</a>`;
   };
   const draw = () => {
     $('#svbtns').innerHTML = [['list', 'عرض القائمة'], ['cards', 'عرض البطاقات']].map(([v, t]) => `<button type="button" class="vbtn${sv === v ? ' on' : ''}" data-sv="${v}" aria-pressed="${sv === v}">${ic(v === 'cards' ? 'grid' : 'list')} <span>${t}</span></button>`).join('');
@@ -363,9 +363,9 @@ async function indicator(cid, iid) {
   view.innerHTML = crumbs([['النتائج', '#results'], [r.cycle_name, '#cycle/' + cid], [r.domain_name, `#domain/${cid}/${r.domain_id}`], [r.standard_name, `#standard/${cid}/${r.standard_id}`], [r.indicator_code]]) +
     IndPage.render({
       back: { href: `#standard/${cid}/${r.standard_id}`, label: 'العودة لمؤشرات المعيار' }, dom: k, domIdx: di, code: r.indicator_code, text: r.official_text, domName: r.domain_name, stdName: r.standard_name, cycleName: r.cycle_name,
-      status: { label: pub ? 'منشور' : 'غير منشور', cls: pub ? 'ok' : '' }, level: pub && r.level_label ? { label: r.level_label, cls: LV[r.level_label] || '' } : null, pct,
+      noResult: 'غير منشور', status: { label: pub ? 'منشور' : 'غير منشور', cls: pub ? 'ok' : '' }, level: pub && r.level_label ? { label: r.level_label, cls: LV[r.level_label] || '' } : null, pct,
       owners: team ? [{ label: 'مسؤول المؤشر', names: rp }, { label: 'مقيّم المؤشر', names: ev }] : [],
-      stats: [{ label: 'نسبة التحقق', value: pct != null ? num(Math.round(pct)) + '٪' : '—' }, { label: 'الشواهد المعتمدة', value: num(count || 0) }, { label: 'مؤشرات المعيار', value: num(sibs.length + 1) }],
+      stats: [{ label: 'الشواهد المعتمدة', value: num(count || 0) }, { label: 'مؤشرات المعيار', value: num(sibs.length + 1) }],
       evalCard: { html: evalHtml }, evidence: { html: evidHtml, count: count || 0 }, related: sibs.map(x => ({ ...x, domName: r.domain_name, group: 'مؤشرات المعيار نفسه' })) });
 }
 async function evidenceBlock(cid, iid) {

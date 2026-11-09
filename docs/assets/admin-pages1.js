@@ -28,19 +28,23 @@ const bar = p => h`<div class="bar2"><span style="width:${p}%"></span></div>`;
 Pages.dashboard = async () => {
   const nc = needCycle(); if (nc) return nc;
   const ref = await App.ref(); const c = App.cycle();
-  const [ov, ev, ts, cal, tk] = await Promise.all([
+  const [ov, ev, ts, cal, tk, lvs] = await Promise.all([
     must(sb.from('cycle_indicator_overview').select('*').eq('cycle_id', S.cid)),
     must(sb.from('evidence').select('status').eq('cycle_id', S.cid)),
     sb.from('team_task_stats').select('*').eq('cycle_id', S.cid),
     sb.from('team_calendar').select('*').eq('cycle_id', S.cid).gte('event_date', today()).order('event_date').limit(8),
     sb.from('tasks').select('status,approval').eq('cycle_id', S.cid),
+    must(sb.from('evaluation_levels').select('*').order('sort_order')),
   ]);
   const cnt = (k) => ov.filter(o => o.eval_status === k).length;
   const evc = (k) => ev.filter(e => e.status === k).length;
   const tasks = (tk.data || []).filter(t => t.approval === 'approved');
   const domRows = ref.domains.map(d => {
     const rs = ov.filter(o => o.domain_id === d.id), a = rs.filter(o => o.eval_status === 'approved').length;
-    return { d, total: rs.length, a, p: pct(a, rs.length), ev: rs.reduce((s, o) => s + Number(o.approved_evidence), 0) };
+    // نتيجة المجال: متوسط نسب المؤشرات المعتمدة (طريقة مؤقتة غير واردة في الدليل) ومستواها من عتبات الدليل
+    const v = rs.filter(o => o.eval_status === 'approved' && o.achievement_pct != null).map(o => Number(o.achievement_pct)), avg = v.length ? v.reduce((x, y) => x + y, 0) / v.length : null;
+    const lv = avg == null ? null : lvs.find(l => avg >= Number(l.min_pct)) || lvs[lvs.length - 1];
+    return { d, total: rs.length, a, p: pct(a, rs.length), avg, lv, ev: rs.reduce((s, o) => s + Number(o.approved_evidence), 0) };
   });
   return h`${pageHead(c.name, h`${sb_('cycle', c.status)}`)}
   <div class="kpis">
@@ -52,7 +56,9 @@ Pages.dashboard = async () => {
     <div class="kpi"><b>${nf(evc('new') + evc('under_review'))}</b><span>شواهد تنتظر المراجعة</span></div>
   </div>
   ${panel('تقدم المجالات', table([
-    { h: 'المجال', f: r => r.d.name_ar }, { h: 'المؤشرات', f: r => nf(r.total) }, { h: 'المعتمدة', f: r => nf(r.a) },
+    { h: 'المجال', f: r => r.d.name_ar },
+    { h: 'النتيجة', f: r => r.avg == null ? h`<span class="muted">—</span>` : h`<div class="ires"><b>${nf(Math.round(r.avg))}٪</b><span class="lvl ${({ excellence: 'excellence', advancement: 'advancement', launch: 'launch', preparation: 'preparation' })[r.lv?.code] || 'none'}">${r.lv?.label_ar || ''}</span></div>` },
+    { h: 'المؤشرات', f: r => nf(r.total) }, { h: 'المعتمدة', f: r => nf(r.a) },
     { h: 'التقدم', f: r => h`<div style="display:flex;gap:8px;align-items:center">${bar(r.p)}<span>${nf(r.p)}٪</span></div>` }, { h: 'شواهد معتمدة', f: r => nf(r.ev) },
   ], domRows))}
   <div class="two">

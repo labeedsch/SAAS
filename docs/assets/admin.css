@@ -95,3 +95,4 @@ body.noscroll{overflow:hidden}
   #view{max-width:none;padding:0} .noprint{display:none!important}
 }
 .demobar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:14px;padding:10px 16px;border-radius:14px;background:var(--acc2soft);border:1px dashed var(--acc2);color:var(--ink)}
+.ires{display:grid;justify-items:start;gap:2px;line-height:1.2} .ires b{font-size:1.5rem;font-weight:800;font-variant-numeric:tabular-nums}
