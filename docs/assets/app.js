@@ -11,6 +11,7 @@ const IC = {
   doc:'<path d="M7 3h7l4 4v14H7z"/><path d="M14 3v5h5M10 13h5M10 17h5"/>', shield:'<path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M9 12l2 2 4-4"/>',
   bell:'<path d="M6 16v-5a6 6 0 0112 0v5l2 2H4z"/><path d="M10 21h4"/>', cal:'<rect x="4" y="5" width="16" height="15" rx="3"/><path d="M8 3v4M16 3v4M4 10h16"/>',
   bars:'<path d="M5 20V10M12 20V4M19 20v-7"/>', target:'<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/>',
+  mgmt:'<rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V3h6v1"/><path d="M8.5 10l1.5 1.5 2.5-3M8.5 16l1.5 1.5 2.5-3M15 10.5h1.5M15 16.5h1.5"/>', board:'<rect x="3" y="4" width="18" height="12" rx="2"/><path d="M7 8.5h6M7 12h9M9 16l-2 4M15 16l2 4M12 16v4"/>', growth:'<rect x="3.5" y="14" width="4" height="6" rx="1"/><rect x="10" y="10" width="4" height="10" rx="1"/><rect x="16.5" y="7" width="4" height="13" rx="1"/><path d="M18.5 1.0L19.1 2.7L21.0 2.8L19.5 3.9L20.0 5.7L18.5 4.7L17.0 5.7L17.5 3.9L16.0 2.8L17.9 2.7z"/>', 
   leader:'<path d="M12.0 1.4L12.8 3.5L15.0 3.6L13.3 5.0L13.9 7.2L12.0 6.0L10.1 7.2L10.7 5.0L9.0 3.6L11.2 3.5z"/><circle cx="12" cy="12.2" r="2.8"/><path d="M6 21c.5-3.6 2.8-5.4 6-5.4s5.5 1.8 6 5.4"/>', school:'<path d="M3 10.5L12 5l9 5.5"/><path d="M5 10.5V20h14v-9.5"/><path d="M10 20v-5h4v5"/><path d="M12 5V2.5l3 1-3 1"/>',
   book:'<path d="M5 4h9a4 4 0 014 4v12H9a4 4 0 01-4-4z"/><path d="M5 16a4 4 0 014-4h9"/>', eye:'<path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>'
 };
@@ -19,8 +20,9 @@ Object.assign(IC, {
   reset:'<path d="M4 12a8 8 0 108-8H7M7 4L4 7l3 3"/>', search:'<circle cx="11" cy="11" r="6"/><path d="M20 20l-4-4"/>',
   grid:'<rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="7" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/><rect x="13" y="13" width="7" height="7" rx="1.5"/>',
   list:'<path d="M9 6h11M9 12h11M9 18h11M4 6h.01M4 12h.01M4 18h.01"/>', chev:'<path d="M7 10l5 5 5-5"/>' });
+const domPat = n => { const g = `<g fill="none" stroke="#fff" stroke-opacity=".22" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round">${[[8, 8], [56, 56]].map(([x, y]) => `<g transform="translate(${x} ${y}) scale(1.6)">${IC[n]}</g>`).join('')}</g>`; return `url('data:image/svg+xml,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="96" height="96" viewBox="0 0 96 96">${g}</svg>`)}')`; };
 const ic = n => `<svg class="ico" viewBox="0 0 24 24" aria-hidden="true">${IC[n]}</svg>`;
-const DIC = ['leader', 'book', 'bars', 'school'];
+const DIC = ['mgmt', 'board', 'growth', 'school']; // تطابق رسوم بطاقات المؤشرات
 let rows = [], session = null, role = null;
 
 // عتبات المستويات (تُحمَّل من evaluation_levels، وهذه قيم احتياطية مطابقة لها)
@@ -310,7 +312,7 @@ function domain(cid, did) {
   const gl = grpLevel(rs), ev = peopleOf(rs, 'eval'), rp = peopleOf(rs, 'resp');
   const chips = a => a.length ? a.map(n => `<span class="pchip">${esc(n)}</span>`).join('') : `<span class="muted">${NONE}</span>`;
   view.innerHTML = crumbs([['النتائج', '#results'], [d.cycle_name, '#cycle/' + cid], [d.domain_name]]) +
-    `<section class="hero2 dhero glv ${gl.key}"><div class="h2-txt"><span class="chip">${ic('cal')} ${esc(d.cycle_name)}</span>
+    `<section class="hero2 dhero glv ${gl.key}" style="--pat:${domPat(DIC[i % 4])}"><div class="h2-txt"><span class="chip">${ic('cal')} ${esc(d.cycle_name)}</span>
       <div class="dh-title"><span class="dh-ic">${ic(DIC[i % 4])}</span><div><small>المجال ${num(d.domain_code)}</small><h1>${esc(d.domain_name)}</h1></div></div>
       <p class="h2-p">يضم هذا المجال ${num(sts.length)} معايير و${num(rs.length)} مؤشراً، منها ${num(p)} منشورة.</p>
       <div class="dh-seg">${segHtml(rs)}</div>
