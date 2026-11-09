@@ -366,10 +366,14 @@ async function indicator(cid, iid) {
   const evalHtml = pub
     ? `<dl class="iw-kv wide"><dt>مبررات التقييم</dt><dd>${esc(r.justification || '—')}</dd>${r.strengths ? `<dt>جوانب القوة</dt><dd>${esc(r.strengths)}</dd>` : ''}</dl>`
     : `<p class="muted">لم يُنشر تقييم هذا المؤشر بعد.</p>`;
+  const [{ data: gd }, { data: gde }] = await Promise.all([
+    sb.from('indicator_guidance').select('interpretation,significance').eq('indicator_id', iid).maybeSingle(),
+    sb.from('indicator_guidance_evidence').select('sort_order,title').eq('indicator_id', iid).order('sort_order')]);
   const evidHtml = count ? await evidenceBlock(cid, iid) : `<p class="muted">لا توجد شواهد معتمدة لهذا المؤشر بعد.</p>`;
   if (location.hash !== h0) return; // انتقل المستخدم أثناء التحميل
   view.innerHTML = crumbs([['الرئيسية', '#home'], [r.cycle_name, '#cycle/' + cid], [r.domain_name, `#domain/${cid}/${r.domain_id}`], [r.standard_name, `#standard/${cid}/${r.standard_id}`], [r.indicator_code]]) +
     IndPage.renderWork({
+      guidance: gd ? { interpretation: gd.interpretation, significance: gd.significance, evidence: (gde || []).map(x => x.title) } : null,
       back: indBack(cid, r), dom: k, domIdx: di, code: r.indicator_code, text: r.official_text, domName: r.domain_name, stdName: r.standard_name, cycleName: r.cycle_name,
       noResult: 'غير منشور', status: { label: pub ? 'منشور' : 'غير منشور', cls: pub ? 'ok' : '' }, level: pub && r.level_label ? { label: r.level_label, cls: LV[r.level_label] || '' } : null, pct,
       owners: team ? [{ label: 'مسؤول المؤشر', names: rp }, { label: 'مقيّم المؤشر', names: ev }] : [],

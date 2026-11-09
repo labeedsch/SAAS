@@ -8,7 +8,7 @@ const IC = {
   doc: '<path d="M7 3h7l4 4v14H7z"/><path d="M14 3v5h5M10 13h5M10 17h5"/>', shield: '<path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M9 12l2 2 4-4"/>',
   bell: '<path d="M6 16v-5a6 6 0 0112 0v5l2 2H4z"/><path d="M10 21h4"/>', cal: '<rect x="4" y="5" width="16" height="15" rx="3"/><path d="M8 3v4M16 3v4M4 10h16"/>',
   bars: '<path d="M5 20V10M12 20V4M19 20v-7"/>', target: '<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/>',
-  book: '<path d="M5 4h9a4 4 0 014 4v12H9a4 4 0 01-4-4z"/><path d="M5 16a4 4 0 014-4h9"/>', arrow: '<path d="M19 12H5M11 6l-6 6 6 6"/>',
+  flag: '<path d="M6 21V4M6 5h11l-2 4 2 4H6"/>', book: '<path d="M5 4h9a4 4 0 014 4v12H9a4 4 0 01-4-4z"/><path d="M5 16a4 4 0 014-4h9"/>', arrow: '<path d="M19 12H5M11 6l-6 6 6 6"/>',
   users: '<circle cx="9" cy="8" r="3"/><path d="M3 19c0-3 3-5 6-5s6 2 6 5M16 5a3 3 0 010 6M18 14c2 .6 3 2.2 3 5"/>', user: '<circle cx="12" cy="8" r="3.5"/><path d="M5 20c0-4 3-6 7-6s7 2 7 6"/>',
   clock: '<circle cx="12" cy="12" r="8"/><path d="M12 8v4l3 2"/>', grid: '<rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="7" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/><rect x="13" y="13" width="7" height="7" rx="1.5"/>',
   clip: '<path d="M8 12l6-6a3 3 0 014 4l-8 8a5 5 0 01-7-7l7-7"/>', visit: '<path d="M12 21s-6-5.5-6-10a6 6 0 0112 0c0 4.5-6 10-6 10z"/><circle cx="12" cy="11" r="2"/>',
@@ -90,11 +90,15 @@ function renderWork(d) {
       <h1>${esc(d.text)}</h1>${owners ? `<div class="iw-own">${owners}</div>` : ''}</div>
     <div class="iw-lvbox lv-${lv}"><div class="iw-ring" style="--p:${pct ?? 0}"><b>${pct != null ? nf(Math.round(pct)) + '%' : '—'}</b></div><strong>${esc(lvName)}</strong>${d.cycleName ? `<small>${esc(d.cycleName)}</small>` : ''}</div></header>`;
   const sec = (id, ico, title, body, extra = '') => `<section class="iw-sec" id="${id}" aria-labelledby="h-${id}"><h2 id="h-${id}">${ic(ico)} ${title}${extra}</h2>${body}</section>`;
+  const g = d.guidance;
+  const gdh = `<section class="iw-sec iw-guide" id="s-guide" aria-labelledby="h-s-guide"><h2 id="h-s-guide">${ic('book')} الاسترشاد <small>للقراءة فقط</small></h2>` + (g ? `<details class="iw-gd" open><summary>${ic('book')} عرض الاسترشاد أو طيّه <small>للقراءة فقط</small></summary>
+      <div class="iw-gg"><section><h4>${ic('note')} تفسير المؤشر</h4><p>${esc(g.interpretation)}</p></section><section><h4>${ic('flag')} ماذا يدل عليه؟</h4><p>${esc(g.significance)}</p></section></div>
+      <section class="iw-gev"><h4>${ic('clip')} الشواهد المقترحة <small>استرشادية، وليست شواهد مرفوعة</small></h4>${g.evidence.length ? `<ol>${g.evidence.map(t => `<li>${esc(t)}</li>`).join('')}</ol>` : '<p class="muted">لا شواهد مقترحة.</p>'}</section></details>` : '<p class="muted empty">لا يوجد محتوى استرشادي لهذا المؤشر.</p>') + `</section>`;
   const evl = d.evalCard ? sec('s-eval', 'note', 'التقييم ومبرراته', d.evalCard.html) : '';
   const evd = d.evidence ? sec('s-evid', 'clip', 'الشواهد المعتمدة', d.evidence.html, d.evidence.count != null ? ` <small>${nf(d.evidence.count)} شاهد</small>` : '') : '';
   const rel = (d.related || []).length ? `<details class="iw-sec more" open><summary>${ic('grid')} مؤشرات المعيار نفسه <span class="bdg">${nf(d.related.length)}</span></summary>
     <div class="iw-rel"><div>${d.related.map(r => `<a class="ilink" style="--b:var(--c${r.dom ?? 0}b);--f:var(--c${r.dom ?? 0}f)" href="${esc(r.href)}" title="${esc(String(r.text || '').slice(0, 90))}">${esc(r.code)}</a>`).join('')}</div></div></details>` : '';
-  return `<div class="iw">${d.back ? `<a class="iback" href="${esc(d.back.href)}">${esc(d.back.label)} ${ic('arrow')}</a>` : ''}${head}${evl}${evd}${rel}</div>`;
+  return `<div class="iw">${d.back ? `<a class="iback" href="${esc(d.back.href)}">${esc(d.back.label)} ${ic('arrow')}</a>` : ''}${head}${gdh}${evl}${evd}${rel}</div>`;
 }
 
 window.IndPage = { render, renderWork, esc, nf, ic, weeks };
