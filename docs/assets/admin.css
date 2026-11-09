@@ -179,3 +179,16 @@ a.db-chip.warn{background:var(--c3b);color:var(--c3f);border-color:color-mix(in 
 @media (max-width:520px){.db-rings{grid-template-columns:1fr}.db-ring{grid-template-columns:auto 1fr;justify-items:start;text-align:start;column-gap:12px}.db-ring .db-rg{grid-row:span 2}.db-donut{width:140px;height:140px}.db-kpis{gap:8px}.db-k b{font-size:1.7rem}}
 @media (prefers-reduced-motion:reduce){.db-k{transition:none}.db-k:hover{transform:none}}
 @media print{.db-strip,.db-ac .btn{display:none}}
+
+/* ===== إدارة الفريق (admin-team.js) ===== */
+.tt{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:16px;padding:5px;background:var(--soft);border:1px solid var(--line);border-radius:16px}
+.tt a{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:12px;color:var(--ink2);text-decoration:none;font-weight:600;font-size:.92rem;white-space:nowrap}
+.tt a:hover{background:var(--surface);color:var(--brand2)} .tt a.on{background:var(--grad);color:#fff;box-shadow:var(--shadow)}
+.tt .tb{display:inline-grid;place-items:center;min-width:20px;height:20px;padding:0 6px;border-radius:99px;background:var(--gold);color:#3a2a05;font-size:.74rem;font-weight:800;font-variant-numeric:tabular-nums}
+.tbody>.ph{padding:10px 16px;border-radius:16px;box-shadow:none;background:var(--surface)} .tbody>.ph h1{font-size:1.1rem}
+.tm-rd{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.tm-rd li{display:flex;align-items:center;gap:12px;padding:10px 14px;border-radius:14px;border:1px solid var(--line);background:var(--surface)}
+.tm-rd li.bad{background:var(--c3b);border-color:color-mix(in srgb,var(--c3f) 30%,var(--line))} .tm-rd li.ok{background:color-mix(in srgb,var(--c4b) 55%,var(--surface))}
+.tm-rd li>div{flex:1;min-width:0} .tm-rd b{display:block;font-weight:700} .tm-rd small{display:block;color:var(--muted);font-size:.82rem;line-height:1.5}
+.tm-ri{display:grid;place-items:center;flex:none;width:28px;height:28px;border-radius:50%;font-weight:800;background:var(--c4f);color:#fff} .tm-rd li.bad .tm-ri{background:var(--c3f)}
+@media (max-width:600px){.tt{flex-wrap:nowrap;overflow-x:auto}.tt a{padding:8px 12px}}

@@ -7,31 +7,29 @@ const { sb, h, raw, $, $$, put, S, toast, run, role, isCoord, L } = App;
 const MENU = [
   ['dashboard', 'لوحة المتابعة', '*'],
   ['alerts', 'التنبيهات', '*'],
+  ['team', 'إدارة الفريق', '*'],
   ['grp', 'التقويم'],
   ['inds', 'المؤشرات والتقييم', '*'],
   ['evidence', 'الشواهد', '*'],
-  ['assign', 'المسؤوليات', ['coordinator', 'principal']],
-  ['grp', 'فريق التقويم'],
-  ['meetings', 'الاجتماعات', '*'],
-  ['visits', 'الزيارات الفنية', '*'],
-  ['tasks', 'المهام والتكليفات', '*'],
-  ['ann', 'الإعلانات', '*'],
-  ['cal', 'التقويم والمواعيد', '*'],
   ['grp', 'الإدارة'],
   ['reports', 'التقارير', '*'],
   ['cycles', 'دورات التقويم', ['coordinator', 'principal', 'reviewer']],
-  ['staff', 'المنسوبون والحسابات', ['coordinator']],
   ['wa', 'واتساب', ['coordinator']],
   ['log', 'سجل النشاط', ['coordinator', 'principal']],
+  // صفحات الفريق: لا تظهر في القائمة لأنها تُعرض كتبويبات داخل «إدارة الفريق»، وتبقى روابطها القديمة تعمل وصلاحياتها كما هي
+  ['staff', 'المنسوبون والحسابات', ['coordinator'], 1],
+  ['assign', 'المسؤوليات', ['coordinator', 'principal'], 1],
+  ['meetings', 'الاجتماعات', '*', 1], ['visits', 'الزيارات الفنية', '*', 1], ['tasks', 'المهام والتكليفات', '*', 1], ['ann', 'الإعلانات', '*', 1], ['cal', 'التقويم والمواعيد', '*', 1],
 ];
+const TEAM_ROUTES = new Set(['staff', 'assign', 'tasks', 'meetings', 'meeting', 'visits', 'visit', 'ann', 'cal']);
 const allowed = (r) => r === '*' || r.includes(role());
 
 const CHEV = raw('<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>');
 // القائمة العلوية: عناصر قبل أول مجموعة تظهر مباشرة، وكل مجموعة تُفتح كقائمة منسدلة
 function drawMenu() {
-  const cur = location.hash.slice(1).split('/')[0] || 'dashboard';
+  const cur0 = location.hash.slice(1).split('/')[0] || 'dashboard', cur = TEAM_ROUTES.has(cur0) ? 'team' : cur0;
   const groups = []; let g = { title: null, items: [] }; groups.push(g);
-  for (const m of MENU) { if (m[0] === 'grp') { g = { title: m[1], items: [] }; groups.push(g); } else if (allowed(m[2])) g.items.push(m); }
+  for (const m of MENU) { if (m[0] === 'grp') { g = { title: m[1], items: [] }; groups.push(g); } else if (allowed(m[2]) && !m[3]) g.items.push(m); }
   const badgeN = m => m[0] === 'alerts' && App.alertCount ? h` <span class="nb" aria-label="${App.alertCount} تنبيه">${App.alertCount > 99 ? '99+' : App.alertCount}</span>` : '';
   const link = m => h`<a href="#${m[0]}" class="${m[0] === cur ? 'on' : ''}" ${m[0] === cur ? raw('aria-current="page"') : ''}>${m[1]}${badgeN(m)}</a>`;
   put($('#menu'), h`${groups.filter(x => x.items.length).map(x => x.title === null ? x.items.map(link)
@@ -92,14 +90,15 @@ function showLogin(msg = '') {
 }
 
 async function route() {
-  const parts = location.hash.slice(1).split('/'); const name = parts[0] || 'dashboard';
+  const parts = location.hash.slice(1).split('/'); let name = parts[0] || 'dashboard', args = parts.slice(1);
   drawMenu();
-  const m = MENU.find(x => x[0] === name);
+  const m = MENU.find(x => x[0] === name);               // الصلاحية تُفحص على الاسم الأصلي قبل التحويل إلى تبويب
+  if (App.TEAM_TABS?.includes(name) && Pages.team && (!m || allowed(m[2]))) { args = [name, ...args]; name = 'team'; }
   const view = $('#view');
   if (!Pages[name] || (m && !allowed(m[2]))) { put(view, h`<div class="pn"><p>الصفحة غير متاحة لدورك.</p></div>`); return; }
   put(view, h`<p class="muted">جارٍ التحميل…</p>`);
   try {
-    const r = await Pages[name](parts.slice(1));
+    const r = await Pages[name](args);
     const body = r.html || r, dc = App.cycle(), banner = dc?.name === 'الدورة التجريبية' && !dc.results_published
       ? raw(`<div class="demobar" role="status"><span>أنت تعرض <b>الدورة التجريبية</b>: كل ما فيها بيانات تجريبية للمعاينة وغير منشورة.</span>${isCoord() ? '<button type="button" class="btn sm bad" data-a="demoClear">حذف البيانات التجريبية</button>' : ''}</div>`) : '';
     put(view, banner ? h`${banner}${body}` : body); if (r.after) r.after(view);
