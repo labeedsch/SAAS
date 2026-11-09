@@ -400,7 +400,8 @@ function login() {
     e.preventDefault(); const f = new FormData(e.target);
     const { error } = await sb.auth.signInWithPassword({ email: App.loginEmail(f.get('e')), password: f.get('p') });
     if (error) { $('#le').textContent = 'بيانات الدخول غير صحيحة.'; return; }
-    location.hash = '#home'; boot();
+    location.hash = '#home'; await boot();
+    if (isTeam()) location.href = 'admin.html';
   };
 }
 
