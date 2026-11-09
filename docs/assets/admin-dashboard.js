@@ -314,7 +314,7 @@ Pages.dashboard = async () => {
   ] : [];
   const strip = D.anns.slice().sort((a, b) => (b.priority !== 'normal') - (a.priority !== 'normal'));
 
-  return h`
+  return h`<div class="desk3">
   ${svcBar(co, role())}
   ${strip.length ? h`<div class="db-strip" role="region" aria-label="الإعلانات">${ico('mega')}<div>${strip.slice(0, 5).map(a => h`<a href="#ann" class="${a.priority}">${a.priority !== 'normal' ? h`<b>${L.prio[a.priority]}:</b> ` : ''}${a.title}${!co && !readSet.has(a.id) ? h` <i class="db-dot" title="لم تطّلع عليه"></i>` : ''}</a>`)}</div><a class="btn sm" href="#ann">كل الإعلانات</a></div>` : ''}
 
@@ -356,7 +356,7 @@ Pages.dashboard = async () => {
     log.length ? h`<ul class="wl log">${log.slice(0, 4).map(l => { const x = logLine(l, D); return h`<li><span><b>${x.who}</b> · ${x.what}</span><small class="muted">${ago(x.t)}</small></li>`; })}</ul><div class="wb"><a class="btn sm" href="#dashboard/log">سجل النشاط كاملاً</a></div>`
       : h`<p class="muted empty">تقارير الدورة والمجالات والمعايير والمؤشرات والشواهد والمهام للعرض والطباعة والتصدير.</p><div class="wb"><a class="btn sm" href="#dashboard/reports">فتح التقارير</a></div>`)}
   </div>
-  </div>`;
+  </div></div>`;
 };
 
 /* ===== صفحة التنبيهات ===== */
