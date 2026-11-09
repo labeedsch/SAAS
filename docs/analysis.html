@@ -11,78 +11,129 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap">
 <link rel="stylesheet" href="assets/theme.css?v=20261109q">
 <style>
-/* صفحة هبوط ثابتة: لا اتصال بقاعدة بيانات. الألوان من ثيم الهوية؛ التميز أخضر، التقدم أزرق، الانطلاق برتقالي، التهيئة أحمر */
+/* صفحة ثابتة تفاعلية: لا اتصال بقاعدة بيانات. رسوم SVG/CSS بلا مكتبات خارجية */
+html{scroll-behavior:smooth}
 .lv-excellence{--lc:var(--c4f);--lb:var(--c4b)} .lv-advancement{--lc:var(--c1f);--lb:var(--c1b)}
 .lv-launch{--lc:var(--c3f);--lb:var(--c3b)} .lv-preparation{--lc:var(--c5f);--lb:var(--c5b)}
 #app{padding-block:22px 48px;display:grid;gap:18px}
-.blk{background:var(--surface);border:1px solid var(--line);border-radius:24px;padding:20px;box-shadow:var(--shadow)}
+.blk{background:var(--surface);border:1px solid var(--line);border-radius:24px;padding:20px;box-shadow:var(--shadow);scroll-margin-top:110px}
 .blk>h2{font-size:1.15rem;margin:0 0 14px;display:flex;align-items:center;gap:10px}
 .blk>h2::before{content:"";width:8px;height:22px;border-radius:5px;background:linear-gradient(var(--brand),var(--gold2))}
 .sh{font-size:1rem;margin:0 0 8px} .sm{font-size:.84rem} .muted{color:var(--muted)}
-.lhero{position:relative;display:block;overflow:hidden;padding:30px 32px;border-radius:28px;background:var(--herobg);color:#fff;box-shadow:var(--shadow2)}
-.lhero::before{content:"";position:absolute;inset:-35% auto auto -10%;width:55%;aspect-ratio:1;background:radial-gradient(closest-side,rgba(255,255,255,.16),transparent)}
+/* التنقل السريع */
+.qn{display:flex;gap:8px;overflow-x:auto;padding:8px 2px;position:sticky;top:var(--hh,0px);z-index:20;background:color-mix(in srgb,var(--bg,#fff) 88%,transparent);backdrop-filter:blur(8px);scrollbar-width:none}
+.qn::-webkit-scrollbar{display:none}
+.qn a{flex:none;padding:7px 14px;border-radius:99px;background:var(--surface);border:1px solid var(--line);color:var(--ink2);font-size:.88rem;font-weight:700;text-decoration:none;transition:.15s}
+.qn a:hover{border-color:var(--brand)} .qn a.on{background:var(--brand);color:#fff;border-color:var(--brand)}
+/* الغلاف */
+.lhero{position:relative;display:grid;grid-template-columns:1fr auto;gap:24px;align-items:center;overflow:hidden;padding:30px 34px;border-radius:28px;background:var(--herobg);color:#fff;box-shadow:var(--shadow2)}
+.lhero::before{content:"";position:absolute;inset:-35% auto auto -10%;width:55%;aspect-ratio:1;background:radial-gradient(closest-side,rgba(255,255,255,.16),transparent);pointer-events:none}
 .lhero>*{position:relative} .lhero .chip{background:rgba(255,255,255,.14);border-color:rgba(255,255,255,.3);color:#fff}
 .lhero h1{font-size:clamp(1.7rem,4vw,2.6rem);font-weight:800;line-height:1.25;margin:12px 0 6px;color:#fff}
 .lhero p{margin:0;color:rgba(255,255,255,.9);font-size:1.05rem}
+.hgau{position:relative;width:170px;height:170px}
+.hgau .rt{stroke:rgba(255,255,255,.22)} .hgau .rf{stroke:#f6d98b}
+.hgau .mid{position:absolute;inset:0;display:grid;place-content:center;text-align:center}
+.hgau .mid b{font-size:2rem;font-weight:800;line-height:1.1;font-variant-numeric:tabular-nums} .hgau .mid small{font-size:.74rem;color:rgba(255,255,255,.85);max-width:100px}
+/* الحلقات */
+.gau{display:block;width:100%;height:100%}
+.rt{fill:none;stroke:var(--soft);stroke-width:10}
+.rf{fill:none;stroke:var(--lc);stroke-width:10;stroke-linecap:round;stroke-dasharray:0 100;transform:rotate(-90deg);transform-origin:50px 50px;transition:stroke-dasharray 1.3s cubic-bezier(.2,.8,.2,1)}
+.in .rf{stroke-dasharray:var(--v) 100}
 .meta{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px 20px;margin:0}
 .meta div{padding:10px 14px;border-radius:14px;background:var(--soft)} .meta dt{color:var(--muted);font-size:.8rem} .meta dd{margin:2px 0 0;font-weight:700}
+/* المؤشرات الرئيسية */
 .kpis2{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px}
-.k{position:relative;overflow:hidden;padding:16px;border-radius:20px;border:1px solid color-mix(in srgb,var(--f) 24%,var(--line));background:linear-gradient(160deg,var(--b),var(--surface) 130%);box-shadow:var(--shadow)}
+.k{position:relative;overflow:hidden;padding:16px;border-radius:20px;border:1px solid color-mix(in srgb,var(--f) 24%,var(--line));background:linear-gradient(160deg,var(--b),var(--surface) 130%);box-shadow:var(--shadow);display:grid;gap:4px;align-content:start;transition:transform .15s}
+.k:hover{transform:translateY(-3px)}
 .k:nth-child(1){--b:var(--c1b);--f:var(--c1f)} .k:nth-child(2){--b:var(--c0b);--f:var(--c0f)} .k:nth-child(3){--b:var(--c2b);--f:var(--c2f)} .k:nth-child(4){--b:var(--c4b);--f:var(--c4f)} .k:nth-child(5){--b:var(--c3b);--f:var(--c3f)}
 .k b{display:block;font-size:1.9rem;font-weight:800;color:var(--f);line-height:1.35;font-variant-numeric:tabular-nums} .k b.t{font-size:1.4rem} .k span{font-size:.86rem;color:var(--ink2)}
+.dots{display:flex;gap:6px;margin-top:4px} .dots i{flex:1;height:8px;border-radius:99px;background:var(--lc);transform:scaleX(0);transform-origin:right;transition:transform .6s calc(var(--i)*.12s)} .in .dots i{transform:none}
 .bdg{display:inline-flex;padding:2px 10px;border-radius:99px;font-size:.78rem;font-weight:700;white-space:nowrap}
 .lvb{background:var(--lb);color:var(--lc);border:1px solid color-mix(in srgb,var(--lc) 35%,transparent)}
-.two{display:grid;grid-template-columns:1.1fr 1fr;gap:22px;align-items:start} .two>*{min-width:0}
+/* الرادار والأعمدة */
+.two{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:22px;align-items:center}
+.radar{direction:ltr;width:100%;max-width:520px;margin-inline:auto;display:block;overflow:visible}
+.radar .band{stroke:var(--surface);stroke-width:1.5}
+.radar .ax{stroke:color-mix(in srgb,var(--ink) 18%,transparent);stroke-width:1}
+.radar .rd{fill:color-mix(in srgb,var(--brand) 26%,transparent);stroke:var(--brand);stroke-width:2.5;stroke-linejoin:round;transform:scale(.01);transform-origin:160px 160px;transition:transform 1.1s cubic-bezier(.2,.8,.2,1)}
+.in .radar .rd{transform:scale(1)}
+.radar .pt{fill:var(--lc);stroke:#fff;stroke-width:2.5;cursor:pointer;opacity:0;transition:opacity .4s .9s,r .15s} .in .radar .pt{opacity:1} .radar .pt:hover,.radar .pt:focus{r:10;outline:none}
+.radar text{font:700 12px Tajawal,sans-serif;fill:var(--ink);text-anchor:middle} .radar .sc2{font-weight:800;fill:var(--lc);font-size:13px} .radar .rl{font-size:9px;fill:var(--ink2);font-weight:500;text-anchor:start}
 .dchart{display:grid;gap:10px}
-.dbar{display:grid;grid-template-columns:minmax(110px,150px) 1fr auto auto;align-items:center;gap:10px;width:100%;text-align:start;padding:10px 12px;border:1px solid var(--line);border-radius:14px;background:var(--surface);color:var(--ink);font:inherit;cursor:pointer;transition:transform .12s,box-shadow .12s}
-.dbar:hover{box-shadow:var(--shadow);transform:translateY(-1px)} .dbar:focus-visible{outline:2px solid var(--lc);outline-offset:2px}
-.dbar .dn{font-weight:700} .dbar b{color:var(--lc);min-width:64px;font-variant-numeric:tabular-nums}
-.dtrack{position:relative;height:16px;border-radius:99px;background:var(--soft);overflow:hidden}
-.dtrack i{position:absolute;inset-block:0;inset-inline-start:0;border-radius:99px;background:var(--lc)}
-.tick{position:absolute;inset-block:0;width:2px;background:color-mix(in srgb,var(--ink) 28%,transparent)}
+.dbar{display:grid;grid-template-columns:54px 1fr auto;align-items:center;gap:12px;width:100%;text-align:start;padding:9px 12px;border:1px solid var(--line);border-radius:16px;background:var(--surface);color:var(--ink);font:inherit;cursor:pointer;transition:transform .12s,box-shadow .12s}
+.dbar:hover{box-shadow:var(--shadow);transform:translateY(-2px)} .dbar:focus-visible{outline:2px solid var(--lc);outline-offset:2px}
+.dbar .rng{display:block;position:relative;width:54px;height:54px} .dbar .rng>span{position:absolute;inset:0;display:grid;place-items:center;font-size:.7rem;font-weight:800;color:var(--lc);font-variant-numeric:tabular-nums}
+.dbar .dn{font-weight:700;display:block} .dbar small{color:var(--muted);font-size:.78rem}
 .legend{display:flex;flex-wrap:wrap;gap:6px 16px;margin:12px 0 4px}
-.lg{display:inline-flex;align-items:center;gap:6px;font-size:.85rem} .lg i{width:12px;height:12px;border-radius:4px;background:var(--lc)} .lg small{color:var(--muted)}
-.reads{list-style:none;margin:0 0 12px;padding:0;display:grid;gap:8px}
-.reads li{padding:9px 12px;border-radius:12px;background:var(--lb);border-inline-start:4px solid var(--lc)}
-.gapbox{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:14px;background:var(--acc2soft);border:1px solid color-mix(in srgb,var(--gold2) 40%,var(--line))}
-.gapbox b{font-size:1.7rem;color:var(--goldink);font-variant-numeric:tabular-nums} .gapbox span{font-size:.9rem;color:var(--ink2)}
+.lg{display:inline-flex;align-items:center;gap:6px;font-size:.85rem} .lg i{width:12px;height:12px;border-radius:4px;background:var(--lb);border:2px solid var(--lc)} .lg small{color:var(--muted)}
+/* المقياس الأفقي (bullet) */
+.bl{display:flex;align-items:center;gap:10px;min-width:0}
+.bt{position:relative;flex:1;height:20px;border-radius:10px;overflow:hidden;min-width:90px;background:linear-gradient(to left,var(--c5b) 0 50%,var(--c3b) 50% 75%,var(--c1b) 75% 90%,var(--c4b) 90% 100%)}
+.bt::after{content:"";position:absolute;inset:0;background:linear-gradient(to left,transparent calc(50% - 1px),rgba(255,255,255,.9) 0 calc(50% + 1px),transparent 0 calc(75% - 1px),rgba(255,255,255,.9) 0 calc(75% + 1px),transparent 0 calc(90% - 1px),rgba(255,255,255,.9) 0 calc(90% + 1px),transparent 0)}
+.bv{position:absolute;inset-block:5px;inset-inline-start:0;width:0;border-radius:99px;background:var(--lc);box-shadow:0 0 0 2px #fff;z-index:1;transition:width 1.2s cubic-bezier(.2,.8,.2,1)}
+.in .bv{width:var(--w)}
+.bn{font-weight:800;color:var(--lc);font-variant-numeric:tabular-nums;min-width:62px;font-size:.88rem}
+/* الفجوة */
+.gapw{margin-top:18px;padding:14px 16px;border-radius:16px;background:var(--acc2soft);border:1px solid color-mix(in srgb,var(--gold2) 40%,var(--line))}
+.gapw .top2{display:flex;align-items:baseline;gap:10px;margin-bottom:12px} .gapw b{font-size:1.7rem;color:var(--goldink);font-variant-numeric:tabular-nums} .gapw span{font-size:.9rem;color:var(--ink2)}
+.db{position:relative;height:26px;margin-inline:10px}
+.db .rail{position:absolute;inset-inline:0;top:11px;height:4px;border-radius:4px;background:color-mix(in srgb,var(--ink) 15%,transparent)}
+.db .span{position:absolute;top:10px;height:6px;border-radius:6px;background:var(--goldink);opacity:.8;width:0;transition:width 1.2s .3s} .in .db .span{width:var(--w)}
+.db .dot{position:absolute;top:2px;width:22px;height:22px;margin-inline-start:-11px;border-radius:50%;background:var(--lc);border:3px solid #fff;box-shadow:var(--shadow);cursor:pointer}
+.dbl{display:flex;flex-wrap:wrap;gap:4px 16px;font-size:.82rem;color:var(--ink2);margin-top:8px} .dbl i{display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--lc);margin-inline-end:6px}
+/* المعايير */
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+.fc{border:1px solid var(--line);background:var(--surface);color:var(--ink2);padding:6px 14px;border-radius:99px;font:inherit;font-size:.86rem;font-weight:700;cursor:pointer;transition:.15s}
+.fc:hover{border-color:var(--brand)} .fc.on{background:var(--brand);color:#fff;border-color:var(--brand)}
+.fc.sw{margin-inline-start:auto;border-style:dashed}
+.srow{display:grid;grid-template-columns:minmax(150px,230px) 1fr auto;align-items:center;gap:12px;padding:9px 6px;border-bottom:1px solid var(--line)}
+.srow:last-child{border-bottom:0} .srow small{display:block;color:var(--muted);font-size:.76rem}
+.srow .nm{font-weight:700}
+/* التفاصيل */
 .dsecs{display:grid;gap:10px}
-.dsec{border:1px solid var(--line);border-inline-start:5px solid var(--lc);border-radius:16px;background:var(--surface);overflow:hidden;scroll-margin-top:90px}
+.dsec{border:1px solid var(--line);border-inline-start:5px solid var(--lc);border-radius:16px;background:var(--surface);overflow:hidden;scroll-margin-top:120px}
 .dsec>summary{display:flex;align-items:center;gap:12px;padding:13px 16px;cursor:pointer;list-style:none;font-size:1.03rem;background:linear-gradient(90deg,var(--lb),transparent 70%)}
 .dsec>summary::-webkit-details-marker{display:none}
 .dsec>summary::before{content:"◂";color:var(--lc);transition:transform .15s} .dsec[open]>summary::before{transform:rotate(-90deg)}
 .dsec .sp{flex:1} .dsec .pv{font-weight:800;color:var(--lc);font-variant-numeric:tabular-nums}
 .dsec.flash{box-shadow:0 0 0 3px color-mix(in srgb,var(--lc) 45%,transparent)}
-.dbody{padding:4px 16px 18px;display:grid;gap:12px} .dbody h4{margin:6px 0 0;font-size:.93rem;color:var(--brand2)}
-.dbody p{margin:0;line-height:1.9}
-.tw{overflow-x:auto} table{width:100%;border-collapse:collapse;font-size:.92rem}
-th{text-align:start;color:var(--brand2);background:var(--soft);font-weight:700;font-size:.8rem;padding:9px 10px;white-space:nowrap}
-td{padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:middle} tr:last-child td{border-bottom:0}
-.cell{display:flex;align-items:center;gap:8px;min-width:170px} .cell span{font-variant-numeric:tabular-nums;min-width:62px}
-.mbar{flex:1;height:8px;border-radius:99px;background:var(--soft);overflow:hidden;min-width:80px} .mbar i{display:block;height:100%;border-radius:99px;background:var(--lc)}
+.dbody{padding:4px 16px 18px;display:grid;gap:12px} .dbody h4{margin:6px 0 0;font-size:.93rem;color:var(--brand2)} .dbody p{margin:0;line-height:1.9}
+.rows{display:grid;gap:2px}
 .box{padding:12px 14px;border-radius:14px;background:var(--acc2soft);border:1px solid color-mix(in srgb,var(--gold2) 35%,var(--line))} .box b{display:block;margin-bottom:4px}
 .blt b{display:block;margin-bottom:4px} .blt ul{margin:0;padding-inline-start:20px;display:grid;gap:4px;line-height:1.8}
 .pcts{font-weight:700;color:var(--lc);font-variant-numeric:tabular-nums}
+/* نقاط القوة */
 .sgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px}
-.sc{display:grid;gap:4px;padding:13px 15px;border-radius:16px;border:1px solid color-mix(in srgb,var(--c4f) 25%,var(--line));background:linear-gradient(160deg,var(--c4b),var(--surface) 130%)}
-.sc b{font-size:1.45rem;color:var(--c4f);font-variant-numeric:tabular-nums} .sc span{font-size:.92rem;line-height:1.6}
+.sc{display:grid;grid-template-columns:62px 1fr;align-items:center;gap:12px;padding:12px 14px;border-radius:18px;border:1px solid color-mix(in srgb,var(--c4f) 25%,var(--line));background:linear-gradient(160deg,var(--c4b),var(--surface) 130%);transition:transform .15s,box-shadow .15s}
+.sc:hover{transform:translateY(-3px);box-shadow:var(--shadow)}
+.sc .rng{display:block;position:relative;width:62px;height:62px} .sc .rng b{position:absolute;inset:0;display:grid;place-items:center;font-size:.8rem;color:var(--c4f);font-variant-numeric:tabular-nums} .sc span{font-size:.92rem;line-height:1.6}
+/* الأولويات */
 .prios{display:grid;gap:12px}
 .prio{display:grid;grid-template-columns:auto 1fr;gap:14px;padding:15px 16px;border-radius:18px;border:1px solid color-mix(in srgb,var(--lc) 30%,var(--line));background:linear-gradient(160deg,var(--lb),var(--surface) 120%)}
 .pn{display:grid;place-items:center;width:42px;height:42px;border-radius:12px;background:var(--lc);color:#fff;font-weight:800;font-size:1.1rem}
-.prio h3{font-size:1.03rem;margin:0 0 4px} .prio p{margin:5px 0 0;line-height:1.85}
-.pm{display:flex;flex-wrap:wrap;gap:8px;align-items:center;font-weight:700;color:var(--lc)}
+.prio h3{font-size:1.03rem;margin:0 0 6px} .prio p{margin:7px 0 0;line-height:1.85}
+.gp{position:absolute;inset-block:0;inset-inline-start:var(--s);width:0;background:repeating-linear-gradient(135deg,rgba(0,0,0,.28) 0 3px,transparent 3px 7px);z-index:0;transition:width 1.2s .4s} .in .gp{width:var(--g)}
+.dist{font-size:.82rem;color:var(--ink2);margin-top:5px}
 .acts{display:flex;gap:8px;flex-wrap:wrap}
+/* التلميح */
+#tip{position:fixed;z-index:99;pointer-events:none;padding:7px 11px;border-radius:10px;background:#142b3a;color:#fff;font-size:.82rem;line-height:1.6;max-width:260px;box-shadow:var(--shadow2);opacity:0;transform:translateY(4px);transition:opacity .12s,transform .12s}
+#tip.on{opacity:1;transform:none}
 @media (max-width:900px){
-  .two{grid-template-columns:1fr} .lhero{padding:22px 18px}
-  .dbar{grid-template-columns:1fr auto;grid-template-areas:"n p" "t t" "l l"} .dbar .dn{grid-area:n} .dbar b{grid-area:p;justify-self:end} .dbar .dtrack{grid-area:t} .dbar .bdg{grid-area:l;justify-self:start}
-  nav{display:none} .cell{min-width:0} .cell .mbar{display:none} td:first-child{min-width:150px} .dsec>summary{flex-wrap:wrap;padding:12px}
+  .two{grid-template-columns:1fr} .lhero{grid-template-columns:1fr;padding:22px 18px;justify-items:start}
+  .hgau{width:140px;height:140px} nav{display:none}
+  .srow{grid-template-columns:1fr auto;grid-template-areas:"n b" "t t"} .srow>:nth-child(1){grid-area:n} .srow>:nth-child(2){grid-area:t} .srow>:nth-child(3){grid-area:b}
+  .dsec>summary{flex-wrap:wrap;padding:12px} .bn{min-width:54px}
 }
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto} *{transition-duration:.01s!important;transition-delay:0s!important}}
 @media print{
-  header,.noprint,footer{display:none!important} body{background:#fff}
+  header,.noprint,footer,.qn,#tip{display:none!important} body{background:#fff}
   .blk,.prio,.sc,.dsec{break-inside:avoid;box-shadow:none}
-  .dbar,.dtrack i,.mbar i,.pn,.lg i,.lvb,.sc,.reads li,.gapbox,.box,.dsec>summary,.k,.lhero{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .rf{stroke-dasharray:var(--v) 100!important} .bv{width:var(--w)!important} .gp{width:var(--g)!important} .rd{transform:none!important} .pt{opacity:1!important} .dots i{transform:none!important} .span{width:var(--w)!important}
+  *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
 }
 </style>
+
 </head>
 <body class="pub">
 <header><div class="wrap top">
@@ -95,7 +146,9 @@ td{padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:middle} t
 
 <footer class="credit"><div class="wrap cr"><span class="moe"><b>وزارة التعليم</b><small>Ministry of Education</small></span><div class="mid"><b>مدرسة لبيد بن ربيعة المتوسطة</b><span>مدير المدرسة: خالد بن عبدالرحمن الباش</span><span>التقويم الذاتي – 1448هـ</span></div><div class="mid" style="margin-inline-start:auto"><small>أحد منتجات</small><b>مختبر الأفكار — عبدالعزيز المديني AI</b></div></div></footer>
 
+<div id="tip" role="tooltip"></div>
 <script>
+
 /* ===== بيانات التقرير كما وردت في وثيقة التحليل (لا تُعدَّل القيم) ===== */
 const REPORT = {
   school: 'متوسطة لبيد بن ربيعة', ministry: 'S-57336', dept: 'الإدارة العامة للتعليم بمحافظة الأحساء', type: 'حكومية', gender: 'بنين',
@@ -157,101 +210,175 @@ const LEVELS = [
 ];
 const lvl = p => LEVELS.find(l => p >= l.min && (p < l.max || (l.max === 100 && p <= 100)));
 const lc = p => 'lv-' + lvl(p).c;
-const pct = p => Number(p).toLocaleString('ar-SA', { maximumFractionDigits: 4 }) + '٪';
-const num = n => Number(n).toLocaleString('ar-SA', { maximumFractionDigits: 4 });
+const nf = (n, d = 4) => Number(n).toLocaleString('ar-SA', { maximumFractionDigits: d });
+const pct = p => nf(p) + '٪';
 const badge = p => `<span class="bdg lvb ${lc(p)}">${lvl(p).n}</span>`;
-const bar = p => `<div class="cell ${lc(p)}"><div class="mbar"><i style="width:${p}%"></i></div><span class="pcts">${pct(p)}</span></div>`;
+const tipOf = (n, p) => `${n}: ${pct(p)} — مستوى ${lvl(p).n}`;
+const ring = (p, cls = '') => `<svg class="gau ${cls}" viewBox="0 0 100 100" aria-hidden="true"><circle class="rt" cx="50" cy="50" r="42"/><circle class="rf" cx="50" cy="50" r="42" pathLength="100" style="--v:${p}"/></svg>`;
+const bullet = (p, tip) => `<div class="bl ${lc(p)}" ${tip ? `data-tip="${tip}"` : ''}><div class="bt"><i class="bv" style="--w:${p}%"></i></div><b class="bn">${pct(p)}</b></div>`;
 
-/* ===== الرسم ===== */
 const sorted = [...DOMAINS].sort((a, b) => b.p - a.p);
 const hi = sorted[0], low = sorted[sorted.length - 1];
 const gap = Math.round((hi.p - low.p) * 10000) / 10000;
 const excellent = DOMAINS.filter(d => lvl(d.p).c === 'excellence').length;
 const needs = lvl(low.p).c !== 'excellence' ? low : null;
-const readLine = d => d === hi ? 'أعلى المجالات أداءً' : (d === low && needs) ? 'المجال الأكثر حاجة إلى التحسين' : lvl(d.p).c === 'excellence' ? 'أداء مرتفع' : 'مستوى ' + lvl(d.p).n;
+
+/* الرادار: المحاور الأربعة، والحلقات تمثل حدود المستويات */
+function radar() {
+  const C = 160, R = 100, ang = [-90, 0, 90, 180];
+  const pt = (i, v) => { const a = ang[i] * Math.PI / 180; return [C + R * v / 100 * Math.cos(a), C + R * v / 100 * Math.sin(a)]; };
+  const poly = v => DOMAINS.map((_, i) => pt(i, v).join(',')).join(' ');
+  const bands = [[100, 'c4b'], [90, 'c1b'], [75, 'c3b'], [50, 'c5b']].map(([v, c]) => `<polygon class="band" points="${poly(v)}" style="fill:var(--${c})"/>`).join('');
+  const axes = DOMAINS.map((_, i) => `<line class="ax" x1="${C}" y1="${C}" x2="${pt(i, 100)[0]}" y2="${pt(i, 100)[1]}"/>`).join('');
+  const data = `<polygon class="rd" points="${DOMAINS.map((d, i) => pt(i, d.p).join(',')).join(' ')}"/>`;
+  const dots = DOMAINS.map((d, i) => { const [x, y] = pt(i, d.p); return `<circle class="pt ${lc(d.p)}" cx="${x}" cy="${y}" r="7" tabindex="0" role="button" data-go="d-${d.id}" data-tip="${tipOf(d.name, d.p)}. اضغط للتفاصيل" aria-label="${tipOf(d.name, d.p)}"/>`; }).join('');
+  const lab = DOMAINS.map((d, i) => { const [x, y] = pt(i, 100); const dx = ang[i] === 0 ? 22 : ang[i] === 180 ? -22 : 0, dy = ang[i] === -90 ? -24 : ang[i] === 90 ? 34 : 4;
+    const an = ang[i] === 0 ? 'start' : ang[i] === 180 ? 'end' : 'middle';
+    return `<text x="${x + dx}" y="${y + dy}" style="text-anchor:${an}">${d.name}</text><text class="sc2 ${lc(d.p)}" x="${x + dx}" y="${y + dy + 15}" style="text-anchor:${an}">${pct(d.p)}</text>`; }).join('');
+  const rl = [50, 75, 90].map(v => `<text class="rl" x="${C + 3}" y="${C - R * v / 100 + 10}">${nf(v)}</text>`).join('');
+  return `<svg class="radar" viewBox="-60 -20 440 360" role="img" aria-label="رسم رادار لأداء المجالات الأربعة">${bands}${axes}${rl}${data}${dots}${lab}</svg>`;
+}
+
+/* الفجوة بين أعلى مجال وأدناه */
+const dumbbell = () => `<div class="gapw"><div class="top2"><b data-count="${gap}">${nf(gap)}</b><span>نقطة مئوية: الفجوة بين أعلى مجال (${hi.name}) وأدنى مجال (${low.name})</span></div>
+  <div class="db" style="--w:${hi.p - low.p}%"><div class="rail"></div><i class="span" style="inset-inline-start:${low.p}%"></i>
+  <i class="dot ${lc(low.p)}" style="inset-inline-start:${low.p}%" tabindex="0" data-tip="${tipOf(low.name, low.p)}"></i>
+  <i class="dot ${lc(hi.p)}" style="inset-inline-start:${hi.p}%" tabindex="0" data-tip="${tipOf(hi.name, hi.p)}"></i></div>
+  <div class="dbl"><span class="${lc(hi.p)}"><i></i>${hi.name} · ${pct(hi.p)}</span><span class="${lc(low.p)}"><i></i>${low.name} · ${pct(low.p)}</span></div></div>`;
 
 const domSection = d => `<details class="dsec ${lc(d.p)}" id="d-${d.id}" ${d.open ? 'open' : ''}>
   <summary><b>${d.name}</b><span class="sp"></span><span class="pv">${pct(d.p)}</span>${badge(d.p)}</summary>
   <div class="dbody">
     <p>${d.read}</p>
     <h4>المعايير</h4>
-    <div class="tw"><table><thead><tr><th>المعيار</th><th>النسبة</th><th>المستوى</th></tr></thead><tbody>
-      ${d.standards.map(([n, p]) => `<tr><td>${n}</td><td>${bar(p)}</td><td>${badge(p)}</td></tr>`).join('')}</tbody></table></div>
-    ${d.table ? `<h4>${d.table[0]}</h4><div class="tw"><table><thead><tr><th>المؤشر</th><th>النسبة</th><th>مستوى الأداء</th></tr></thead><tbody>
-      ${d.table[1].map(([n, p]) => `<tr><td>${n}</td><td>${bar(p)}</td><td>${badge(p)}</td></tr>`).join('')}</tbody></table></div>
+    <div class="rows">${d.standards.map(([n, p]) => `<div class="srow"><span class="nm">${n}</span>${bullet(p, tipOf(n, p))}${badge(p)}</div>`).join('')}</div>
+    ${d.table ? `<h4>${d.table[0]}</h4><div class="rows">${d.table[1].map(([n, p]) => `<div class="srow"><span class="nm">${n}</span>${bullet(p, tipOf(n, p))}${badge(p)}</div>`).join('')}</div>
       <p class="muted sm">القراءة هي المؤشر الأكثر انخفاضاً، ثم الرياضيات، ثم العلوم.</p>` : ''}
     ${d.box ? `<div class="box"><b>${d.box[0]}</b>${d.box[1]}</div>` : ''}
     ${d.lists.map(l => `<div class="blt"><b>${l.t}</b><ul>${l.items.map(([t, p]) => `<li>${t}${p != null ? `: <span class="pcts ${lc(p)}">${pct(p)}</span>` : ''}</li>`).join('')}</ul></div>`).join('')}
   </div></details>`;
 
+const STD = DOMAINS.flatMap(d => d.standards.map(([n, p]) => ({ n, p, d: d.id, dn: d.name })));
+const stdState = { f: 'all', asc: false };
+function stdList() {
+  let rows = STD.filter(x => stdState.f === 'all' || x.d === stdState.f);
+  if (stdState.asc) rows = [...rows].sort((a, b) => a.p - b.p);
+  return rows.map(x => `<div class="srow ${lc(x.p)}"><span class="nm">${x.n}<small>${x.dn}</small></span>${bullet(x.p, tipOf(x.n, x.p))}${badge(x.p)}</div>`).join('');
+}
+const stdChips = () => `<button type="button" class="fc ${stdState.f === 'all' ? 'on' : ''}" data-f="all">الكل (${nf(STD.length)})</button>${DOMAINS.map(d => `<button type="button" class="fc ${stdState.f === d.id ? 'on' : ''}" data-f="${d.id}">${d.name}</button>`).join('')}<button type="button" class="fc sw ${stdState.asc ? 'on' : ''}" data-sort>${stdState.asc ? 'ترتيب: الأقل أولاً' : 'ترتيب: حسب المجال'}</button>`;
+
+const MINI = DOMAINS.map((d, i) => `<i class="${lc(d.p)}" style="--i:${i}" data-tip="${tipOf(d.name, d.p)}"></i>`).join('');
+const NAV = [['s-sum', 'ملخص التقرير'], ['s-dom', 'أداء المجالات'], ['s-std', 'المعايير'], ['s-det', 'تفاصيل المجالات'], ['s-str', 'نقاط القوة'], ['s-pri', 'الأولويات']];
+
 document.getElementById('app').innerHTML = `
-<section class="lhero">
-  <span class="chip">${REPORT.cycle} · ${REPORT.year}</span>
+<nav class="qn" aria-label="أقسام الصفحة">${NAV.map(([id, t]) => `<a href="#${id}" data-spy="${id}">${t}</a>`).join('')}</nav>
+
+<section class="lhero blk-in" id="s-sum">
+  <div><span class="chip">${REPORT.cycle} · ${REPORT.year}</span>
   <h1>تحليل نتائج التقويم الذاتي الداخلي</h1>
-  <p>${REPORT.school} · العام الدراسي ${REPORT.year}</p>
+  <p>${REPORT.school} · العام الدراسي ${REPORT.year}</p></div>
+  <div class="hgau" data-tip="نسبة التقدم في التقرير. تُعرض مستقلة وليست متوسط المجالات">${ring(REPORT.progress)}<div class="mid"><b data-count="${REPORT.progress}" data-p="1">${pct(REPORT.progress)}</b><small>نسبة التقدم في التقرير</small></div></div>
 </section>
 
-<section class="blk"><h2>بيانات التقرير</h2>
-  <dl class="meta">
-    <div><dt>اسم المدرسة</dt><dd>${REPORT.school}</dd></div>
-    <div><dt>الرقم الوزاري</dt><dd dir="ltr" style="text-align:end">${REPORT.ministry}</dd></div>
-    <div><dt>إدارة التعليم</dt><dd>${REPORT.dept}</dd></div>
-    <div><dt>نوع المدرسة</dt><dd>${REPORT.type}</dd></div>
-    <div><dt>الجنس</dt><dd>${REPORT.gender}</dd></div>
-    <div><dt>إجمالي عدد الطلبة</dt><dd>${num(REPORT.students)} طالباً</dd></div>
-    <div><dt>دورة التقويم</dt><dd>${REPORT.cycle}</dd></div>
-    <div><dt>مصدر البيانات</dt><dd>${REPORT.source}</dd></div>
-  </dl>
-</section>
-
-<div class="kpis2">
-  <div class="k"><b>${pct(REPORT.progress)}</b><span>نسبة التقدم في التقرير</span></div>
-  <div class="k"><b>${num(DOMAINS.length)}</b><span>عدد المجالات</span></div>
-  <div class="k"><b>${num(REPORT.students)}</b><span>عدد الطلبة</span></div>
-  <div class="k"><b>${num(excellent)}</b><span>مجالات حققت مستوى التميز</span></div>
+<div class="kpis2 blk-in">
+  <div class="k"><b data-count="${DOMAINS.length}">${nf(DOMAINS.length)}</b><span>عدد المجالات</span><div class="dots">${MINI}</div></div>
+  <div class="k"><b data-count="${REPORT.students}">${nf(REPORT.students)}</b><span>عدد الطلبة</span></div>
+  <div class="k"><b data-count="${excellent}" data-of="${DOMAINS.length}">${nf(excellent)}</b><span>مجالات حققت مستوى التميز من ${nf(DOMAINS.length)}</span><div class="dots">${DOMAINS.map((d, i) => `<i class="${lc(d.p)}" style="--i:${i}"></i>`).join('')}</div></div>
   <div class="k"><b class="t">${needs ? needs.name : 'لا يوجد'}</b><span>المجال الذي يحتاج إلى تدخل تطويري</span></div>
 </div>
-<p class="muted sm" style="margin:-6px 4px 0">نسبة التقدم (${pct(REPORT.progress)}) تُعرض بصورة مستقلة عن نتائج المجالات، ولا تُعامل على أنها متوسط أداء المدرسة.</p>
+<p class="muted sm" style="margin:-6px 4px 0">نسبة التقدم (${pct(REPORT.progress)}) تُعرض مستقلة عن نتائج المجالات، ولا تُعامل على أنها متوسط أداء المدرسة.</p>
 
-<section class="blk"><h2>أداء المجالات الأربعة</h2>
+<section class="blk" id="s-dom"><h2>أداء المجالات الأربعة</h2>
   <div class="two">
+    <div>${radar()}</div>
     <div>
-      <div class="dchart" role="list">${DOMAINS.map(d => `<button type="button" class="dbar ${lc(d.p)}" role="listitem" data-go="d-${d.id}" aria-label="${d.name}: ${pct(d.p)} (${lvl(d.p).n}). انتقال إلى التفاصيل">
-        <span class="dn">${d.name}</span>
-        <span class="dtrack"><i style="width:${d.p}%"></i>${LEVELS.filter(l => l.min > 0).map(l => `<em class="tick" style="inset-inline-start:${l.min}%" title="بداية ${l.n}"></em>`).join('')}</span>
-        <b>${pct(d.p)}</b>${badge(d.p)}</button>`).join('')}</div>
-      <div class="legend">${LEVELS.map(l => `<span class="lg lv-${l.c}"><i></i>${l.n} <small>(${num(l.min)}–${num(l.max)}٪)</small></span>`).join('')}</div>
-      <p class="muted sm">اضغط على أي مجال للانتقال إلى معاييره ومؤشراته. الخطوط الرأسية تمثل بدايات المستويات.</p>
-    </div>
-    <div>
-      <h3 class="sh">القراءة التحليلية</h3>
-      <ul class="reads">${sorted.map(d => `<li class="${lc(d.p)}"><b>${d.name}</b>: ${readLine(d)} بنسبة ${pct(d.p)}</li>`).join('')}</ul>
-      <div class="gapbox"><b>${num(gap)}</b><span>نقطة مئوية: الفجوة بين أعلى مجال (${hi.name}) وأدنى مجال (${low.name})</span></div>
+      <div class="dchart">${DOMAINS.map(d => `<button type="button" class="dbar ${lc(d.p)}" data-go="d-${d.id}" data-tip="${tipOf(d.name, d.p)}. اضغط للتفاصيل" aria-label="${tipOf(d.name, d.p)}. انتقال إلى التفاصيل">
+        <span class="rng">${ring(d.p)}<span data-count="${d.p}" data-short="1">${nf(d.p)}</span></span>
+        <span><span class="dn">${d.name}</span><small>مستوى ${lvl(d.p).n}</small></span>${badge(d.p)}</button>`).join('')}</div>
+      <div class="legend">${LEVELS.map(l => `<span class="lg lv-${l.c}"><i></i>${l.n} <small>(${nf(l.min)}–${nf(l.max)}٪)</small></span>`).join('')}</div>
+      ${dumbbell()}
     </div>
   </div>
+  <p class="muted sm" style="margin-top:10px">مرّر المؤشر فوق أي نقطة أو حلقة لعرض قيمتها، واضغط على المجال للانتقال إلى تفاصيله.</p>
 </section>
 
-<section class="blk"><h2>تحليل المجالات والمعايير</h2><div class="dsecs">${DOMAINS.map(domSection).join('')}</div></section>
-
-<section class="blk"><h2>نقاط القوة والتميز</h2>
-  <div class="sgrid">${STRENGTHS.map(([t, p]) => `<div class="sc"><b>${pct(p)}</b><span>${t}</span></div>`).join('')}</div>
+<section class="blk" id="s-std"><h2>المعايير الأحد عشر</h2>
+  <div class="chips" id="stdChips">${stdChips()}</div>
+  <div id="stdRows">${stdList()}</div>
+  <div class="legend">${LEVELS.map(l => `<span class="lg lv-${l.c}"><i></i>${l.n}</span>`).join('')}<small class="muted">· الفواصل البيضاء عند 50 و75 و90</small></div>
 </section>
 
-<section class="blk"><h2>أولويات التحسين والتدخل التطويري</h2>
-  <div class="prios">${PRIORITIES.map((x, n) => `<article class="prio ${lc(x.p)}"><div class="pn">${num(n + 1)}</div><div>
-    <h3>${x.t}</h3><div class="pm">النسبة: ${pct(x.p)} ${badge(x.p)}</div>
+<section class="blk" id="s-det"><h2>تحليل المجالات والمعايير</h2><div class="dsecs">${DOMAINS.map(domSection).join('')}</div></section>
+
+<section class="blk" id="s-str"><h2>نقاط القوة والتميز</h2>
+  <div class="sgrid">${STRENGTHS.map(([t, p]) => `<div class="sc lv-excellence" data-tip="${tipOf(t, p)}"><span class="rng">${ring(p)}<b>${nf(p, 2)}</b></span><span>${t}</span></div>`).join('')}</div>
+</section>
+
+<section class="blk" id="s-pri"><h2>أولويات التحسين والتدخل التطويري</h2>
+  <div class="prios">${PRIORITIES.map((x, n) => `<article class="prio ${lc(x.p)}"><div class="pn">${nf(n + 1)}</div><div>
+    <h3>${x.t} ${badge(x.p)}</h3>
+    <div class="bl" data-tip="${tipOf(x.t, x.p)}. المنطقة المخططة تمثل المسافة إلى بداية التميز (90٪)"><div class="bt"><i class="bv" style="--w:${x.p}%"></i><i class="gp" style="--s:${x.p}%;--g:${Math.max(0, 90 - x.p)}%"></i></div><b class="bn">${pct(x.p)}</b></div>
+    <div class="dist">${x.p < 90 ? `يبعد ${nf(Math.round((90 - x.p) * 10000) / 10000)} نقطة عن بداية مستوى التميز (٩٠٪)` : ''}</div>
     <p><b>الإجراء المقترح:</b> ${x.a}</p>${x.i ? `<p><b>التدخل:</b> ${x.i}</p>` : ''}</div></article>`).join('')}</div>
   <p class="muted sm">الأولويات مرتبة من الأقل نسبة إلى الأعلى.</p>
   <div class="acts noprint" style="margin-top:10px"><button type="button" class="btn" onclick="window.print()">طباعة الصفحة</button></div>
 </section>`;
 
-/* الانتقال من المخطط إلى تفاصيل المجال */
+/* ===== التفاعل ===== */
+const reduce = matchMedia('(prefers-reduced-motion:reduce)').matches;
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+
+// العد التصاعدي
+function countUp(el) {
+  const t = +el.dataset.count, short = el.dataset.short, isP = el.dataset.p;
+  const fin = isP ? pct(t) : short ? nf(t) : nf(t);
+  if (reduce) { el.textContent = fin; return; }
+  const t0 = performance.now(), D = 1100;
+  (function f(now) {
+    const k = Math.min(1, (now - t0) / D), e = 1 - Math.pow(1 - k, 3), v = t * e;
+    el.textContent = k >= 1 ? fin : (isP ? nf(v, 1) + '٪' : nf(v, t % 1 ? 2 : 0));
+    if (k < 1) requestAnimationFrame(f);
+  })(t0);
+}
+// الظهور عند التمرير
+const io = new IntersectionObserver(es => es.forEach(e => {
+  if (!e.isIntersecting) return; io.unobserve(e.target);
+  e.target.classList.add('in'); $$('[data-count]', e.target).forEach(countUp);
+}), { threshold: .15 });
+$$('.blk,.blk-in').forEach(el => io.observe(el));
+if (reduce) $$('.blk,.blk-in').forEach(el => el.classList.add('in'));
+
+// التنقل السريع + تمييز القسم الحالي
+const hdr = document.querySelector('header');
+if (hdr && getComputedStyle(hdr).position === 'sticky') document.documentElement.style.setProperty('--hh', hdr.offsetHeight + 'px');
+const spy = new IntersectionObserver(es => es.forEach(e => {
+  if (e.isIntersecting) $$('.qn a').forEach(a => a.classList.toggle('on', a.dataset.spy === e.target.id));
+}), { rootMargin: '-30% 0px -60% 0px' });
+NAV.forEach(([id]) => { const el = document.getElementById(id); el && spy.observe(el); });
+
+// فلاتر المعايير
+function drawStd() {
+  document.getElementById('stdChips').innerHTML = stdChips();
+  const box = document.getElementById('stdRows'); box.innerHTML = stdList();
+  box.classList.remove('in'); requestAnimationFrame(() => requestAnimationFrame(() => box.classList.add('in')));
+}
 document.addEventListener('click', e => {
+  const f = e.target.closest('[data-f]'); if (f) { stdState.f = f.dataset.f; drawStd(); return; }
+  if (e.target.closest('[data-sort]')) { stdState.asc = !stdState.asc; drawStd(); return; }
   const b = e.target.closest('[data-go]'); if (!b) return;
   const el = document.getElementById(b.dataset.go); if (!el) return;
-  el.open = true; el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  el.open = true; el.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' });
   el.classList.add('flash'); setTimeout(() => el.classList.remove('flash'), 1600);
 });
+document.addEventListener('keydown', e => { if ((e.key === 'Enter' || e.key === ' ') && e.target.matches('[data-go]')) { e.preventDefault(); e.target.dispatchEvent(new MouseEvent('click', { bubbles: true })); } });
+
+// التلميحات
+const tip = document.getElementById('tip');
+const showTip = (t, x, y) => { tip.textContent = t; tip.classList.add('on'); const w = tip.offsetWidth; tip.style.left = Math.max(8, Math.min(innerWidth - w - 8, x - w / 2)) + 'px'; tip.style.top = Math.max(8, y - tip.offsetHeight - 14) + 'px'; };
+document.addEventListener('pointermove', e => { const t = e.target.closest?.('[data-tip]'); t ? showTip(t.dataset.tip, e.clientX, e.clientY) : tip.classList.remove('on'); });
+document.addEventListener('focusin', e => { const t = e.target.closest?.('[data-tip]'); if (t) { const r = t.getBoundingClientRect(); showTip(t.dataset.tip, r.left + r.width / 2, r.top); } });
+document.addEventListener('focusout', () => tip.classList.remove('on'));
+document.addEventListener('scroll', () => tip.classList.remove('on'), { passive: true });
 </script>
 </body>
 </html>
