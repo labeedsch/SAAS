@@ -95,8 +95,8 @@ function domCards(id, rs) {
 // رسوم المجالات الأربعة (أصلية، خطوط وتعبئات بدرجات لون المجال الهادئة؛ التنسيق في theme.css)
 const SP = (x, y, c) => `<path transform="translate(${x} ${y})" d="M0-8L2-2 8 0 2 2 0 8-2 2-8 0-2-2z" ${c ? `fill="${c}"` : 'class="ak"'}/>`;
 const ILL = [
-  // الإدارة المدرسية (القيادة): قائد يتوسط فريقه ونجمة
-  `<path class="ag" d="M160.0 19.0L163.8 28.7L174.3 29.4L166.2 36.0L168.8 46.1L160.0 40.5L151.2 46.1L153.8 36.0L145.7 29.4L156.2 28.7z"/><circle class="aw" cx="160" cy="76" r="15"/><path class="af" d="M122 150c0-28 14-44 38-44s38 16 38 44z"/><circle class="aw" cx="100" cy="100" r="10"/><path class="af" d="M76 150c0-19 10-30 24-30s24 11 24 30z"/><circle class="aw" cx="220" cy="100" r="10"/><path class="af" d="M196 150c0-19 10-30 24-30s24 11 24 30z"/>`,
+  // الإدارة المدرسية: لوحة تخطيط ومتابعة بقائمة مهام، وهدف بسهم، وترس تشغيل
+  `<rect class="aw" x="104" y="38" width="108" height="118" rx="10"/><rect class="af" x="138" y="30" width="40" height="17" rx="6"/><path class="al" d="M120 74l6 6 10-12M120 100l6 6 10-12"/><path class="al" d="M146 74h50M146 100h50M146 126h50"/><circle class="al" cx="128" cy="126" r="6"/><circle class="aw" cx="76" cy="122" r="22"/><circle class="af" cx="76" cy="122" r="12"/><circle class="ag" cx="76" cy="122" r="4"/><path class="al" d="M76 122l22-22M98 100v10M98 100h10"/><path class="al" d="M255.0 110.0L262.0 110.0M250.6 120.6L255.6 125.6M240.0 125.0L240.0 132.0M229.4 120.6L224.4 125.6M225.0 110.0L218.0 110.0M229.4 99.4L224.4 94.4M240.0 95.0L240.0 88.0M250.6 99.4L255.6 94.4"/><circle class="af" cx="240" cy="110" r="15"/><circle class="aw" cx="240" cy="110" r="5"/>`,
   // التعليم والتعلم: سبّورة بدروس ومصباح فكرة
   `<rect class="aw" x="78" y="40" width="164" height="92" rx="10"/><path class="al" d="M98 64h64M98 82h96M98 100h52"/><rect class="af" x="176" y="92" width="48" height="26" rx="6"/><path class="al" d="M120 132l-14 28M200 132l14 28M160 132v28"/><circle class="ag" cx="236" cy="48" r="13"/><path class="al" d="M230 66h12"/>`,
   // نواتج التعلم: درجات صاعدة ونجمة تفوّق
