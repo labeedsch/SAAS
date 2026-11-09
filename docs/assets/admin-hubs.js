@@ -66,8 +66,8 @@ Pages.indmap = async ([onlyDom] = []) => {
   <div class="hm-leg"><span class="approved">معتمد</span><span class="submitted">بانتظار الاعتماد</span><span class="draft">مسودة</span><span class="not_evaluated">لم يُقيَّم</span>${sid ? h`<span class="me">مؤشراتي</span>` : ''}<span class="noev"><em></em>بلا مقيّم</span></div>
   ${onlyDom ? h`<p><a class="btn sm" href="#inds/map">عرض كل المجالات</a></p>` : ''}
   <div class="hm-grid">${ref.domains.map((d, di) => { if (onlyDom && d.id !== onlyDom) return ''; const dx = ref.inds.filter(i => i.dom?.id === d.id), ds = summ(dx), k = DOMK[di % 4];
-    return h`<section class="hm-d" style="--b:var(--c${k}b);--f:var(--c${k}f)"><header><div><h2>${d.name_ar}</h2><small>${nf(ds.n)} مؤشراً</small></div><div class="hm-pc"><b>${nf(ds.n ? Math.round(ds.ok / ds.n * 100) : 0)}%</b><small>${nf(ds.ok)} / ${nf(ds.n)} معتمد</small></div></header>${seg(ds)}
+    return h`<section class="hm-d" style="--b:var(--c${k}b);--f:var(--c${k}f)"><header><div><h2>${d.name_ar}</h2><small>${nf(ds.n)} مؤشراً</small></div><div class="hm-pc"><b>${nf(ds.n ? Math.round(ds.ok / ds.n * 100) : 0)}%</b><small>${nf(ds.ok)} من ${nf(ds.n)} معتمد</small></div></header>${seg(ds)}<div class="hm-dc"><span class="approved">${nf(ds.ok)} معتمد</span><span class="submitted">${nf(ds.sub)} بانتظار الاعتماد</span><span class="draft">${nf(ds.dr)} مسودة</span><span class="not_evaluated">${nf(ds.nev)} لم يُقيَّم</span></div>
     ${ref.standards.filter(s => s.domain_id === d.id).map(s => { const xs = dx.filter(i => i.std?.id === s.id).sort((a, b) => App.codeCmp(a.code, b.code)), ss = summ(xs);
-      return h`<div class="hm-s"><div class="hm-sh"><b>${s.name_ar}</b><span>${nf(ss.ok)} من ${nf(ss.n)}</span></div><div class="hm-cs">${xs.map(chip)}</div></div>`; })}</section>`; })}</div>`;
+      return h`<div class="hm-s"><div class="hm-sh"><b>${s.name_ar}</b><span>${nf(ss.ok)} معتمد من ${nf(ss.n)}</span>${seg(ss)}</div><div class="hm-cs">${xs.map(chip)}</div></div>`; })}</section>`; })}</div>`;
 };
 })();
