@@ -267,7 +267,8 @@ const svcBar = (co, rl) => {
     ['الفريق', [['qTask', 'task', co ? 'إضافة مهمة' : 'اقتراح مهمة', co || rl === 'team_member'], ['qMeeting', 'cal', 'إضافة اجتماع', co], ['qVisit', 'visit', 'إضافة زيارة فنية', co], ['qDeadline', 'flag', 'موعد إغلاق', co]]],
     ['المنصة', [['qStaff', 'users', 'إضافة عضو', co], ['qAnn', 'mega', 'إضافة إعلان', co]]],
   ].map(([t, xs]) => [t, xs.filter(x => x[3])]).filter(([, xs]) => xs.length);
-  return G.length ? h`<section class="svc" aria-label="خدمات سريعة"><b class="svc-t">${ico('star')} خدمات سريعة</b>${G.map(([t, xs]) => h`<div class="svc-g"><small>${t}</small><div>${xs.map(([a, i, l]) => h`<button type="button" class="svc-b" data-a="${a}">${ico(i)}<span>${l}</span></button>`)}</div></div>`)}</section>` : '';
+  const all = G.flatMap(([, xs]) => xs);
+  return all.length ? h`<nav class="svc" aria-label="خدمات سريعة"><b class="svc-t">${ico('star')} روابط مختصرة</b>${all.map(([a, i, l]) => h`<button type="button" class="svc-b" data-a="${a}">${ico(i)}<span>${l}</span></button>`)}</nav>` : '';
 };
 const win = (cls, icon, title, href, linkLabel, body) => h`<section class="win ${cls}"><header><span class="db-gi">${ico(icon)}</span><h2>${title}</h2><a class="btn sm" href="${href}">${linkLabel}</a></header>${body}</section>`;
 const ms = (label, v, tone = '', href = '') => href ? h`<a class="ms ${tone}" href="${href}"><b>${nf(v)}</b><small>${label}</small></a>` : h`<div class="ms ${tone}"><b>${nf(v)}</b><small>${label}</small></div>`;
@@ -317,6 +318,7 @@ Pages.dashboard = async () => {
   const strip = D.anns.slice().sort((a, b) => (b.priority !== 'normal') - (a.priority !== 'normal'));
 
   return h`
+  ${svcBar(co, role())}
   ${strip.length ? h`<div class="db-strip" role="region" aria-label="الإعلانات">${ico('mega')}<div>${strip.slice(0, 5).map(a => h`<a href="#ann" class="${a.priority}">${a.priority !== 'normal' ? h`<b>${L.prio[a.priority]}:</b> ` : ''}${a.title}${!co && !readSet.has(a.id) ? h` <i class="db-dot" title="لم تطّلع عليه"></i>` : ''}</a>`)}</div><a class="btn sm" href="#ann">كل الإعلانات</a></div>` : ''}
 
   <section class="db-hero cmp"><div class="db-ht"><small>لوحة التحكم · ${c.name}</small><h1>متابعة التقويم الذاتي</h1>
@@ -324,7 +326,6 @@ Pages.dashboard = async () => {
       <div class="chips"><a class="db-chip ${A.total ? 'warn' : 'ok'}" href="#alerts">${ico('bell')} ${A.total ? nf(A.total) + ' تحتاج إجراء' : 'لا إجراءات معلّقة'}</a><span class="db-chip">${ico('layers')} ${nf(stdDone)} معيار منجز من ${nf(stds.length)}</span><span class="db-chip">${ico('task')} ${nf(tkDone)} مهمة منجزة من ${nf(tk.length)}</span></div></div>
     <div class="db-rings">${ring(pct, 'إنجاز المؤشرات', nf(nOk) + ' من ' + nf(nInd) + ' معتمد', 'info')}${ring(doms.length ? domDone / doms.length * 100 : 0, 'المجالات المنجزة', nf(domDone) + ' من ' + nf(doms.length) + ' · متبقٍ ' + nf(doms.length - domDone), 'ok')}${ring(evid.length ? evOk / evid.length * 100 : 0, 'الشواهد المعتمدة', nf(evOk) + ' من ' + nf(evid.length), '')}</div></section>
 
-  ${svcBar(co, role())}
 
   <div class="kcs">${kc('teal', 'layers', 'كل المؤشرات', nf(nInd), pct, 'المعتمد منها ' + nf(nOk) + ' · افتح خريطة التقدم', '#inds/map', true)}${kc('ok', 'check', 'معتمد', nf(nOk), nInd ? nOk / nInd * 100 : 0, 'عرض المؤشرات المعتمدة', '#inds/list/approved')}${kc('info', 'clock', 'بانتظار الاعتماد', nf(nSub), nInd ? nSub / nInd * 100 : 0, nSub ? (co ? 'راجع واعتمد الآن' : 'أُرسلت للمراجعة') : 'لا شيء ينتظر', '#inds/list/submitted')}${kc('mute', 'note', 'مسودة', nf(nDr), nInd ? nDr / nInd * 100 : 0, nDr ? 'تقييمات تحتاج إكمالاً' : 'لا مسودات', '#inds/list/draft')}${kc('warn', 'alert', 'لم يُقيَّم', nf(nNo), nInd ? nNo / nInd * 100 : 0, nNo ? 'ابدأ التقييم' : 'اكتمل التقييم', '#inds/list/not_evaluated')}${kc('bad', 'users', 'بلا مقيّم', nf(noEv), nInd ? noEv / nInd * 100 : 0, noEv ? (co ? 'أسنِد مقيّماً الآن' : 'يحتاج إسناداً') : 'كل المؤشرات مسندة', '#platform/assign')}</div>
 

@@ -370,3 +370,8 @@ button.kc{font:inherit;text-align:start;cursor:pointer;width:100%} .kc.on{outlin
 .svc-b .ico{width:18px;height:18px} .svc-b:hover{background:var(--grad);color:#fff;border-color:transparent;transform:translateY(-2px);box-shadow:var(--shadow2)} .svc-b:disabled{opacity:.6}
 @media (max-width:640px){.svc{padding:12px}.svc-b{flex:1 1 calc(50% - 8px);justify-content:center}.svc-g{width:100%}}
 @media (prefers-reduced-motion:reduce){.svc-b{transition:none}.svc-b:hover{transform:none}}
+/* خدمات سريعة: سطر واحد */
+.svc{flex-wrap:nowrap;align-items:center;gap:8px;padding:8px 12px;overflow-x:auto;scrollbar-width:thin;margin-bottom:12px}
+.svc-t{white-space:nowrap;margin-inline-end:4px;font-size:.9rem}
+.svc-b{flex:0 0 auto;white-space:nowrap;padding:7px 12px;font-size:.86rem}
+@media (max-width:640px){.svc-b{flex:0 0 auto}}
