@@ -231,7 +231,7 @@ function home() {
     <h1><span class="gold">التقويم الذاتي</span> الذكي</h1>
     <p class="h2-sch">مدرسة لبيد بن ربيعة المتوسطة</p>
     <p class="h2-p">بوابة شفافة تعرض مجالات التقويم الذاتي ومعاييره ومؤشراته ونتائجه المعتمدة، وفق دليل هيئة تقويم التعليم والتدريب.</p>
-    <div class="h2-cta"><button type="button" class="btn gold" id="goInd">استعرض المؤشرات ${ic('arrow')}</button><a class="btn ghost" href="#results">نتائج الدورات</a></div>
+    <div class="h2-cta"><button type="button" class="btn gold" id="goInd">استعرض المؤشرات ${ic('arrow')}</button></div>
     <div class="pills"><span class="pill">${ic('check')} نتائج معتمدة</span><span class="pill">${ic('doc')} شواهد موثّقة</span><span class="pill">${ic('shield')} خصوصية محمية</span></div></div>
     <div class="h2-panel"><div class="h2-ring" style="--p:${first ? pp : 0}" role="img" aria-label="نسبة النشر ${pp}%"><div><b>${first ? num(pp) + '%' : '—'}</b><small>نسبة النشر</small></div></div>
       <div class="h2-stats"><div><b>${num(first ? cnt('domain_id') : 4)}</b><span>مجالات</span></div><div><b>${num(first ? cnt('standard_id') : 11)}</b><span>معياراً</span></div>
@@ -281,18 +281,9 @@ function home() {
   }
 }
 
-function results() {
-  const cs = cycles();
-  if (!cs.length) { view.innerHTML = noResults(); return; }
-  view.innerHTML = `<div class="sec"><h2>نتائج التقويم</h2></div><div class="grid">${cs.map(([id, name]) => {
-    const rs = byCycle(id), p = pubCount(rs);
-    return `<a class="card" href="#cycle/${id}"><span class="ic">${ic('layers')}</span><div class="ct"><h3>${esc(name)}</h3><small>${num(p)} من ${num(rs.length)} مؤشراً منشور</small></div><b class="big">${num(pctOf(p, rs.length))}%</b><div class="bar"><span style="width:${pctOf(p, rs.length)}%"></span></div></a>`;
-  }).join('')}</div>`;
-}
-
 function cycle(id) {
   const rs = byCycle(id); if (!rs.length) { view.innerHTML = noResults(); return; }
-  view.innerHTML = crumbs([['النتائج', '#results'], [rs[0].cycle_name]]) + domCards(id, rs);
+  view.innerHTML = crumbs([['الرئيسية', '#home'], [rs[0].cycle_name]]) + domCards(id, rs);
 }
 
 const domIdx = (cid, did) => [...new Map(byCycle(cid).map(r => [r.domain_id, r.domain_code]))].sort((a, b) => sortCodes(a[1], b[1])).findIndex(x => x[0] === did);
@@ -311,7 +302,7 @@ function domain(cid, did) {
   const i = Math.max(0, domIdx(cid, did)), k = DOM[i % 4], sts = stdsOf(rs), p = pubCount(rs), pc = pctOf(p, rs.length), d = rs[0];
   const gl = grpLevel(rs), ev = peopleOf(rs, 'eval'), rp = peopleOf(rs, 'resp');
   const chips = a => a.length ? a.map(n => `<span class="pchip">${esc(n)}</span>`).join('') : `<span class="muted">${NONE}</span>`;
-  view.innerHTML = crumbs([['النتائج', '#results'], [d.cycle_name, '#cycle/' + cid], [d.domain_name]]) + fromHome() +
+  view.innerHTML = crumbs([['الرئيسية', '#home'], [d.cycle_name, '#cycle/' + cid], [d.domain_name]]) + fromHome() +
     `<section class="hero2 dhero glv ${gl.key}" style="--pat:${domPat(DIC[i % 4])}"><div class="h2-txt"><span class="chip">${ic('cal')} ${esc(d.cycle_name)}</span>
       <div class="dh-title"><span class="dh-ic">${ic(DIC[i % 4])}</span><div><small>المجال ${num(d.domain_code)}</small><h1>${esc(d.domain_name)}</h1></div></div>
       <p class="h2-p">يضم هذا المجال ${num(sts.length)} معايير و${num(rs.length)} مؤشراً، منها ${num(p)} منشورة.</p>
@@ -357,7 +348,7 @@ function standard(cid, sid) {
   const rs = byCycle(cid).filter(r => r.standard_id === sid).sort((a, b) => sortCodes(a.indicator_code, b.indicator_code));
   if (!rs.length) { view.innerHTML = noResults(); return; }
   const r0 = rs[0];
-  view.innerHTML = crumbs([['النتائج', '#results'], [r0.cycle_name, '#cycle/' + cid], [r0.domain_name, `#domain/${cid}/${r0.domain_id}`], [r0.standard_name]]) + fromHome() +
+  view.innerHTML = crumbs([['الرئيسية', '#home'], [r0.cycle_name, '#cycle/' + cid], [r0.domain_name, `#domain/${cid}/${r0.domain_id}`], [r0.standard_name]]) + fromHome() +
     `<div class="sec"><h2>${esc(r0.standard_name)}</h2><span class="chip">${num(rs.length)} مؤشراً</span></div>
     <div class="pgrid">${rs.map(pcard).join('')}</div>`;
 }
@@ -375,7 +366,7 @@ async function indicator(cid, iid) {
     : `<p class="muted">لم يُنشر تقييم هذا المؤشر بعد.</p>`;
   const evidHtml = count ? await evidenceBlock(cid, iid) : `<p class="muted">لا توجد شواهد معتمدة لهذا المؤشر بعد.</p>`;
   if (location.hash !== h0) return; // انتقل المستخدم أثناء التحميل
-  view.innerHTML = crumbs([['النتائج', '#results'], [r.cycle_name, '#cycle/' + cid], [r.domain_name, `#domain/${cid}/${r.domain_id}`], [r.standard_name, `#standard/${cid}/${r.standard_id}`], [r.indicator_code]]) +
+  view.innerHTML = crumbs([['الرئيسية', '#home'], [r.cycle_name, '#cycle/' + cid], [r.domain_name, `#domain/${cid}/${r.domain_id}`], [r.standard_name, `#standard/${cid}/${r.standard_id}`], [r.indicator_code]]) +
     IndPage.render({
       back: indBack(cid, r), dom: k, domIdx: di, code: r.indicator_code, text: r.official_text, domName: r.domain_name, stdName: r.standard_name, cycleName: r.cycle_name,
       noResult: 'غير منشور', status: { label: pub ? 'منشور' : 'غير منشور', cls: pub ? 'ok' : '' }, level: pub && r.level_label ? { label: r.level_label, cls: LV[r.level_label] || '' } : null, pct,
@@ -418,7 +409,7 @@ function trackNav() {
   if (navStack.length > 60) navStack.shift();
   curHash = h;
 }
-const BACKL = { domain: 'العودة إلى صفحة المجال', standard: 'العودة إلى مؤشرات المعيار', cycle: 'العودة إلى مجالات الدورة', results: 'العودة إلى نتائج الدورات', home: 'العودة إلى قائمة المؤشرات' };
+const BACKL = { domain: 'العودة إلى صفحة المجال', standard: 'العودة إلى مؤشرات المعيار', cycle: 'العودة إلى مجالات الدورة', home: 'العودة إلى قائمة المؤشرات' };
 // وجهة الرجوع من صفحة المؤشر: آخر صفحة غير مؤشر زارها المستخدم (المجال أو المعيار أو القائمة…)، وإلا المعيار
 function indBack(cid, r) {
   for (let j = navStack.length - 2; j >= 0; j--) {
@@ -433,13 +424,14 @@ function indBack(cid, r) {
 const fromHome = () => navStack[navStack.length - 2] === '#home' ? `<a class="iback" href="#home">${BACKL.home} ${ic('arrow')}</a>` : '';
 
 async function route() {
+  if (location.hash === '#results') { location.replace('#home'); return; } // صفحة نتائج التقويم محذوفة
   trackNav();
   const [h, a, b] = location.hash.slice(1).split('/');
-  document.querySelectorAll('#nav a').forEach(x => x.classList.toggle('on', x.dataset.n === (h || 'home') || (x.dataset.n === 'results' && ['cycle','domain','standard','ind'].includes(h))));
+  document.querySelectorAll('#nav a').forEach(x => x.classList.toggle('on', x.dataset.n === (h || 'home')));
   window.scrollTo(0, 0);
   view.onkeydown = null;
   view.onclick = e => { const go = e.target.closest('[data-go]'); if (go) { e.preventDefault(); location.hash = go.getAttribute('href') || go.dataset.go; } };
-  await ({ '': home, home, results, login }[h] || (() => ({ cycle: () => cycle(a), domain: () => domain(a, b), standard: () => standard(a, b), ind: () => indicator(a, b) }[h] || home)()))();
+  await ({ '': home, home, login }[h] || (() => ({ cycle: () => cycle(a), domain: () => domain(a, b), standard: () => standard(a, b), ind: () => indicator(a, b) }[h] || home)()))();
   if (restoreScroll && scrollMem[curHash] != null) window.scrollTo(0, scrollMem[curHash]);
 }
 async function boot() { try { await load(); route(); } catch (e) { view.innerHTML = `<div class="panel"><p class="err">تعذّر تحميل البيانات. أعد المحاولة لاحقاً.</p></div>`; console.error(e); } }
