@@ -10,8 +10,9 @@ const MENU = [
   ['dashboard', 'لوحة متابعة شاملة', '*'],
   ['alerts', 'التنبيهات', '*'],
   ['inds', 'إدارة المؤشرات', '*'],
-  ['team', 'إدارة الفريق', '*'],
-  ['platform', 'إدارة المنصة', '*'],
+  ['desk', 'مكتبي الإلكتروني', ['team_member']],
+  ['team', 'إدارة الفريق', ['coordinator', 'principal', 'reviewer']],
+  ['platform', 'إدارة المنصة', ['coordinator', 'principal', 'reviewer']],
   ['reports', 'التقارير', '*', 1], ['log', 'سجل النشاط', CP, 1],
   ['evidence', 'الشواهد', '*', 1], ['indmap', 'خريطة التقدم', '*', 1],
   ['cycles', 'دورات التقويم', CPR, 1], ['wa', 'واتساب', ['coordinator'], 1],
@@ -20,12 +21,14 @@ const MENU = [
 ];
 // اسم الصفحة الداخلية ← القسم الذي يحويها
 const HUB_OF = { reports: 'dashboard', log: 'dashboard', evidence: 'inds', indmap: 'inds', ind: 'inds', cycles: 'platform', wa: 'platform', staff: 'platform', assign: 'platform', ann: 'platform', tasks: 'team', meetings: 'team', meeting: 'team', visits: 'team', visit: 'team', cal: 'team' };
+const DESKP = ['tasks', 'meetings', 'meeting', 'visits', 'visit', 'cal', 'ann'];
+const hubOf = n => role() === 'team_member' && DESKP.includes(n) ? 'desk' : HUB_OF[n];
 const allowed = (r) => r === '*' || r.includes(role());
 
 // القائمة العلوية: عناصر قبل أول مجموعة تظهر مباشرة، وكل مجموعة تُفتح كقائمة منسدلة
-const MICON = { dashboard: 'bars', alerts: 'bell', inds: 'note', team: 'users', platform: 'layers' };
+const MICON = { dashboard: 'bars', alerts: 'bell', inds: 'note', team: 'users', platform: 'layers', desk: 'user' };
 function drawMenu() {
-  const cur0 = location.hash.slice(1).split('/')[0] || 'dashboard', cur = HUB_OF[cur0] || cur0;
+  const cur0 = location.hash.slice(1).split('/')[0] || 'dashboard', cur = role() === 'team_member' && (cur0 === 'team' || cur0 === 'platform') ? 'desk' : (hubOf(cur0) || cur0);
   const nb = App.hubBadges ? App.hubBadges(App.lastAlerts) : {};
   put($('#menu'), h`${MENU.filter(m => !m[3] && allowed(m[2])).map(m => h`<a href="#${m[0]}" class="${m[0] === cur ? 'on' : ''}" ${m[0] === cur ? raw('aria-current="page"') : ''}>${MICON[m[0]] ? App.ico(MICON[m[0]]) : ''}<span class="ml">${m[1]}</span>${nb[m[0]] ? h` <span class="nb" aria-label="${nb[m[0]]} إجراء">${nb[m[0]] > 99 ? '99+' : App.nf(nb[m[0]])}</span>` : ''}</a>`)}`);
 }
@@ -82,7 +85,7 @@ const DETAIL = {
   visit: ['الزيارات الفنية', 'تفاصيل الزيارة', 'بطاقات المؤشرات والملاحظات والتوصيات والإجراءات المطلوبة ومتابعتها.', 'team'],
 };
 function headFor(name, args) {
-  const d = DETAIL[name]; if (d) return { kick: App.HUBS?.[d[3]]?.title || d[0], title: d[1], desc: d[2] };
+  const d = DETAIL[name]; if (d) return { kick: App.HUBS?.[role() === 'team_member' && d[3] === 'team' ? 'desk' : d[3]]?.title || d[0], title: d[1], desc: d[2] };
   const hub = App.HUBS?.[name]; if (!hub) { const m = MENU.find(x => x[0] === name); return { kick: 'لوحة التحكم', title: m?.[1] || '', desc: '' }; }
   const tabs = hub.tabs.filter(t => allowed(t[2])), t = tabs.find(x => x[0] === args[0]) || tabs[0];
   return { kick: hub.title, title: t?.[1] || hub.title, desc: t?.[3] || '' };
@@ -102,8 +105,9 @@ let seq = 0, curKey = null;
 const SKEL = raw('<div class="skel" aria-busy="true" aria-label="جارٍ التحميل"><i class="s1"></i><i class="s2"></i><i class="s3"></i></div>');
 async function route(opt = {}) {
   const parts = location.hash.slice(1).split('/'); let name = parts[0] || 'dashboard', args = parts.slice(1);
+  if (role() === 'team_member' && (name === 'team' || name === 'platform')) name = 'desk';   // عضو الفريق: مكتبه الإلكتروني بدل إدارة الفريق والمنصة
   const m = MENU.find(x => x[0] === name);               // الصلاحية تُفحص على الاسم الأصلي قبل التحويل إلى تبويب
-  const hub = HUB_OF[name];
+  const hub = hubOf(name);
   if (!['ind', 'meeting', 'visit'].includes(name) && hub && Pages[hub] && (!m || allowed(m[2]))) { args = [name === 'indmap' ? 'map' : name, ...args]; name = hub; }
   const my = opt.silent ? seq : ++seq, view = $('#view'), keep = !!opt.keep, key = name + '/' + (args[0] || '');
   const sameHub = curKey && curKey.split('/')[0] === name;

@@ -253,7 +253,7 @@ function agHtml() {
   const items = App.agendaItems ? App.agendaItems(calD) : [];
   if (CAL.sel) { const xs = items.filter(x => x.d === CAL.sel); return h`<div class="ag-h"><h3>${new Date(CAL.sel + 'T00:00:00').toLocaleDateString('ar-SA-u-ca-gregory-nu-latn', { weekday: 'long', day: 'numeric', month: 'long' })}</h3><button type="button" class="btn sm" data-a="calSel" data-d="${CAL.sel}">عرض الأسبوع القادم</button></div>${xs.length ? App.agendaFlat(xs) : h`<p class="muted empty">لا أحداث في هذا اليوم.</p>`}`; }
   const hh = App.agendaHtml(calD, 7, 8);
-  return h`<div class="ag-h"><h3>الأسبوع القادم</h3><a class="btn sm" href="#team/overview">أجندة الفريق</a></div>${hh || h`<p class="muted empty">لا اجتماعات ولا زيارات ولا مواعيد ولا مهام خلال الأسبوع القادم.</p>`}`;
+  return h`<div class="ag-h"><h3>الأسبوع القادم</h3><a class="btn sm" href="${role() === 'team_member' ? '#desk/overview' : '#team/overview'}">${role() === 'team_member' ? 'مكتبي' : 'أجندة الفريق'}</a></div>${hh || h`<p class="muted empty">لا اجتماعات ولا زيارات ولا مواعيد ولا مهام خلال الأسبوع القادم.</p>`}`;
 }
 const calRedraw = () => { put($('#wcal'), calHtml()); put($('#wag'), agHtml()); };
 Act.calNav = ({ v }) => { let m = CAL.m + Number(v), y = CAL.y; if (m < 0) { m = 11; y--; } if (m > 11) { m = 0; y++; } CAL.m = m; CAL.y = y; put($('#wcal'), calHtml()); };
@@ -267,6 +267,8 @@ const svcBar = (co, rl) => {
 };
 const win = (cls, icon, title, href, linkLabel, body) => h`<section class="win ${cls}"><header><span class="db-gi">${ico(icon)}</span><h2>${title}</h2><a class="btn sm" href="${href}">${linkLabel}</a></header>${body}</section>`;
 const ms = (label, v, tone = '', href = '') => href ? h`<a class="ms ${tone}" href="${href}"><b>${nf(v)}</b><small>${label}</small></a>` : h`<div class="ms ${tone}"><b>${nf(v)}</b><small>${label}</small></div>`;
+App.win = win; App.ms = ms; App.nstrip = nstrip; App.svcBar = svcBar;
+App.calWin = D => { calD = D; return h`<div id="wcal" class="calbox">${calHtml()}</div><div id="wag" class="agbox">${agHtml()}</div>`; };
 const mini = (xs, empty) => xs.length ? h`<ul class="wl">${xs}</ul>` : h`<p class="muted empty">${empty}</p>`;
 Pages.dashboard = async () => {
   const nc = App.needCycle(); if (nc) return nc;

@@ -26,6 +26,7 @@ App.hubBadges = A => ({
   inds: cnt(A, ['evid', 'eval', 'myeval', 'myfix', 'myresp']),
   team: cnt(A, ['tprop', 'trev', 'min', 'tlate', 'mytask', 'rsvp', 'visit', 'dl']),
   platform: cnt(A, ['noassign', 'ann']),
+  desk: cnt(A, ['mytask', 'rsvp', 'visit', 'dl', 'ann']),
 });
 
 /* ===== لوحة المتابعة الشاملة ===== */

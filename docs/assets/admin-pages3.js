@@ -169,6 +169,7 @@ Pages.visit = async ([id]) => {
 
 // ===== المهام =====
 const TF = { who: '', st: '', ap: '' };
+App.taskFilter = w => { TF.who = w || ''; };
 async function taskForm(base = {}, existing = null) {
   const ref = await App.ref(); const co = isCoord();
   const f = [{ k: 'title', l: 'عنوان المهمة', req: 1 }, { k: 'description', l: 'الوصف', t: 'textarea' }, { k: 'task_type', l: 'النوع', t: 'select', req: 1, o: Object.entries(L.ttype) },
