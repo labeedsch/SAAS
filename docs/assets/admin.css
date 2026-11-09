@@ -192,3 +192,15 @@ a.db-chip.warn{background:var(--c3b);color:var(--c3f);border-color:color-mix(in 
 .tm-rd li>div{flex:1;min-width:0} .tm-rd b{display:block;font-weight:700} .tm-rd small{display:block;color:var(--muted);font-size:.82rem;line-height:1.5}
 .tm-ri{display:grid;place-items:center;flex:none;width:28px;height:28px;border-radius:50%;font-weight:800;background:var(--c4f);color:#fff} .tm-rd li.bad .tm-ri{background:var(--c3f)}
 @media (max-width:600px){.tt{flex-wrap:nowrap;overflow-x:auto}.tt a{padding:8px 12px}}
+.tm-quick{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.tm-day{margin-bottom:14px} .tm-day h3{display:flex;align-items:center;gap:8px;margin:0 0 6px;font-size:1rem;font-weight:800;color:var(--brand2)} .tm-day h3 small{color:var(--muted);font-weight:400;font-size:.82rem}
+.tm-day.late h3{color:var(--bad)} .tm-day.today h3{color:var(--goldink)}
+.tm-ul{list-style:none;margin:0;padding:0;border:1px solid var(--line);border-radius:14px;overflow:hidden;background:var(--surface)}
+.tm-kb{display:grid;grid-template-columns:repeat(4,1fr);gap:12px} .tm-kcol{display:grid;gap:8px;align-content:start;padding:10px;border-radius:16px;background:var(--soft);min-width:0}
+.tm-kcol h3{font-size:.92rem;font-weight:800;display:flex;align-items:center;gap:6px} .tm-kcol.late h3{color:var(--bad)}
+.tm-kc{display:grid;gap:2px;padding:10px 12px;border-radius:12px;background:var(--surface);border:1px solid var(--line);border-inline-start:4px solid var(--brand);color:var(--ink);text-decoration:none}
+.tm-kc.bad{border-inline-start-color:var(--bad)} .tm-kc:hover{box-shadow:var(--shadow)} .tm-kc b{font-weight:600;font-size:.9rem;line-height:1.5} .tm-kc small{color:var(--muted);font-size:.78rem}
+.tm-more{padding:0} .tm-more>summary{cursor:pointer;padding:14px 18px;font-weight:800;display:flex;align-items:center;gap:10px;list-style:none} .tm-more>summary::-webkit-details-marker{display:none}
+.tm-more>summary::before{content:"◂";color:var(--brand);transition:transform .15s} .tm-more[open]>summary::before{transform:rotate(-90deg)} .tm-more[open]>summary{border-bottom:1px solid var(--line)}
+.tm-more>ul,.tm-more>.tw{margin:14px 18px 18px}
+@media (max-width:900px){.tm-kb{grid-template-columns:repeat(2,1fr)}} @media (max-width:520px){.tm-kb{grid-template-columns:1fr}}

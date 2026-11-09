@@ -176,6 +176,8 @@ const itemHtml = i => h`<li class="db-it ${i.tone}"><div class="db-itx"><b>${i.t
 const groupCard = (g, max) => h`<section class="db-g ${g.tone}"><header><span class="db-gi">${ico(g.icon)}</span><div><h3>${g.title}</h3><small>${g.desc}</small></div><span class="db-gc">${nf(g.items.length)}</span></header>
   <ul>${g.items.slice(0, max).map(itemHtml)}</ul>${g.items.length > max ? h`<a class="db-more" href="#alerts">وعرض ${nf(g.items.length - max)} أخرى في صفحة التنبيهات</a>` : ''}</section>`;
 
+App.groupCard = groupCard; App.itemHtml = itemHtml;
+
 /* ===== الإجراءات السريعة ===== */
 const done = async (p, msg) => { if (await run(p, msg)) App.refresh(); };
 Act.dbEvalApprove = async ({ id }) => { if (await sure('اعتماد هذا التقييم؟ يظهر معتمداً في النتائج.')) await done(sb.from('evaluations').update({ status: 'approved', approved_by: S.me.id }).eq('id', id), 'اعتُمد التقييم'); };

@@ -2,7 +2,7 @@
    تغلّف الصفحات القائمة بتبويبات (لا تكرّر منطقها)، وتضيف «نظرة عامة» تفحص جاهزية الفريق من بيانات الدورة.
    تُحمَّل بعد admin-dashboard.js وقبل admin.js. */
 (() => {
-const { h, raw, S, L, nf, dt, staffName, badge, table, panel, isCoord, role } = App;
+const { h, raw, S, L, nf, dt, staffName, badge, btn, table, panel, isCoord, role } = App;
 const MS = 864e5, pad = n => String(n).padStart(2, '0');
 const tod = () => { const d = new Date(); return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`; };
 const dayDiff = s => Math.round((new Date(String(s).slice(0, 10) + 'T00:00:00') - new Date(tod() + 'T00:00:00')) / MS);
@@ -48,42 +48,75 @@ function teamRows(D) {
   }).filter(Boolean).sort((x, y) => y.late - x.late || y.sb - x.sb || x.s.full_name.localeCompare(y.s.full_name, 'ar'));
 }
 
-/* ===== النظرة العامة ===== */
+/* ===== النظرة العامة: لوحة متابعة تشغيلية (ماذا عندنا وما الذي يحتاج حركة)، لا إحصاءات ===== */
+const dueTxt = s => { const n = dayDiff(s); return n < 0 ? `متأخر ${nf(-n)} يوم` : n === 0 ? 'اليوم' : n === 1 ? 'غداً' : `بعد ${nf(n)} أيام`; };
+const longDate = s => new Date(String(s).slice(0, 10) + 'T00:00:00').toLocaleDateString('ar-SA-u-ca-gregory', { weekday: 'long', day: 'numeric', month: 'long' });
+const DAYS = [['late', 'متأخر', d => d < 0], ['today', 'اليوم', d => d === 0], ['tomorrow', 'غداً', d => d === 1], ['week', 'هذا الأسبوع', d => d >= 2 && d <= 7], ['month', 'خلال شهر', d => d >= 8 && d <= 30]];
+const act = (label, a, data, cls) => ({ label, a, data, cls }), lnk = (label, href, cls) => ({ label, href, cls });
+
+function agenda(D) {
+  const co = isCoord(), pr = role() === 'principal', rv = role() === 'reviewer', mgr = co || pr || rv, me = S.me.staff_id, out = [];
+  const mine = new Set(D.resp.filter(r => r.staff_id === me).map(r => r.indicator_id));
+  const domInds = Object.fromEntries(D.ref.domains.map(d => [d.id, D.ref.inds.filter(i => i.dom?.id === d.id).map(i => i.id)]));
+  const put = (d, time, kind, tone, title, sub, acts) => out.push({ d: String(d).slice(0, 10), time: time ? String(time).slice(0, 5) : '', kind, tone, title, sub, acts });
+  D.meetings.filter(m => m.status === 'scheduled').forEach(m => {
+    const iv = D.inv.filter(i => i.meeting_id === m.id), my = iv.find(i => i.staff_id === me && i.rsvp === 'pending'), past = dayDiff(m.meeting_date) < 0;
+    put(m.meeting_date, m.start_time, 'اجتماع', past ? 'bad' : 'info', m.title, past ? 'مضى موعده ولم تُحدَّث حالته (عُقد / ملغى)' : `${m.location || 'المكان غير محدد'} · أكّد ${nf(iv.filter(i => i.rsvp === 'confirmed').length)} من ${nf(iv.length)} مدعواً${iv.some(i => i.rsvp === 'declined') ? ' · اعتذر ' + nf(iv.filter(i => i.rsvp === 'declined').length) : ''}`,
+      [...(my && !past ? [act('سأحضر', 'dbRsvp', { i: my.id, v: 'confirmed' }, 'pri'), act('أعتذر', 'dbRsvp', { i: my.id, v: 'declined' })] : []), lnk('فتح الاجتماع', '#meeting/' + m.id)]);
+  });
+  D.vis.filter(v => v.status === 'planned').forEach(v => { const past = dayDiff(v.visit_date) < 0, n = D.cards.filter(c => c.visit_id === v.id).length;
+    put(v.visit_date, null, 'زيارة فنية', past ? 'bad' : 'info', v.target_party, past ? 'مضى موعدها ولم تُحدَّث حالتها (تمت / ملغاة)' : `${nf(n)} بطاقة مؤشر مجهّزة`, [lnk('فتح الزيارة', '#visit/' + v.id)]); });
+  D.cards.filter(c => c.followup !== 'closed' && c.due_date && (mgr || c.responsible_staff_id === me)).forEach(c =>
+    put(c.due_date, null, 'متابعة زيارة', dayDiff(c.due_date) < 0 ? 'bad' : 'warn', `${D.ref.im[c.indicator_id]?.code || ''} — ${App.short(c.required_actions || c.recommendations || 'متابعة زيارة فنية', 70)}`, `${D.vis.find(v => v.id === c.visit_id)?.target_party || ''} · ${staffName(c.responsible_staff_id)}`, [lnk('فتح الزيارة', '#visit/' + c.visit_id)]));
+  D.tasks.filter(t => t.approval === 'approved' && !['completed', 'cancelled'].includes(t.status) && t.due_date && (co || pr || rv || t.assignee_staff_id === me)).forEach(t => {
+    const own = t.assignee_staff_id === me, acts = [];
+    if (co && t.status === 'awaiting_review') acts.push(act('اعتماد الإغلاق', 'dbTkClose', { i: t.id }, 'pri'), act('إعادة للتنفيذ', 'dbTkReopen', { i: t.id }));
+    else if (own) { if (['new', 'overdue'].includes(t.status)) acts.push(act('بدء', 'dbTkStart', { i: t.id })); if (t.status !== 'awaiting_review') acts.push(act('إرسال للمراجعة', 'dbTkSubmit', { i: t.id }, 'pri')); }
+    if (!acts.length) acts.push(lnk('فتح المهام', '#team/tasks'));
+    put(t.due_date, null, 'مهمة', dayDiff(t.due_date) < 0 ? 'bad' : t.status === 'awaiting_review' ? 'warn' : 'info', t.title, `${L.task[t.status]} · ${staffName(t.assignee_staff_id)}`, acts);
+  });
+  D.dls.forEach(d => {
+    const rel = mgr || (d.kind === 'indicator_close' ? mine.has(d.indicator_id) : (domInds[d.domain_id] || []).some(i => mine.has(i)));
+    const unfinished = d.kind === 'indicator_close' ? D.om[d.indicator_id]?.eval_status !== 'approved' : (domInds[d.domain_id] || []).some(i => D.om[i]?.eval_status !== 'approved');
+    if (rel && unfinished) put(d.due_date, null, 'إغلاق', dayDiff(d.due_date) < 0 ? 'bad' : 'warn', d.title, 'موعد إغلاق لم يكتمل ما يتعلق به', [d.indicator_id ? lnk('فتح المؤشر', '#ind/' + d.indicator_id) : lnk('المواعيد', '#team/cal')]);
+  });
+  return out.sort((a, b) => a.d.localeCompare(b.d) || a.time.localeCompare(b.time));
+}
+const KCOL = [['new', 'جديدة'], ['in_progress', 'قيد التنفيذ'], ['awaiting_review', 'بانتظار المراجعة'], ['late', 'متأخرة']];
+
 async function overview() {
   const nc = App.needCycle(); if (nc) return nc;
-  const D = await App.data(), T = tod(), co = isCoord(), me = S.me.staff_id;
-  const rd = readiness(D), rows = teamRows(D), issues = rd.filter(r => r.bad);
-  const tk = D.tasks.filter(t => t.approval === 'approved'), act = tk.filter(t => !['completed', 'cancelled'].includes(t.status));
-  const late = act.filter(t => t.due_date && dayDiff(t.due_date) < 0).length, proposed = D.tasks.filter(t => t.approval === 'proposed').length, review = tk.filter(t => t.status === 'awaiting_review').length;
-  const up = D.meetings.filter(m => m.status === 'scheduled' && dayDiff(m.meeting_date) >= 0), vp = D.vis.filter(v => v.status === 'planned' && dayDiff(v.visit_date) >= 0);
-  const accts = D.profs.filter(p => p.is_active && p.role !== 'external_evaluator').length, activeStaff = S.staff.filter(s => s.is_active).length;
-  const evS = new Set(D.resp.filter(r => r.kind === 'evaluator').map(r => r.staff_id)).size, rsS = new Set(D.resp.filter(r => r.kind === 'responsible').map(r => r.staff_id)).size;
-  const kp = [
-    { l: 'منسوبو المدرسة', n: activeStaff, s: `${nf(accts)} منهم بحساب دخول`, t: 'brand', go: 'staff' }, { l: 'مقيّمون / مسؤولون', n: `${nf(evS)} / ${nf(rsS)}`, s: 'منسوبون أُسند إليهم مؤشرات', t: 'info', go: 'assign' },
-    { l: 'مهام جارية', n: act.length, s: late ? `${nf(late)} متأخرة` : 'لا متأخرة', t: late ? 'bad' : 'ok', go: 'tasks' },
-    { l: co ? 'تنتظر قرارك' : 'اقتراحاتي بانتظار المنسق', n: co ? proposed + review : D.tasks.filter(t => t.approval === 'proposed' && t.proposed_by === S.me.id).length, s: co ? `${nf(proposed)} مقترحة · ${nf(review)} للإغلاق` : 'مهام اقترحتها', t: 'warn', go: 'tasks' },
-    { l: 'اجتماعات قادمة', n: up.length, s: up[0] ? `التالي ${dt(up.sort((a, b) => a.meeting_date.localeCompare(b.meeting_date))[0].meeting_date)}` : 'لا اجتماعات مجدولة', t: 'info', go: 'meetings' },
-    { l: 'زيارات فنية مخططة', n: vp.length, s: `${nf(D.cards.filter(c => c.followup !== 'closed').length)} متابعة مفتوحة`, t: 'brand', go: 'visits' },
-  ];
-  const soon = [
-    ...up.map(m => ({ d: m.meeting_date, k: 'اجتماع', t: m.title, href: '#meeting/' + m.id })), ...vp.map(v => ({ d: v.visit_date, k: 'زيارة فنية', t: v.target_party, href: '#visit/' + v.id })),
-    ...act.filter(t => t.due_date && dayDiff(t.due_date) >= 0 && dayDiff(t.due_date) <= 7 && (co || t.assignee_staff_id === me)).map(t => ({ d: t.due_date, k: 'موعد مهمة', t: t.title, href: '#team/tasks' })),
-    ...D.dls.filter(d => dayDiff(d.due_date) >= 0 && dayDiff(d.due_date) <= 14).map(d => ({ d: d.due_date, k: 'إغلاق', t: d.title, href: '#team/cal' })),
-  ].sort((a, b) => a.d.localeCompare(b.d)).slice(0, 8);
+  const [D, A] = await Promise.all([App.data(), App.alerts()]);
+  const co = isCoord(), pr = role() === 'principal', me = S.me.staff_id, mgr = co || pr || role() === 'reviewer';
+  const ag = agenda(D), shown = ag.filter(x => dayDiff(x.d) <= 30);
+  // ما ينتظر قرارك (المنسق) أو ما يخصّك (العضو): من نفس مجموعات التنبيهات
+  const keys = co ? ['tprop', 'trev', 'min', 'evid', 'eval'] : ['mytask', 'rsvp', 'myfix'];
+  const gs = A.groups.filter(g => keys.includes(g.key));
+  // لوحة المهام: المهام النشطة المعتمدة
+  const tk = D.tasks.filter(t => t.approval === 'approved' && !['completed', 'cancelled'].includes(t.status) && (mgr || t.assignee_staff_id === me));
+  const isLate = t => t.status === 'overdue' || (t.due_date && dayDiff(t.due_date) < 0);
+  const colOf = t => isLate(t) ? 'late' : t.status === 'overdue' ? 'late' : t.status;
+  const card = t => h`<a class="tm-kc ${isLate(t) ? 'bad' : ''}" href="#team/tasks"><b>${t.title}</b><small>${staffName(t.assignee_staff_id)}${t.due_date ? ' · ' + dueTxt(t.due_date) : ' · بلا موعد'}</small></a>`;
+  const vplan = D.vis.filter(v => v.status === 'planned').sort((a, b) => a.visit_date.localeCompare(b.visit_date));
+  const rd = (co || pr) ? readiness(D) : [], issues = rd.filter(r => r.bad);
+  const rows = teamRows(D);
   const accBadge = r => r.acc ? h`${badge(L.role[r.acc.role], 'info')}${r.acc.is_active ? '' : badge('موقوف', 'bad')}` : h`<span class="muted">بلا حساب</span>`;
-  return h`
-  <div class="db-kpis">${kp.map(k => { const inner = h`<small>${k.l}</small><b>${typeof k.n === 'number' ? nf(k.n) : k.n}</b><em>${k.s}</em>`; return App.teamTabAllowed(k.go) ? h`<a class="db-k ${k.t}" href="#team/${k.go}">${inner}</a>` : h`<div class="db-k ${k.t}">${inner}</div>`; })}</div>
-  ${(co || role() === 'principal') ? panel('جاهزية الفريق', h`<ul class="tm-rd">${rd.map(r => h`<li class="${r.bad ? 'bad' : 'ok'}"><span class="tm-ri">${r.bad ? '!' : '✓'}</span><div><b>${r.label}${r.bad ? h` <span class="bdg ${r.key === 'wa' || r.key === 'idle' ? 'warn' : 'bad'}">${nf(r.items.length)}</span>` : ''}</b>
-      <small>${r.bad ? h`${r.items.slice(0, 6).join('، ')}${r.items.length > 6 ? '…' : ''} — ${r.why}` : 'لا ملاحظات'}</small></div>${r.bad ? h`<a class="btn sm" href="#team/${r.tab}">${r.go}</a>` : ''}</li>`)}</ul>`,
-    h`<span class="bdg ${issues.length ? 'warn' : 'ok'}">${issues.length ? nf(issues.length) + ' ملاحظة' : 'الفريق جاهز'}</span>`) : ''}
-  ${panel('أداء أعضاء الفريق', table([
+  const quick = co ? h`<div class="tm-quick"><a class="btn sm pri" href="#team/tasks">+ مهمة</a><a class="btn sm pri" href="#team/meetings">+ اجتماع</a><a class="btn sm pri" href="#team/visits">+ زيارة فنية</a><a class="btn sm" href="#team/ann">+ إعلان</a><a class="btn sm" href="#team/cal">+ موعد إغلاق</a></div>` : '';
+  return h`${quick}
+  ${gs.length ? panel(co ? 'ينتظر قرارك الآن' : 'يخصّك الآن', h`<div class="db-ac">${gs.map(g => App.groupCard(g, 4))}</div>`, h`<a class="btn sm" href="#alerts">كل التنبيهات</a>`) : ''}
+  ${panel('الأجندة: ما هو قادم', shown.length ? DAYS.map(([k, label, f]) => { const xs = shown.filter(x => f(dayDiff(x.d))); return xs.length ? h`<section class="tm-day ${k}"><h3>${label}${k === 'today' || k === 'tomorrow' ? h` <small>${longDate(xs[0].d)}</small>` : ''}</h3>
+      <ul class="tm-ul">${xs.map(x => h`<li class="db-it ${x.tone}"><div class="db-itx"><b><span class="bdg ${x.tone === 'bad' ? 'bad' : x.kind === 'مهمة' || x.kind === 'إغلاق' || x.kind === 'متابعة زيارة' ? 'warn' : 'info'}">${x.kind}</span> ${x.title}</b><small>${k === 'late' || k === 'week' || k === 'month' ? dt(x.d) + ' · ' : ''}${x.time ? x.time + ' · ' : ''}${x.sub}</small></div><div class="chips">${x.acts.map(a => a.href ? h`<a class="btn sm ${a.cls || ''}" href="${a.href}">${a.label}</a>` : btn(a.label, a.a, a.data || {}, a.cls || ''))}</div></li>`)}</ul></section>` : ''; })
+    : h`<p class="muted empty">لا اجتماعات ولا زيارات ولا مواعيد ولا مهام ذات موعد خلال الشهر القادم.</p>`)}
+  ${panel(co ? 'متابعة المهام' : 'مهامي', tk.length ? h`<div class="tm-kb">${KCOL.map(([k, l]) => { const xs = tk.filter(t => colOf(t) === k).sort((a, b) => (a.due_date || '9').localeCompare(b.due_date || '9'));
+      return h`<div class="tm-kcol ${k}"><h3>${l}${xs.length ? h` <span class="bdg ${k === 'late' ? 'bad' : ''}">${nf(xs.length)}</span>` : ''}</h3>${xs.length ? xs.slice(0, 6).map(card) : h`<p class="muted">—</p>`}${xs.length > 6 ? h`<a class="db-more" href="#team/tasks">+ ${nf(xs.length - 6)} أخرى</a>` : ''}</div>`; })}</div>` : h`<p class="muted empty">لا مهام نشطة${co ? '. أنشئ مهمة أو راجع مقترحات الأعضاء من تبويب المهام' : ''}.</p>`, h`<a class="btn sm" href="#team/tasks">كل المهام</a>`)}
+  ${panel('الزيارات الفنية القادمة', vplan.length ? h`<ul class="tm-ul">${vplan.slice(0, 6).map(v => { const cs = D.cards.filter(c => c.visit_id === v.id); return h`<li class="db-it ${dayDiff(v.visit_date) < 0 ? 'bad' : 'info'}"><div class="db-itx"><b>${v.target_party}</b><small>${dt(v.visit_date)} · ${dueTxt(v.visit_date)} · ${cs.length ? nf(cs.length) + ' بطاقة مؤشر' : 'لم تُجهَّز البطاقات بعد'}</small></div><a class="btn sm" href="#visit/${v.id}">فتح</a></li>`; })}</ul>` : h`<p class="muted empty">لا زيارات فنية مخططة.</p>`, h`<a class="btn sm" href="#team/visits">كل الزيارات</a>`)}
+  ${(co || pr) ? h`<details class="pn tm-more"><summary>جاهزية الفريق <span class="bdg ${issues.length ? 'warn' : 'ok'}">${issues.length ? nf(issues.length) + ' ملاحظة' : 'جاهز'}</span></summary><ul class="tm-rd">${rd.map(r => h`<li class="${r.bad ? 'bad' : 'ok'}"><span class="tm-ri">${r.bad ? '!' : '✓'}</span><div><b>${r.label}${r.bad ? h` <span class="bdg ${r.key === 'wa' || r.key === 'idle' ? 'warn' : 'bad'}">${nf(r.items.length)}</span>` : ''}</b>
+      <small>${r.bad ? h`${r.items.slice(0, 6).join('، ')}${r.items.length > 6 ? '…' : ''} — ${r.why}` : 'لا ملاحظات'}</small></div>${r.bad ? h`<a class="btn sm" href="#team/${r.tab}">${r.go}</a>` : ''}</li>`)}</ul></details>` : ''}
+  <details class="pn tm-more"><summary>أعضاء الفريق وأعمالهم</summary>${table([
     { h: 'المنسوب', f: r => h`<b>${r.s.full_name}</b><br><small class="muted">${r.s.job_title || ''}</small>` }, { h: 'الحساب', f: accBadge },
-    { h: 'مقيّم', f: r => nf(r.ne) }, { h: 'مسؤول', f: r => nf(r.nr) }, { h: 'معتمد', f: r => nf(r.a) }, { h: 'بانتظار الاعتماد', f: r => r.sb ? badge(nf(r.sb), 'warn') : '0' },
-    { h: 'مهام جارية', f: r => nf(r.open) }, { h: 'مكتملة', f: r => nf(r.done) }, { h: 'متأخرة', f: r => r.late ? badge(nf(r.late), 'bad') : '0' },
-    { h: 'الإنجاز', f: r => r.ne ? h`<div class="db-pr"><div class="bar2"><span style="width:${pctOf(r.a, r.ne)}%"></span></div><span>${nf(pctOf(r.a, r.ne))}٪</span></div>` : h`<span class="muted">—</span>` },
-    { h: '', f: r => isCoord() || role() === 'principal' ? h`<a class="btn sm" href="#team/assign/${r.id}">ملف المسؤوليات</a>` : '' },
-  ], rows, 'لم يُسنَد أي مؤشر أو مهمة بعد. ابدأ من تبويب «الأعضاء والحسابات» ثم «الإسناد والمسؤوليات».'))}
-  ${panel('الأعمال القادمة', soon.length ? h`<ul class="db-log">${soon.map(x => h`<li><span><span class="bdg info">${x.k}</span> <a href="${x.href}">${x.t}</a></span><small class="muted">${dt(x.d)}</small></li>`)}</ul>` : h`<p class="muted empty">لا أعمال قادمة خلال الأيام القريبة.</p>`)}`;
+    { h: 'مقيّم / مسؤول', f: r => `${nf(r.ne)} / ${nf(r.nr)}` }, { h: 'مهام جارية', f: r => nf(r.open) }, { h: 'متأخرة', f: r => r.late ? badge(nf(r.late), 'bad') : '0' },
+    { h: '', f: r => co || pr ? h`<a class="btn sm" href="#team/assign/${r.id}">ملف المسؤوليات</a>` : '' },
+  ], rows, 'لم يُسنَد أي مؤشر أو مهمة بعد.')}</details>`;
 }
 
 /* ===== التبويبات ===== */
