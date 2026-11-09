@@ -76,5 +76,26 @@ function render(d) {
     ${hero}${stats}${two}${ev}${evid}${extras}${rel}${log}</div>`;
 }
 
-window.IndPage = { render, esc, nf, ic, weeks };
+/* صفحة المؤشر في الموقع العام بنفس تصميم صفحة المؤشر في لوحة التحكم (أصناف iw-* من admin.css).
+   d: { back, code, text, domName, stdName, cycleName, status:{label}, level:{label,cls}|null, pct, noResult,
+        owners:[{label,names:[]}], evalCard:{html}, evidence:{html,count}, related:[{href,code,text}] }
+   القيم النصية تُهرَّب هنا، وما في evalCard.html وevidence.html جاهز وموثوق من المستدعي. */
+function renderWork(d) {
+  const LVK = { excellence: 'ex', advancement: 'ad', launch: 'la', preparation: 'pr' };
+  const pct = d.pct != null && !isNaN(d.pct) ? Math.max(0, Math.min(100, +d.pct)) : null;
+  const lv = d.level?.cls ? LVK[d.level.cls] || 'x' : 'none', lvName = d.level?.label || d.noResult || 'غير منشور';
+  const owners = (d.owners || []).map(o => { const ns = (o.names || []).filter(Boolean);
+    return `<div><span class="av">${ic('users')}</span><div><small>${esc(o.label)}</small><b>${ns.length ? esc(ns.join('، ')) : 'لم يُسنَد بعد'}</b></div></div>`; }).join('');
+  const head = `<header class="iw-h"><div class="iw-hc"><div class="iw-chips"><span class="iw-chip dom">${ic('layers')} ${esc(d.domName)}</span><span class="iw-chip">${ic('doc')} ${esc(d.stdName)}</span><span class="iw-chip code" dir="ltr">${esc(d.code)}</span>${d.status ? `<span class="iw-chip">${ic('check')} ${esc(d.status.label)}</span>` : ''}</div>
+      <h1>${esc(d.text)}</h1>${owners ? `<div class="iw-own">${owners}</div>` : ''}</div>
+    <div class="iw-lvbox lv-${lv}"><div class="iw-ring" style="--p:${pct ?? 0}"><b>${pct != null ? nf(Math.round(pct)) + '%' : '—'}</b></div><strong>${esc(lvName)}</strong>${d.cycleName ? `<small>${esc(d.cycleName)}</small>` : ''}</div></header>`;
+  const sec = (id, ico, title, body, extra = '') => `<section class="iw-sec" id="${id}" aria-labelledby="h-${id}"><h2 id="h-${id}">${ic(ico)} ${title}${extra}</h2>${body}</section>`;
+  const evl = d.evalCard ? sec('s-eval', 'note', 'التقييم ومبرراته', d.evalCard.html) : '';
+  const evd = d.evidence ? sec('s-evid', 'clip', 'الشواهد المعتمدة', d.evidence.html, d.evidence.count != null ? ` <small>${nf(d.evidence.count)} شاهد</small>` : '') : '';
+  const rel = (d.related || []).length ? `<details class="iw-sec more" open><summary>${ic('grid')} مؤشرات المعيار نفسه <span class="bdg">${nf(d.related.length)}</span></summary>
+    <div class="iw-rel"><div>${d.related.map(r => `<a class="ilink" style="--b:var(--c${r.dom ?? 0}b);--f:var(--c${r.dom ?? 0}f)" href="${esc(r.href)}" title="${esc(String(r.text || '').slice(0, 90))}">${esc(r.code)}</a>`).join('')}</div></div></details>` : '';
+  return `<div class="iw">${d.back ? `<a class="iback" href="${esc(d.back.href)}">${esc(d.back.label)} ${ic('arrow')}</a>` : ''}${head}${evl}${evd}${rel}</div>`;
+}
+
+window.IndPage = { render, renderWork, esc, nf, ic, weeks };
 })();

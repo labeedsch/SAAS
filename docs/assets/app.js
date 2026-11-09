@@ -362,12 +362,12 @@ async function indicator(cid, iid) {
   const sibs = byCycle(cid).filter(x => x.standard_id === r.standard_id && x.indicator_id !== iid).sort((a, b) => sortCodes(a.indicator_code, b.indicator_code))
     .map(x => ({ href: `#ind/${cid}/${x.indicator_id}`, code: x.indicator_code, text: x.official_text, dom: k }));
   const evalHtml = pub
-    ? `<dl class="ikv"><dt>مبررات التقييم</dt><dd>${esc(r.justification || '—')}</dd>${r.strengths ? `<dt>جوانب القوة</dt><dd>${esc(r.strengths)}</dd>` : ''}</dl>`
+    ? `<dl class="iw-kv wide"><dt>مبررات التقييم</dt><dd>${esc(r.justification || '—')}</dd>${r.strengths ? `<dt>جوانب القوة</dt><dd>${esc(r.strengths)}</dd>` : ''}</dl>`
     : `<p class="muted">لم يُنشر تقييم هذا المؤشر بعد.</p>`;
   const evidHtml = count ? await evidenceBlock(cid, iid) : `<p class="muted">لا توجد شواهد معتمدة لهذا المؤشر بعد.</p>`;
   if (location.hash !== h0) return; // انتقل المستخدم أثناء التحميل
   view.innerHTML = crumbs([['الرئيسية', '#home'], [r.cycle_name, '#cycle/' + cid], [r.domain_name, `#domain/${cid}/${r.domain_id}`], [r.standard_name, `#standard/${cid}/${r.standard_id}`], [r.indicator_code]]) +
-    IndPage.render({
+    IndPage.renderWork({
       back: indBack(cid, r), dom: k, domIdx: di, code: r.indicator_code, text: r.official_text, domName: r.domain_name, stdName: r.standard_name, cycleName: r.cycle_name,
       noResult: 'غير منشور', status: { label: pub ? 'منشور' : 'غير منشور', cls: pub ? 'ok' : '' }, level: pub && r.level_label ? { label: r.level_label, cls: LV[r.level_label] || '' } : null, pct,
       owners: team ? [{ label: 'مسؤول المؤشر', names: rp }, { label: 'مقيّم المؤشر', names: ev }] : [],
