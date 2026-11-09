@@ -35,14 +35,19 @@ const grpLevel = rs => { const v = rs.filter(r => r.publish_state === 'published
 const resOf = rs => { const g = grpLevel(rs); return { g, txt: g.avg != null ? num(Math.round(g.avg)) + '%' : '—', name: GL[g.key], p: g.avg != null ? Math.round(g.avg) : 0 }; };
 const GL = { excellence: 'التميز', advancement: 'التقدم', launch: 'الانطلاق', preparation: 'التهيئة', none: 'بلا تقييم منشور' };
 async function load() {
-  const { data, error } = await sb.from('public_results').select('*').order('indicator_code');
-  if (error) throw error; rows = data || [];
-  const { data: s } = await sb.auth.getSession(); session = s.session;
+  // طلبات مستقلة تُنفَّذ بالتوازي بدل التتابع لتقليل زمن أول عرض
+  const [res, sess, lvRes] = await Promise.all([
+    sb.from('public_results').select('*').order('indicator_code'),
+    sb.auth.getSession(),
+    Promise.resolve(sb.from('evaluation_levels').select('code,min_pct')).catch(() => ({ data: null }))]);
+  if (res.error) throw res.error; rows = res.data || [];
+  session = sess.data.session;
   role = null;
   if (session) { const { data: p } = await sb.from('profiles').select('role,display_name').eq('id', session.user.id).maybeSingle(); role = p; }
   $('#loginLink').textContent = session ? 'خروج' : 'دخول';
   $('#adminLink').hidden = !(role && ['coordinator','team_member','principal','reviewer'].includes(role.role));
-  try { const { data: lv } = await sb.from('evaluation_levels').select('code,min_pct'); if (lv && lv.length) THR = lv.filter(x => x.min_pct != null).map(x => [x.code, +x.min_pct]).sort((a, b) => b[1] - a[1]); } catch (e) {}
+  const lv = lvRes && lvRes.data;
+  if (lv && lv.length) THR = lv.filter(x => x.min_pct != null).map(x => [x.code, +x.min_pct]).sort((a, b) => b[1] - a[1]);
   await loadOwners();
 }
 // المسؤولون والمقيمون: تقرؤهم قاعدة البيانات للفريق فقط (RLS)؛ الزائر والمقيم الخارجي لا يصلهم شيء.
