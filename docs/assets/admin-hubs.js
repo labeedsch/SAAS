@@ -43,13 +43,15 @@ Pages.dashboard = async (parts = []) => {
 Pages.inds = async (parts = []) => {
   const tab = INDS.some(t => t[0] === parts[0]) ? parts[0] : 'list', tabs = INDS.filter(t => ok(t[2]));
   const A = S.cid ? await App.alerts().catch(() => null) : null;
+  if (tab === 'list' && parts[1] && App.indFilter) App.indFilter({ st: parts[1] === 'mine' ? '' : parts[1], mine: parts[1] === 'mine' });
+  if (tab === 'evidence' && parts[1] && App.evFilter) App.evFilter(parts[1]);
   const r = await (tab === 'list' ? indList() : Pages[tab === 'map' ? 'indmap' : tab](parts.slice(1)));
   return App.shell('إدارة المؤشرات', 'المؤشرات والتقييم والشواهد وخريطة التقدم', 'inds', tabs, tab, { list: cnt(A, ['eval', 'myeval']), evidence: cnt(A, ['evid', 'myfix']) }, '', r?.html || r, r?.after);
 };
 
 /* ===== خريطة التقدم: معيار فمؤشر، بالتفصيل ===== */
 const STC = { approved: 'ok', submitted: 'info', draft: 'warn', not_evaluated: 'mute' };
-Pages.indmap = async () => {
+Pages.indmap = async ([onlyDom] = []) => {
   const nc = App.needCycle(); if (nc) return nc;
   const D = await App.data(), { ref, om, resp } = D, sid = S.me.staff_id;
   const mine = new Set(resp.filter(r => r.staff_id === sid).map(r => r.indicator_id)), who = {};
@@ -60,7 +62,8 @@ Pages.indmap = async () => {
   const all = summ(ref.inds);
   return h`<div class="mp-sum"><div><b>${nf(all.ok)}</b><small>معتمد من ${nf(all.n)}</small></div><div><b>${nf(all.sub)}</b><small>بانتظار الاعتماد</small></div><div><b>${nf(all.nev)}</b><small>لم يُقيَّم بعد</small></div><div class="${all.ev ? 'warnc' : ''}"><b>${nf(all.ev)}</b><small>بلا مقيّم</small></div></div>
   <div class="db-leg"><span class="ok">معتمد</span><span class="info">بانتظار الاعتماد</span><span class="warn">مسودة</span><span class="mute">لم يُقيَّم</span>${sid ? h`<span class="mine">مؤشراتي</span>` : ''}</div>
-  ${ref.domains.map((d, di) => { const dx = ref.inds.filter(i => i.dom?.id === d.id), ds = summ(dx);
+  ${onlyDom ? h`<p><a class="btn sm" href="#inds/map">عرض كل المجالات</a></p>` : ''}
+  ${ref.domains.map((d, di) => { if (onlyDom && d.id !== onlyDom) return ''; const dx = ref.inds.filter(i => i.dom?.id === d.id), ds = summ(dx);
     return h`<section class="pn mp-d" style="--b:var(--c${di % 4}b);--f:var(--c${di % 4}f)"><div class="pnh"><h2>${d.name_ar}</h2><div class="pa"><span class="muted">${nf(ds.ok)} / ${nf(ds.n)} معتمد</span>${bar(ds.ok, ds.n)}</div></div>
     ${ref.standards.filter(s => s.domain_id === d.id).map(s => { const xs = dx.filter(i => i.std?.id === s.id).sort((a, b) => App.codeCmp(a.code, b.code)), ss = summ(xs), pend = ss.sub + ss.nev + ss.ev;
       return h`<details class="mp-s" ${pend ? raw('open') : ''}><summary><b>${s.name_ar}</b><span class="muted">${nf(ss.ok)} / ${nf(ss.n)} معتمد</span>${bar(ss.ok, ss.n)}${ss.sub ? h`<span class="bdg info">${nf(ss.sub)} بانتظار الاعتماد</span>` : ''}${ss.ev ? h`<span class="bdg warn">${nf(ss.ev)} بلا مقيّم</span>` : ''}</summary>

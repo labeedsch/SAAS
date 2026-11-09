@@ -2,6 +2,7 @@
 (() => {
 const { sb, h, raw, $, put, S, L, lab, opts, nf, dt, dtt, today, codeCmp, staffName, staffOpts, toast, run, must, ask, sure, badge, sb_, table, btn, pageHead, panel, isCoord, role, canReview, csv } = App;
 const F = { dom: '', st: '', mine: false, q: '' };
+App.indFilter = o => Object.assign(F, { dom: '', st: '', mine: false, q: '' }, o);
 const MIME_OK = ['application/pdf', 'image/png', 'image/jpeg', 'image/webp', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'];
 
 // المؤشرات المسندة لي (مباشرة أو عبر المجال) كمقيّم أو مسؤول
@@ -194,6 +195,7 @@ Act.evDel = async ({ id }) => {
 
 // ===== صفحة الشواهد =====
 const EF = { st: '' };
+App.evFilter = st => { EF.st = st || ''; };
 Pages.evidence = async () => {
   const nc = App.needCycle(); if (nc) return nc;
   const ref = await App.ref();

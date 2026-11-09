@@ -222,7 +222,7 @@ const ring = (p, label, sub, tone) => {
 /* بطاقة مؤشر بنمط بطاقات الخطط الذكية: أيقونة، رقم كبير، شريط مع نسبة، وصف */
 const kc = (tone, icon, label, value, p, cap, href, solid) => h`<${raw(href ? 'a' : 'div')} ${raw(href ? `href="${href}"` : '')} class="kc ${tone} ${solid ? 'solid' : ''}"><header><span class="kc-i">${ico(icon)}</span><span class="kc-l">${label}</span></header><b class="kc-v">${value}</b><div class="kc-b"><span class="kc-pc">${nf(Math.round(p || 0))}%</span><i><u style="width:${Math.max(0, Math.min(100, p || 0))}%"></u></i></div><small>${cap}</small></${raw(href ? 'a' : 'div')}>`;
 const win = (cls, icon, title, href, linkLabel, body) => h`<section class="win ${cls}"><header><span class="db-gi">${ico(icon)}</span><h2>${title}</h2><a class="btn sm" href="${href}">${linkLabel}</a></header>${body}</section>`;
-const ms = (label, v, tone = '') => h`<div class="ms ${tone}"><b>${nf(v)}</b><small>${label}</small></div>`;
+const ms = (label, v, tone = '', href = '') => href ? h`<a class="ms ${tone}" href="${href}"><b>${nf(v)}</b><small>${label}</small></a>` : h`<div class="ms ${tone}"><b>${nf(v)}</b><small>${label}</small></div>`;
 const mini = (xs, empty) => xs.length ? h`<ul class="wl">${xs}</ul>` : h`<p class="muted empty">${empty}</p>`;
 Pages.dashboard = async () => {
   const nc = App.needCycle(); if (nc) return nc;
@@ -255,6 +255,16 @@ Pages.dashboard = async () => {
   const evNoAcc = new Set(resp.filter(r => r.kind === 'evaluator' && !accSet.has(r.staff_id)).map(r => r.staff_id)).size;
   // الإجراءات: أهم العناصر عبر المجموعات
   const items = A.groups.flatMap(g => g.items.map(i => ({ ...i, _g: g.title }))).sort((a, b) => SEV[b.tone] - SEV[a.tone]);
+  const stf = id => S.staff.find(x => x.id === id);
+  const evOf = id => resp.filter(r => r.kind === 'evaluator' && r.indicator_id === id).map(r => staffName(r.staff_id));
+  const moves = [
+    ...ref.inds.filter(i => !hasEv.has(i.id)).map(i => ({ tone: 'bad', title: i.code + ' — ' + short(i.official_text, 60), sub: 'لا مقيّم لهذا المؤشر، فلن يبدأ تقييمه.', acts: co ? [{ label: 'إسناد مقيّم', href: '#platform/assign', cls: 'pri' }, { label: 'فتح المؤشر', href: '#ind/' + i.id }] : [{ label: 'فتح المؤشر', href: '#ind/' + i.id }] })),
+    ...ref.inds.filter(i => hasEv.has(i.id) && stOf(i) === 'not_evaluated').map(i => ({ tone: 'warn', title: i.code + ' — ' + short(i.official_text, 60), sub: 'لم يبدأ تقييمه · المقيّم: ' + evOf(i.id).join('، '), acts: [{ label: 'فتح المؤشر', href: '#ind/' + i.id }] })),
+  ];
+  const setup = (co || role() === 'principal') ? [
+    ...[...new Set(resp.filter(r => r.kind === 'evaluator' && !accSet.has(r.staff_id) && stf(r.staff_id)?.is_active).map(r => r.staff_id))].slice(0, 3).map(id => ({ tone: 'warn', title: 'مقيّم بلا حساب: ' + staffName(id), sub: 'لا يستطيع تسجيل تقييمه قبل إنشاء حساب له.', acts: co ? [{ label: 'إنشاء حساب', href: '#platform/staff', cls: 'pri' }] : [] })),
+    ...(noRs ? [{ tone: 'warn', title: nf(noRs) + ' مؤشراً بلا مسؤول', sub: 'المسؤول يوفّر الشواهد والوثائق للمؤشر.', acts: co ? [{ label: 'إسناد المسؤوليات', href: '#platform/assign', cls: 'pri' }] : [] }] : []),
+  ] : [];
   const strip = D.anns.slice().sort((a, b) => (b.priority !== 'normal') - (a.priority !== 'normal'));
 
   return h`
@@ -265,22 +275,24 @@ Pages.dashboard = async () => {
       <div class="chips"><a class="db-chip ${A.total ? 'warn' : 'ok'}" href="#dashboard/alerts">${ico('bell')} ${A.total ? nf(A.total) + ' تحتاج إجراء' : 'لا إجراءات معلّقة'}</a><span class="db-chip">${ico('layers')} ${nf(stdDone)} معيار منجز من ${nf(stds.length)}</span><span class="db-chip">${ico('task')} ${nf(tkDone)} مهمة منجزة من ${nf(tk.length)}</span></div></div>
     <div class="db-rings">${ring(pct, 'إنجاز المؤشرات', nf(nOk) + ' من ' + nf(nInd) + ' معتمد', 'info')}${ring(doms.length ? domDone / doms.length * 100 : 0, 'المجالات المنجزة', nf(domDone) + ' من ' + nf(doms.length) + ' · متبقٍ ' + nf(doms.length - domDone), 'ok')}${ring(evid.length ? evOk / evid.length * 100 : 0, 'الشواهد المعتمدة', nf(evOk) + ' من ' + nf(evid.length), '')}</div></section>
 
-  <div class="kcs">${kc('teal', 'layers', 'كل المؤشرات', nf(nInd), pct, 'المعتمد منها ' + nf(nOk), '#inds/map', true)}${kc('ok', 'check', 'معتمد', nf(nOk), nInd ? nOk / nInd * 100 : 0, 'تقييم موثّق ومعتمد', '#inds/list')}${kc('info', 'clock', 'بانتظار الاعتماد', nf(nSub), nInd ? nSub / nInd * 100 : 0, 'أُرسل للمراجعة', '#inds/list')}${kc('mute', 'note', 'مسودة', nf(nDr), nInd ? nDr / nInd * 100 : 0, 'تقييم لم يكتمل', '#inds/list')}${kc('warn', 'alert', 'لم يُقيَّم', nf(nNo), nInd ? nNo / nInd * 100 : 0, 'لم يبدأ تقييمه', '#inds/list')}${kc('bad', 'users', 'بلا مقيّم', nf(noEv), nInd ? noEv / nInd * 100 : 0, 'يحتاج إسناداً', '#platform/assign')}</div>
-  <div class="kcs d4">${doms.map(({ d, n, ok, done }, i) => kc('d' + (i % 4), 'flag', d.name_ar, h`${nf(ok)}<span class="of"> / ${nf(n)}</span>`, n ? ok / n * 100 : 0, done ? 'منجز' : 'متبقٍ ' + nf(n - ok) + ' مؤشراً', '#inds/map'))}</div>
+  <div class="kcs">${kc('teal', 'layers', 'كل المؤشرات', nf(nInd), pct, 'المعتمد منها ' + nf(nOk) + ' · افتح خريطة التقدم', '#inds/map', true)}${kc('ok', 'check', 'معتمد', nf(nOk), nInd ? nOk / nInd * 100 : 0, 'عرض المؤشرات المعتمدة', '#inds/list/approved')}${kc('info', 'clock', 'بانتظار الاعتماد', nf(nSub), nInd ? nSub / nInd * 100 : 0, nSub ? (co ? 'راجع واعتمد الآن' : 'أُرسلت للمراجعة') : 'لا شيء ينتظر', '#inds/list/submitted')}${kc('mute', 'note', 'مسودة', nf(nDr), nInd ? nDr / nInd * 100 : 0, nDr ? 'تقييمات تحتاج إكمالاً' : 'لا مسودات', '#inds/list/draft')}${kc('warn', 'alert', 'لم يُقيَّم', nf(nNo), nInd ? nNo / nInd * 100 : 0, nNo ? 'ابدأ التقييم' : 'اكتمل التقييم', '#inds/list/not_evaluated')}${kc('bad', 'users', 'بلا مقيّم', nf(noEv), nInd ? noEv / nInd * 100 : 0, noEv ? (co ? 'أسنِد مقيّماً الآن' : 'يحتاج إسناداً') : 'كل المؤشرات مسندة', '#platform/assign')}</div>
+  <div class="kcs d4">${doms.map(({ d, n, ok, done }, i) => { const dx = ref.inds.filter(x => x.dom?.id === d.id), sb2 = dx.filter(x => stOf(x) === 'submitted').length, nv = dx.filter(x => stOf(x) === 'not_evaluated').length;
+    return kc('d' + (i % 4), 'flag', d.name_ar, h`${nf(ok)}<span class="of"> / ${nf(n)}</span>`, n ? ok / n * 100 : 0, done ? 'منجز بالكامل' : [sb2 ? nf(sb2) + ' بانتظار الاعتماد' : '', nv ? nf(nv) + ' لم يبدأ' : ''].filter(Boolean).join(' · ') || 'متبقٍ ' + nf(n - ok) + ' مؤشراً', '#inds/map/' + d.id); })}</div>
 
   <div class="wins">
   ${win('w-act ' + (A.bySev.bad ? 'bad' : A.total ? 'warn' : 'ok'), 'bell', 'إجراءات تحتاج قرارك', '#dashboard/alerts', 'كل التنبيهات (' + nf(A.total) + ')',
-    h`<div class="ms-row">${ms('عاجل', A.bySev.bad, A.bySev.bad ? 'bad' : '')}${ms('يحتاج متابعة', A.bySev.warn, A.bySev.warn ? 'warn' : '')}${ms('للعلم', A.bySev.info)}</div>${mini(items.slice(0, 4).map(itemHtml), 'لا توجد إجراءات معلّقة. كل شيء منجز.')}${items.length > 4 ? h`<a class="db-more" href="#dashboard/alerts">وعرض ${nf(items.length - 4)} آخر</a>` : ''}`)}
+    h`<div class="ms-row">${ms('عاجل', A.bySev.bad, A.bySev.bad ? 'bad' : '', '#dashboard/alerts')}${ms('يحتاج متابعة', A.bySev.warn, A.bySev.warn ? 'warn' : '', '#dashboard/alerts')}${ms('للعلم', A.bySev.info, '', '#dashboard/alerts')}</div>${mini(items.slice(0, 4).map(itemHtml), 'لا توجد إجراءات معلّقة. كل شيء منجز.')}${items.length > 4 ? h`<a class="db-more" href="#dashboard/alerts">وعرض ${nf(items.length - 4)} آخر</a>` : ''}`)}
 
   ${win('w-week', 'cal', 'الأسبوع القادم', '#team/overview', 'أجندة الفريق', (App.agendaHtml && App.agendaHtml(D, 7, 6)) || h`<p class="muted empty">لا اجتماعات ولا زيارات ولا مواعيد ولا مهام خلال الأسبوع القادم.</p>`)}
 
   ${win('w-ind', 'note', 'إدارة المؤشرات', '#inds/list', 'فتح المؤشرات',
-    h`<div class="ms-row">${ms('معتمد', nOk, 'ok')}${ms('بانتظار الاعتماد', nSub, nSub ? 'info' : '')}${ms('مسودة', nDr)}${ms('لم يُقيَّم', nNo, nNo ? 'warn' : '')}</div>
-    <div class="ms-row">${ms('شواهد بانتظار المراجعة', evPend, evPend ? 'info' : '')}${ms('شواهد تحتاج استكمالاً', evFix, evFix ? 'warn' : '')}${ms('بلا مقيّم', noEv, noEv ? 'warn' : '')}${ms('بلا مسؤول', noRs, noRs ? 'warn' : '')}</div>
+    h`<div class="ms-row">${ms('معتمد', nOk, 'ok', '#inds/list/approved')}${ms('بانتظار الاعتماد', nSub, nSub ? 'info' : '', '#inds/list/submitted')}${ms('مسودة', nDr, '', '#inds/list/draft')}${ms('لم يُقيَّم', nNo, nNo ? 'warn' : '', '#inds/list/not_evaluated')}</div>
+    <div class="ms-row">${ms('شواهد بانتظار المراجعة', evPend, evPend ? 'info' : '', '#inds/evidence/new')}${ms('شواهد تحتاج استكمالاً', evFix, evFix ? 'warn' : '', '#inds/evidence/needs_completion')}${ms('بلا مقيّم', noEv, noEv ? 'warn' : '', '#platform/assign')}${ms('بلا مسؤول', noRs, noRs ? 'warn' : '', '#platform/assign')}</div>
+    ${mini(moves.slice(0, 4).map(itemHtml), 'كل المؤشرات مسندة وبدأ تقييمها.')}
     <div class="wb"><a class="btn sm" href="#inds/evidence">مراجعة الشواهد</a><a class="btn sm" href="#inds/map">خريطة التقدم</a></div>`)}
 
   ${win('w-team', 'task', 'إدارة الفريق', '#team/overview', 'فتح إدارة الفريق',
-    h`<div class="ms-row">${ms('قيد التنفيذ', Math.max(tkRun, 0), 'info')}${ms('متأخرة', tkLate, tkLate ? 'bad' : '')}${ms(co ? 'بانتظار المراجعة' : 'مقترحة', co ? tkRev : tkProp, (co ? tkRev : tkProp) ? 'warn' : '')}${ms('مكتملة', tkDone, 'ok')}</div>
+    h`<div class="ms-row">${ms('قيد التنفيذ', Math.max(tkRun, 0), 'info', '#team/tasks')}${ms('متأخرة', tkLate, tkLate ? 'bad' : '', '#team/tasks')}${ms(co ? 'بانتظار المراجعة' : 'مقترحة', co ? tkRev : tkProp, (co ? tkRev : tkProp) ? 'warn' : '', '#team/tasks')}${ms('مكتملة', tkDone, 'ok', '#team/tasks')}</div>
     <ul class="wl"><li><span>${ico('cal')} الاجتماع القادم</span><b>${nextM ? h`<a href="#meeting/${nextM.id}">${nextM.title}</a> <small class="muted">${dt(nextM.meeting_date)}${nextM.start_time ? ' · ' + String(nextM.start_time).slice(0, 5) : ''}</small>` : h`<small class="muted">لا يوجد</small>`}</b></li>
     <li><span>${ico('visit')} الزيارة القادمة</span><b>${nextV ? h`<a href="#visit/${nextV.id}">${nextV.target_party || 'زيارة فنية'}</a> <small class="muted">${dt(nextV.visit_date)}</small>` : h`<small class="muted">لا يوجد</small>`}</b></li>
     <li><span>${ico('clip')} إجراءات زيارات مفتوحة</span><b>${nf(openCards)}</b></li></ul>
@@ -289,6 +301,7 @@ Pages.dashboard = async () => {
   ${win('w-plat', 'users', 'إدارة المنصة', '#platform/staff', 'فتح إدارة المنصة',
     h`<div class="ms-row">${ms('منسوبون', staffAct)}${App.teamTabAllowed('staff') || role() === 'principal' ? h`${ms('حسابات فعّالة', accounts)}${ms('مقيّمون بلا حساب', evNoAcc, evNoAcc ? 'warn' : '')}` : ''}${ms('إعلانات سارية', D.anns.length)}</div>
     <ul class="wl"><li><span>${ico('note')} الدورة الحالية</span><b>${c.name} <small class="muted">${L.cycle[c.status] || ''}</small></b></li><li><span>${ico('cal')} عدد الدورات</span><b>${nf(S.cycles.length)}</b></li></ul>
+    ${setup.length ? h`<ul class="wl">${setup.map(itemHtml)}</ul>` : h`<p class="muted empty">إعدادات المنصة مكتملة: كل المقيّمين لهم حسابات وكل المؤشرات مسندة.</p>`}
     <div class="wb">${[['assign', 'الإسناد'], ['cycles', 'الدورات'], ['ann', 'الإعلانات'], ['wa', 'واتساب']].filter(([t]) => App.teamTabAllowed(t)).map(([t, l]) => h`<a class="btn sm" href="#platform/${t}">${l}</a>`)}</div>`)}
 
   ${win('w-rep', 'doc', 'التقارير وسجل النشاط', '#dashboard/reports', 'التقارير',
