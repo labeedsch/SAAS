@@ -357,7 +357,7 @@ async function indicator(cid, iid) {
   const sibs = byCycle(cid).filter(x => x.standard_id === r.standard_id && x.indicator_id !== iid).sort((a, b) => sortCodes(a.indicator_code, b.indicator_code))
     .map(x => ({ href: `#ind/${cid}/${x.indicator_id}`, code: x.indicator_code, text: x.official_text, dom: k }));
   const evalHtml = pub
-    ? `<dl class="ikv"><dt>المستوى</dt><dd>${esc(r.level_label || '—')}</dd><dt>نسبة التحقق</dt><dd>${pct != null ? num(Math.round(pct)) + '٪' : '—'}</dd><dt>مبررات التقييم</dt><dd>${esc(r.justification || '—')}</dd>${r.strengths ? `<dt>جوانب القوة</dt><dd>${esc(r.strengths)}</dd>` : ''}</dl>`
+    ? `<dl class="ikv"><dt>مبررات التقييم</dt><dd>${esc(r.justification || '—')}</dd>${r.strengths ? `<dt>جوانب القوة</dt><dd>${esc(r.strengths)}</dd>` : ''}</dl>`
     : `<p class="muted">لم يُنشر تقييم هذا المؤشر بعد.</p>`;
   const evidHtml = count ? await evidenceBlock(cid, iid) : `<p class="muted">لا توجد شواهد معتمدة لهذا المؤشر بعد.</p>`;
   view.innerHTML = crumbs([['النتائج', '#results'], [r.cycle_name, '#cycle/' + cid], [r.domain_name, `#domain/${cid}/${r.domain_id}`], [r.standard_name, `#standard/${cid}/${r.standard_id}`], [r.indicator_code]]) +
@@ -365,11 +365,8 @@ async function indicator(cid, iid) {
       back: { href: `#standard/${cid}/${r.standard_id}`, label: 'العودة لمؤشرات المعيار' }, dom: k, domIdx: di, code: r.indicator_code, text: r.official_text, domName: r.domain_name, stdName: r.standard_name, cycleName: r.cycle_name,
       status: { label: pub ? 'منشور' : 'غير منشور', cls: pub ? 'ok' : '' }, level: pub && r.level_label ? { label: r.level_label, cls: LV[r.level_label] || '' } : null, pct,
       owners: team ? [{ label: 'مسؤول المؤشر', names: rp }, { label: 'مقيّم المؤشر', names: ev }] : [],
-      stats: [{ label: 'نسبة التحقق', value: pct != null ? num(Math.round(pct)) + '٪' : '—' }, { label: 'مستوى التقييم', value: pub ? (r.level_label || '—') : 'غير منشور' }, { label: 'الشواهد المعتمدة', value: num(count || 0) }, { label: 'مؤشرات المعيار', value: num(sibs.length + 1) }],
-      about: [{ ico: 'layers', k: 'المجال', v: r.domain_name }, { ico: 'doc', k: 'المعيار', v: r.standard_name }, { ico: 'cal', k: 'الدورة', v: r.cycle_name }],
-      ident: [{ ico: 'grid', k: 'رمز المؤشر', v: r.indicator_code }, { ico: 'layers', k: 'المجال', v: r.domain_name }, { ico: 'doc', k: 'المعيار', v: r.standard_name }, { ico: 'cal', k: 'الدورة', v: r.cycle_name },
-        { ico: 'check', k: 'حالة النشر', v: pub ? 'منشور' : 'غير منشور' }, { ico: 'bars', k: 'مستوى التقييم', v: pub ? (r.level_label || '—') : '—' }],
-      evalCard: { html: evalHtml }, evidence: { html: evidHtml, count: count || 0 }, related: sibs });
+      stats: [{ label: 'نسبة التحقق', value: pct != null ? num(Math.round(pct)) + '٪' : '—' }, { label: 'الشواهد المعتمدة', value: num(count || 0) }, { label: 'مؤشرات المعيار', value: num(sibs.length + 1) }],
+      evalCard: { html: evalHtml }, evidence: { html: evidHtml, count: count || 0 }, related: sibs.map(x => ({ ...x, domName: r.domain_name, group: 'مؤشرات المعيار نفسه' })) });
 }
 async function evidenceBlock(cid, iid) {
   if (role && ['external_evaluator','coordinator','team_member','principal','reviewer'].includes(role.role)) {

@@ -37,7 +37,7 @@ const weekBubbles = w => !w ? '' : `<div class="iweeks" role="list" aria-label="
 const card = (cls, head, body, actions = '') => `<section class="icard-s ${cls || ''}"><div class="ish"><h2>${head}</h2><div class="isa">${actions}</div></div>${body}</section>`;
 
 /* d: { back:{href,label}, dom:0..3, code, text, domName, stdName, cycleName, status:{label,cls}, level:{label,cls}|null, pct,
-        req, owners:[{label,names:[]}], stats:[{label,value,cls}], about:[{ico,k,v}], ident:[{ico,k,v,html}], note,
+        req, owners:[{label,names:[]}], stats:[{label,value,cls}], 
         suggested:{html,actions}, timeline:{start,end,deadline,lines:[[k,v]]}, evalCard:{html,actions}, evidence:{html,actions,count},
         extra:[{title,ico,html,actions}], related:[{href,code,text,dom}], log:{html} } */
 function render(d) {
@@ -56,27 +56,24 @@ function render(d) {
   const art = `<div class="iart" aria-hidden="true"><svg viewBox="0 0 320 190" class="iart-bg"><ellipse cx="160" cy="166" rx="100" ry="9" fill="currentColor" opacity=".16"/>${spark(48, 52)}${spark(276, 118)}${spark(270, 40, '#f0b34a')}</svg>
     <div class="iring" style="--p:${pct ?? 0}"><div class="irg"><b>${pct != null ? nf(Math.round(pct)) + '٪' : '—'}</b></div><span>${pct != null ? 'نسبة التحقق' : 'بلا تقييم منشور'}</span></div><span class="iart-ic">${ic(DIC[i % 4])}</span></div>`;
   const hero = `<section class="ihero"><div class="ihero-txt"><div class="ichips">${chips}</div>
-    <h1>${esc(d.text)}</h1>${d.req ? `<p class="isub">${esc(d.req)}</p>` : `<p class="isub">${esc(d.domName)} ‹ ${esc(d.stdName)}</p>`}
+    <h1>${esc(d.text)}</h1>
     ${ownerCards ? `<div class="iowns">${ownerCards}</div>` : ''}${d.heroActions ? `<div class="ihacts">${d.heroActions}</div>` : ''}</div>${art}</section>`;
   const stats = (d.stats || []).length ? `<div class="istats">${d.stats.map((s, n) => `<div class="istat s${n % 4}"><span>${esc(s.label)}</span><b>${esc(s.value)}</b></div>`).join('')}</div>` : '';
-  const about = `<section class="icard-s"><div class="ish"><h2>${ic('target')} حول المؤشر</h2></div><p class="iabout">${esc(d.text)}</p>${d.req ? `<p class="iabout req">${esc(d.req)}</p>` : ''}
-    ${(d.about || []).length ? `<div class="iminis">${d.about.map(a => `<div class="imini"><b>${ic(a.ico || 'doc')} ${esc(a.k)}</b><span>${esc(a.v)}</span></div>`).join('')}</div>` : ''}</section>`;
-  const ident = (d.ident || []).length ? `<section class="icard-s"><div class="ish"><h2>${ic('layers')} البطاقة التعريفية</h2></div>
-    <div class="idgrid">${d.ident.map(x => `<div class="idc"><span class="idi">${ic(x.ico || 'doc')}</span><div><small>${esc(x.k)}</small><b>${x.html ? x.html : esc(x.v ?? '—')}</b></div></div>`).join('')}</div>${d.note ? `<p class="inote">${esc(d.note)}</p>` : ''}</section>` : '';
   const w = d.timeline ? weeks(d.timeline.start, d.timeline.end, d.timeline.deadline) : null;
   const tl = d.timeline ? card('', `${ic('cal')} الجدول الزمني`, `${weekBubbles(w)}${w ? `<p class="isub sm">${w.notStarted ? 'لم تبدأ الدورة بعد.' : w.ended ? 'انتهت مدة الدورة.' : 'الأسبوع الحالي: ' + nf(w.cur) + ' من ' + nf(w.n) + '.'}${w.dw ? ' أسبوع موعد الإغلاق: ' + nf(w.dw) + '.' : ''}</p>` : '<p class="isub sm">لم تُحدَّد مدة الدورة.</p>'}
-    <div class="itl-lines">${(d.timeline.lines || []).map(l => `<p><b>${esc(l[0])}:</b> ${esc(l[1])}</p>`).join('')}</div>`) : '';
-  const sug = d.suggested ? card('', `${ic('doc')} الشواهد المقترحة`, d.suggested.html, d.suggested.actions) : '';
+    <div class="itl-lines">${(d.timeline.lines || []).map(l => `<p><b>${esc(l[0])}:</b> ${esc(l[1])}</p>`).join('')}</div>`, d.timeline.actions || '') : '';
+  const sug = d.suggested ? card('', `${ic('doc')} ${esc(d.suggested.title || 'الشواهد المقترحة')}`, d.suggested.html, d.suggested.actions) : '';
   const two = (sug || tl) ? `<div class="itwo">${sug}${tl}</div>` : '';
   const ev = d.evalCard ? card('stripe', `${ic('note')} التقييم ومبرراته`, d.evalCard.html, d.evalCard.actions) : '';
   const evid = d.evidence ? card('stripe', `${ic('clip')} الشواهد الفعلية${d.evidence.count != null ? ` <small>${nf(d.evidence.count)} شاهد</small>` : ''}`, d.evidence.html, d.evidence.actions) : '';
   const extra = (d.extra || []).map(x => card('', `${ic(x.ico || 'doc')} ${esc(x.title)}`, x.html, x.actions)).join('');
   const extras = extra ? `<div class="itwo">${extra}</div>` : '';
-  const rel = (d.related || []).length ? card('', `${ic('grid')} مؤشرات ذات صلة <small>المعيار نفسه</small>`, `<div class="irel">${d.related.map(r => {
-    const kk = r.dom ?? k; return `<a class="irc" style="--b:var(--c${kk}b);--f:var(--c${kk}f)" href="${esc(r.href)}"><span class="irc-i" dir="ltr">${esc(r.code)}</span><div><b>المؤشر ${esc(r.code)}</b><small>${esc(r.text)}</small></div></a>`; }).join('')}</div>`) : '';
+  const grp = {}; (d.related || []).forEach(r => { (grp[r.group || ''] = grp[r.group || ''] || []).push(r); });
+  const relCard = r => { const kk = r.dom ?? k; return `<a class="irc" style="--b:var(--c${kk}b);--f:var(--c${kk}f)" href="${esc(r.href)}"><span class="irc-i" dir="ltr">${esc(r.code)}</span><div><b>${esc(r.domName || '')}${r.why && r.why.length ? ` <em>${esc(r.why.join(' · '))}</em>` : ''}</b><small>${esc(r.text)}</small></div></a>`; };
+  const rel = (d.related || []).length ? card('', `${ic('grid')} مؤشرات مرتبطة`, Object.entries(grp).map(([g, rs]) => `${g ? `<h3 class="irg-h">${esc(g)}</h3>` : ''}<div class="irel">${rs.map(relCard).join('')}</div>`).join('')) : '';
   const log = d.log ? card('', `${ic('history')} سجل التعديلات والاعتمادات`, d.log.html) : '';
   return `<div class="ipage" style="--b:var(--c${k}b);--f:var(--c${k}f)">${d.back ? `<a class="iback" href="${esc(d.back.href)}">${esc(d.back.label)} ${ic('arrow')}</a>` : ''}
-    ${hero}${stats}${about}${ident}${two}${ev}${evid}${extras}${rel}${log}</div>`;
+    ${hero}${stats}${two}${ev}${evid}${extras}${rel}${log}</div>`;
 }
 
 window.IndPage = { render, esc, nf, ic, weeks };

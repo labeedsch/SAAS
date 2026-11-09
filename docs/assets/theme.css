@@ -449,3 +449,12 @@ body.pub nav a[hidden]{display:none}
 @media (max-width:900px){.ihero{grid-template-columns:1fr;padding:20px}.iart{min-height:190px}.istats{grid-template-columns:repeat(2,1fr)}.itwo{grid-template-columns:1fr}.ikv{grid-template-columns:1fr}}
 @media (max-width:520px){.icard-s{padding:18px 16px}.irg{width:100px;height:100px}}
 @media print{.iback,.ihacts,.isa{display:none!important}.ihero,.icard-s,.istat{box-shadow:none}.iart{display:none}.ihero{grid-template-columns:1fr}}
+.irg-h{font-size:.95rem;font-weight:700;color:var(--ink2);margin:14px 0 8px} .irg-h:first-child{margin-top:0}
+.irc b em{font-style:normal;font-weight:500;color:var(--f);font-size:.78rem;margin-inline-start:4px}
+.ivisits{display:grid;gap:14px}
+.ivisit{display:grid;gap:10px;padding:16px 18px;border-radius:18px;background:var(--soft);border:1px solid var(--line)}
+.ivisit-h{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.ivisit-h b{font-size:1rem} .ivisit .ikv{grid-template-columns:130px 1fr}
+.ilinks{display:flex;gap:6px;flex-wrap:wrap;align-items:center} .ilinks small{color:var(--muted)}
+.ilink{display:inline-flex;align-items:center;gap:4px;padding:2px 10px;border-radius:99px;background:var(--b);color:var(--f);text-decoration:none;font-size:.8rem;font-weight:700;direction:ltr}
+.iev-from{display:block;color:var(--muted);font-size:.78rem}

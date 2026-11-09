@@ -61,6 +61,14 @@ Pages.ind = async ([id]) => {
     must(sb.from('evaluation_levels').select('*').order('sort_order')),
     must(sb.from('evidence_indicators').select('evidence_id').eq('indicator_id', id)),
   ]);
+  // الارتباطات: شواهد مشتركة مع مؤشرات أخرى، وبطاقات زيارة تشمل مؤشرات من مجالات أخرى
+  const ownIds = new Set(evd.map(e => e.id)), sharedIds = ei.map(x => x.evidence_id).filter(x => !ownIds.has(x)), visitIds = [...new Set(vc.map(v => v.visit_id))];
+  const [sharedEv, evLinks, visitMates] = await Promise.all([
+    sharedIds.length ? must(sb.from('evidence').select('*, evidence_files(id)').eq('cycle_id', S.cid).in('id', sharedIds)) : [],
+    evd.length ? must(sb.from('evidence_indicators').select('evidence_id,indicator_id').in('evidence_id', evd.map(e => e.id))) : [],
+    visitIds.length ? must(sb.from('visit_cards').select('visit_id,indicator_id').in('visit_id', visitIds)) : [],
+  ]);
+  const evAll = [...evd, ...sharedEv];
   const lm = Object.fromEntries(lv.map(l => [l.id, l.label_ar]));
   const resp = ia.filter(a => a.kind === 'responsible'), evalr = ia.filter(a => a.kind === 'evaluator');
   const dResp = da.filter(a => a.kind === 'responsible'), dEval = da.filter(a => a.kind === 'evaluator');
@@ -92,17 +100,27 @@ Pages.ind = async ([id]) => {
   const domIdx = Math.max(0, ref.domains.findIndex(d => d.id === ind.dom.id));
   const DOMC = [0, 3, 2, 1][domIdx % 4];
   const evStatus = ev?.status || 'not_evaluated', lvLabel = ev ? lm[ev.level_id] : null;
-  const evApproved = evd.filter(e => e.status === 'approved').length, tkDone = tk.filter(t => t.status === 'completed').length;
+  const evApproved = evAll.filter(e => e.status === 'approved').length, tkDone = tk.filter(t => t.status === 'completed').length;
   const due = dl[0]?.due_date;
-  const evCards = evd.length ? `<div class="ievs">${evd.map(e => T(h`<div class="iev"><div class="iev-h"><span class="iev-ic">${raw(IndPage.ic('clip'))}</span><div><b>${e.title}</b>${e.description ? h`<small>${App.short(e.description, 90)}</small>` : ''}</div></div>
+  const evCards = evAll.length ? `<div class="ievs">${evAll.map(e => T(h`<div class="iev"><div class="iev-h"><span class="iev-ic">${raw(IndPage.ic('clip'))}</span><div><b>${e.title}</b>${e.indicator_id !== id ? h`<a class="iev-from" href="#ind/${e.indicator_id}">شاهد مشترك من المؤشر ${ref.im[e.indicator_id]?.code || ''}</a>` : ''}${e.description ? h`<small>${App.short(e.description, 90)}</small>` : ''}</div></div>
       <div class="chips">${sb_('evid', e.status)}<span class="bdg">${dt(e.evidence_date)}</span><span class="bdg info">${nf(e.evidence_files.length)} ملف</span></div>
       ${e.external_url ? h`<a href="${e.external_url}" target="_blank" rel="noopener">رابط خارجي</a>` : ''}${e.review_note ? h`<small class="muted">${e.review_note}</small>` : ''}
-      <div class="chips">${btn('معاينة', 'evView', { id: e.id, t: e.title })}${canReview() ? btn('مراجعة', 'evReview', { id: e.id }) : ''}${isCoord() ? btn('حذف', 'evDel', { id: e.id }, 'bad') : ''}</div></div>`)).join('')}</div>` : '<p class="muted">لم تُرفع شواهد فعلية لهذا المؤشر بعد.</p>';
-  const evalBody = ev ? T(h`<dl class="ikv"><dt>المستوى</dt><dd>${lvLabel || '—'}</dd><dt>نسبة التحقق</dt><dd>${ev.achievement_pct != null ? nf(ev.achievement_pct) + '٪' : '—'}</dd>
-    <dt>المبررات</dt><dd>${ev.justification || '—'}</dd><dt>جوانب القوة</dt><dd>${ev.strengths || '—'}</dd><dt>الفجوات والملاحظات</dt><dd>${ev.gaps_notes || '—'}</dd><dt>مصادر البيانات</dt><dd>${ev.data_sources || '—'}</dd>
+      <div class="chips">${btn('معاينة', 'evView', { id: e.id, t: e.title })}${canReview() ? btn('مراجعة', 'evReview', { id: e.id }) : ''}${isCoord() && e.indicator_id === id ? btn('حذف', 'evDel', { id: e.id }, 'bad') : ''}</div></div>`)).join('')}</div>` : '<p class="muted">لم تُرفع شواهد فعلية لهذا المؤشر بعد.</p>';
+  const evalBody = ev ? T(h`<dl class="ikv"><dt>مبررات التقييم</dt><dd>${ev.justification || '—'}</dd><dt>جوانب القوة</dt><dd>${ev.strengths || '—'}</dd><dt>الفجوات والملاحظات</dt><dd>${ev.gaps_notes || '—'}</dd><dt>مصادر البيانات</dt><dd>${ev.data_sources || '—'}</dd>
     <dt>الاعتماد</dt><dd>${ev.approved_at ? dtt(ev.approved_at) : '—'}</dd></dl>`) : '<p class="muted">لم يُسجَّل تقييم لهذا المؤشر في هذه الدورة.</p>';
   const evalAct = iEvaluate && cyc.status === 'active' ? T(btn(ev ? 'تعديل التقييم' : 'تسجيل التقييم', 'evEdit', {}, 'pri')) : `<small class="muted">${cyc.status !== 'active' ? 'الدورة غير نشطة' : 'التقييم للمقيّم المسند'}</small>`;
-  const siblings = ref.inds.filter(i => i.standard_id === ind.standard_id && i.id !== id).map(i => ({ href: '#ind/' + i.id, code: i.code, text: i.official_text, dom: DOMC }));
+  const domC = i => [0, 3, 2, 1][Math.max(0, ref.domains.findIndex(d => d.id === i.dom.id)) % 4];
+  const why = new Map(); const addWhy = (iid, r) => { if (iid && iid !== id && ref.im[iid]) why.set(iid, [...new Set([...(why.get(iid) || []), r])]); };
+  sharedEv.forEach(e => addWhy(e.indicator_id, 'شاهد مشترك')); evLinks.forEach(x => addWhy(x.indicator_id, 'شاهد مشترك')); visitMates.forEach(x => addWhy(x.indicator_id, 'زيارة فنية مشتركة'));
+  const relItem = (i, w) => ({ href: '#ind/' + i.id, code: i.code, text: i.official_text, dom: domC(i), domName: i.dom.name_ar, why: w, group: '' });
+  const linked = [...why.keys()].sort((a, b) => codeCmp(ref.im[a].code, ref.im[b].code)).map(k => ({ ...relItem(ref.im[k], [...why.get(k), ...(ref.im[k].standard_id === ind.standard_id ? ['المعيار نفسه'] : [])]), group: 'مرتبطة بالشواهد والزيارات' }));
+  const sibs = ref.inds.filter(i => i.standard_id === ind.standard_id && i.id !== id && !why.has(i.id)).map(i => ({ ...relItem(i, []), group: 'مؤشرات المعيار نفسه' }));
+  const related = [...linked, ...sibs];
+  const visitHtml = vc.length ? `<div class="ivisits">${vc.slice().sort((a, b) => String(b.technical_visits.visit_date).localeCompare(String(a.technical_visits.visit_date))).map(v => {
+    const mates = visitMates.filter(m => m.visit_id === v.visit_id && m.indicator_id !== id && ref.im[m.indicator_id]);
+    return T(h`<div class="ivisit"><div class="ivisit-h"><b>${dt(v.technical_visits.visit_date)}${v.technical_visits.target_party ? ' · ' + v.technical_visits.target_party : ''}</b><span class="chips">${sb_('visit', v.technical_visits.status)}${sb_('follow', v.followup)}<a class="btn sm" href="#visit/${v.visit_id}">فتح الزيارة</a></span></div>
+      <dl class="ikv">${v.existing_practices ? h`<dt>الممارسات القائمة</dt><dd>${v.existing_practices}</dd>` : ''}${v.strengths ? h`<dt>جوانب القوة</dt><dd>${v.strengths}</dd>` : ''}${v.gaps ? h`<dt>الفجوات</dt><dd>${v.gaps}</dd>` : ''}${v.recommendations ? h`<dt>التوصيات</dt><dd>${v.recommendations}</dd>` : ''}${v.required_actions ? h`<dt>الإجراءات المطلوبة</dt><dd>${v.required_actions}</dd>` : ''}${v.responsible_staff_id || v.due_date ? h`<dt>المسؤول / الموعد</dt><dd>${staffName(v.responsible_staff_id)} · ${dt(v.due_date)}</dd>` : ''}</dl>
+      ${mates.length ? h`<div class="ilinks"><small>مؤشرات أخرى في الزيارة:</small>${mates.map(m => h`<a class="ilink" style="--b:var(--c${domC(ref.im[m.indicator_id])}b);--f:var(--c${domC(ref.im[m.indicator_id])}f)" href="#ind/${m.indicator_id}" title="${ref.im[m.indicator_id].dom.name_ar}">${ref.im[m.indicator_id].code}</a>`)}</div>` : ''}</div>`); }).join('')}</div>` : '<p class="muted">لا زيارات فنية مرتبطة بهذا المؤشر في هذه الدورة.</p>';
   // سجل التعديلات: للمنسق فقط (تفرضه سياسات قاعدة البيانات)، ويفشل بصمت لغيره
   let logHtml = null;
   if (isCoord()) {
@@ -118,24 +136,19 @@ Pages.ind = async ([id]) => {
   const page = IndPage.render({
     back: { href: '#inds', label: 'العودة للمؤشرات' }, dom: DOMC, domIdx, code: ind.code, text: ind.official_text, domName: ind.dom.name_ar, stdName: ind.std.name_ar, cycleName: cyc.name,
     status: { label: L.eval[evStatus], cls: evStatus === 'approved' ? 'ok' : evStatus === 'submitted' ? 'info' : evStatus === 'draft' ? 'warn' : '' },
-    level: lvLabel ? { label: lvLabel, cls: LVC[lvLabel] || '' } : null, pct: ev?.achievement_pct, req: ind.requirements_text,
+    level: lvLabel ? { label: lvLabel, cls: LVC[lvLabel] || '' } : null, pct: ev?.achievement_pct,
     owners: [{ label: 'مسؤول المؤشر', names: respNames }, { label: 'مقيّم المؤشر', names: evalNames }],
     heroActions: isCoord() ? T(btn('إرسال التفاصيل للمسؤولين (واتساب)', 'indWa')) : '',
-    stats: [{ label: 'نسبة التحقق', value: ev?.achievement_pct != null ? nf(ev.achievement_pct) + '٪' : '—' }, { label: 'الشواهد المعتمدة', value: `${nf(evApproved)} / ${nf(evd.length)}` },
-      { label: 'المهام المكتملة', value: `${nf(tkDone)} / ${nf(tk.length)}` }, { label: 'الزيارات الفنية', value: nf(vc.length) }],
-    about: [{ ico: 'layers', k: 'المجال', v: ind.dom.name_ar }, { ico: 'doc', k: 'المعيار', v: ind.std.name_ar }, { ico: 'check', k: 'الشواهد المقترحة', v: se.length ? nf(se.length) + ' شواهد استرشادية' : 'لا توجد شواهد مقترحة' }],
-    ident: [{ ico: 'grid', k: 'رمز المؤشر', v: ind.code }, { ico: 'layers', k: 'المجال', v: ind.dom.name_ar }, { ico: 'doc', k: 'المعيار', v: ind.std.name_ar }, { ico: 'cal', k: 'الدورة', v: `${cyc.name} · ${cyc.school_year}` },
-      { ico: 'check', k: 'حالة التقييم', v: L.eval[evStatus] }, { ico: 'bars', k: 'مستوى التقييم', v: lvLabel || '—' }, { ico: 'user', k: 'مسؤول المؤشر', v: respNames.join('، ') || '—' }, { ico: 'users', k: 'مقيّم المؤشر', v: evalNames.join('، ') || '—' },
-      { ico: 'clock', k: 'موعد إغلاق المؤشر', v: dt(due) }, { ico: 'history', k: 'آخر اعتماد', v: ev?.approved_at ? dtt(ev.approved_at) : '—' }],
-    note: 'الشواهد المقترحة استرشادية ولا تدخل في حساب اكتمال الشواهد، والزيارة الفنية لا تغيّر التقييم تلقائياً؛ التقييم من اختصاص مقيّم المؤشر.',
-    suggested: { html: (se.length ? T(h`<ul class="ilist">${se.map(s => h`<li><b>${s.title}</b>${s.description ? h` — ${s.description}` : ''} ${isCoord() ? btn('✕', 'seDel', { i: s.id }, 'bad') : ''}</li>`)}</ul>`) : '<p class="muted">لا توجد شواهد مقترحة.</p>'), actions: isCoord() ? T(btn('+ شاهد مقترح', 'seAdd')) : '' },
-    timeline: { start: cyc.start_date, end: cyc.end_date, deadline: due, lines: [['مدة الدورة', cyc.start_date || cyc.end_date ? `${dt(cyc.start_date)} إلى ${dt(cyc.end_date)}` : '—'], ['موعد إغلاق المؤشر', dt(due)]] },
+    stats: [{ label: 'الشواهد المعتمدة', value: `${nf(evApproved)} / ${nf(evAll.length)}` }, { label: 'المهام المكتملة', value: `${nf(tkDone)} / ${nf(tk.length)}` }, { label: 'الزيارات الفنية', value: nf(vc.length) }, { label: 'مؤشرات مرتبطة', value: nf(linked.length) }],
+    suggested: { title: ind.requirements_text ? 'المطلوب والشواهد المقترحة' : 'الشواهد المقترحة', actions: isCoord() ? T(btn('+ شاهد مقترح', 'seAdd')) : '',
+      html: (ind.requirements_text ? T(h`<div class="ipt"><b>المطلوب</b><br><span class="txt">${ind.requirements_text}</span></div>`) : '') + (se.length ? T(h`<ul class="ilist">${se.map(s => h`<li><b>${s.title}</b>${s.description ? h` — ${s.description}` : ''} ${isCoord() ? btn('✕', 'seDel', { i: s.id }, 'bad') : ''}</li>`)}</ul>`) : '<p class="muted">لا توجد شواهد مقترحة.</p>') + '<small class="muted">الشواهد المقترحة استرشادية ولا تدخل في حساب اكتمال الشواهد.</small>' },
+    timeline: { start: cyc.start_date, end: cyc.end_date, deadline: due, lines: [['مدة الدورة', cyc.start_date || cyc.end_date ? `${dt(cyc.start_date)} إلى ${dt(cyc.end_date)}` : '—'], ['موعد إغلاق المؤشر', dt(due)]], actions: isCoord() ? T(btn(dl[0] ? 'تمديد الموعد' : 'تحديد موعد', 'dlSet')) : '' },
     evalCard: { html: evalBody, actions: evalAct },
-    evidence: { html: evCards, count: evd.length, actions: canUpload && cyc.status === 'active' ? T(btn('+ رفع شاهد', 'evAdd', {}, 'pri')) : '' },
+    evidence: { html: evCards, count: evAll.length, actions: canUpload && cyc.status === 'active' ? T(btn('+ رفع شاهد', 'evAdd', {}, 'pri')) : '' },
     extra: [
-      { title: 'الزيارات الفنية', ico: 'visit', html: T(table([{ h: 'التاريخ', f: v => dt(v.technical_visits.visit_date) }, { h: 'الجهة', f: v => v.technical_visits.target_party || '—' }, { h: 'الفجوات', f: v => App.short(v.gaps, 60) || '—' }, { h: 'المتابعة', f: v => sb_('follow', v.followup) }, { h: '', f: v => h`<a href="#visit/${v.visit_id}">فتح</a>` }], vc, 'لا زيارات مرتبطة')) },
+      { title: 'الزيارات الفنية', ico: 'visit', html: visitHtml, actions: isCoord() ? '<a class="btn sm" href="#visits">إدارة الزيارات</a>' : '' },
       { title: 'المهام المرتبطة', ico: 'task', html: T(table([{ h: 'المهمة', f: t => t.title }, { h: 'المكلّف', f: t => staffName(t.assignee_staff_id) }, { h: 'الموعد', f: t => dt(t.due_date) }, { h: 'الحالة', f: t => sb_('task', t.status) }], tk, 'لا مهام مرتبطة')) }],
-    related: siblings, log: logHtml ? { html: logHtml } : null });
+    related, log: logHtml ? { html: logHtml } : null });
   return raw(page);
 };
 
