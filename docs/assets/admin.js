@@ -12,6 +12,7 @@ const MENU = [
   ['inds', 'المؤشرات والتقييم', '*'],
   ['evidence', 'الشواهد', '*'],
   ['grp', 'الإدارة'],
+  ['platform', 'إدارة المنصة', '*'],
   ['reports', 'التقارير', '*'],
   ['cycles', 'دورات التقويم', ['coordinator', 'principal', 'reviewer']],
   ['wa', 'واتساب', ['coordinator']],
@@ -21,13 +22,13 @@ const MENU = [
   ['assign', 'المسؤوليات', ['coordinator', 'principal'], 1],
   ['meetings', 'الاجتماعات', '*', 1], ['visits', 'الزيارات الفنية', '*', 1], ['tasks', 'المهام والتكليفات', '*', 1], ['ann', 'الإعلانات', '*', 1], ['cal', 'التقويم والمواعيد', '*', 1],
 ];
-const TEAM_ROUTES = new Set(['staff', 'assign', 'tasks', 'meetings', 'meeting', 'visits', 'visit', 'ann', 'cal']);
+const TEAM_ROUTES = new Set(['tasks', 'meetings', 'meeting', 'visits', 'visit', 'cal']), PLATFORM_ROUTES = new Set(['staff', 'assign', 'ann']);
 const allowed = (r) => r === '*' || r.includes(role());
 
 const CHEV = raw('<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>');
 // القائمة العلوية: عناصر قبل أول مجموعة تظهر مباشرة، وكل مجموعة تُفتح كقائمة منسدلة
 function drawMenu() {
-  const cur0 = location.hash.slice(1).split('/')[0] || 'dashboard', cur = TEAM_ROUTES.has(cur0) ? 'team' : cur0;
+  const cur0 = location.hash.slice(1).split('/')[0] || 'dashboard', cur = TEAM_ROUTES.has(cur0) ? 'team' : PLATFORM_ROUTES.has(cur0) ? 'platform' : cur0;
   const groups = []; let g = { title: null, items: [] }; groups.push(g);
   for (const m of MENU) { if (m[0] === 'grp') { g = { title: m[1], items: [] }; groups.push(g); } else if (allowed(m[2]) && !m[3]) g.items.push(m); }
   const badgeN = m => m[0] === 'alerts' && App.alertCount ? h` <span class="nb" aria-label="${App.alertCount} تنبيه">${App.alertCount > 99 ? '99+' : App.alertCount}</span>` : '';
@@ -93,7 +94,8 @@ async function route() {
   const parts = location.hash.slice(1).split('/'); let name = parts[0] || 'dashboard', args = parts.slice(1);
   drawMenu();
   const m = MENU.find(x => x[0] === name);               // الصلاحية تُفحص على الاسم الأصلي قبل التحويل إلى تبويب
-  if (App.TEAM_TABS?.includes(name) && Pages.team && (!m || allowed(m[2]))) { args = [name, ...args]; name = 'team'; }
+  if (App.PLATFORM_TABS?.includes(name) && Pages.platform && (!m || allowed(m[2]))) { args = [name, ...args]; name = 'platform'; }
+  else if (App.TEAM_TABS?.includes(name) && Pages.team && (!m || allowed(m[2]))) { args = [name, ...args]; name = 'team'; }
   const view = $('#view');
   if (!Pages[name] || (m && !allowed(m[2]))) { put(view, h`<div class="pn"><p>الصفحة غير متاحة لدورك.</p></div>`); return; }
   put(view, h`<p class="muted">جارٍ التحميل…</p>`);
