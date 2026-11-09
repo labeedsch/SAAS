@@ -640,3 +640,20 @@ nav .ng .ngm a.on::after{display:none}
 
 .pav i,.av i{display:block;width:100%;text-align:center;line-height:1;margin:0;padding:0;font-style:normal}
 .pav.ini{font-size:calc(var(--s)*.34);letter-spacing:0}.lp-st .pav+.pav{margin-inline-start:-10px}
+
+/* المسؤول والمقيّم في صفحة المؤشر: مجموعتان ببطاقات أشخاص بصور دائرية أكبر */
+.ow{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-top:4px}
+.ow-g{--g:var(--brand);display:grid;align-content:start;gap:12px;min-width:0;padding:16px 18px;border-radius:22px;background:color-mix(in srgb,var(--g) 6%,var(--surface));border:1px solid color-mix(in srgb,var(--g) 20%,var(--line))}
+.ow-g.ev{--g:var(--gold2,#c8921f)}
+.ow-g h3{display:flex;align-items:center;gap:8px;margin:0;font-size:.92rem;font-weight:800;color:color-mix(in srgb,var(--g) 70%,var(--ink))}
+.ow-g h3 .ico{width:18px;height:18px;color:var(--g)}
+.ow-n{margin-inline-start:auto;display:inline-grid;place-items:center;min-width:24px;height:22px;padding:0 7px;border-radius:99px;background:var(--surface);border:1px solid var(--line);font-size:.76rem;color:var(--ink2);font-variant-numeric:tabular-nums}
+.ow-l{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px}
+.ow-p{display:flex;align-items:center;gap:12px;min-width:0;padding:10px 14px 10px 12px;border-radius:18px;background:var(--surface);border:1px solid var(--line);box-shadow:0 6px 16px -12px rgba(20,60,70,.3)}
+.ow-p .pav,.ow-p .av{--s:56px;flex:none;width:56px;height:56px;font-size:1.05rem;box-shadow:0 0 0 3px var(--surface),0 0 0 4px color-mix(in srgb,var(--g) 40%,transparent)}
+.ow-p b{display:block;font-size:1rem;line-height:1.5;color:var(--ink);overflow-wrap:anywhere}
+.ow-p small{display:block;margin-top:1px;font-size:.76rem;font-weight:700;color:color-mix(in srgb,var(--g) 75%,var(--ink2))}
+.ow-none{margin:0;padding:12px 4px;color:var(--muted);font-size:.9rem}
+@media (max-width:760px){.ow{grid-template-columns:1fr}.ow-l{grid-template-columns:1fr}.ow-g{padding:14px}}
+.ow{grid-template-columns:minmax(0,3fr) minmax(0,2fr)}.ow-l{grid-template-columns:repeat(auto-fill,minmax(190px,1fr))}
+@media (max-width:760px){.ow{grid-template-columns:1fr}.ow-l{grid-template-columns:1fr}}

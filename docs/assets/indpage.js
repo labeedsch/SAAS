@@ -84,10 +84,18 @@ function renderWork(d) {
   const LVK = { excellence: 'ex', advancement: 'ad', launch: 'la', preparation: 'pr' };
   const pct = d.pct != null && !isNaN(d.pct) ? Math.max(0, Math.min(100, +d.pct)) : null;
   const lv = d.level?.cls ? LVK[d.level.cls] || 'x' : 'none', lvName = d.level?.label || d.noResult || 'غير منشور';
-  const owners = (d.owners || []).map(o => { const ns = (o.names || []).filter(Boolean);
-    return `<div><span class="av">${ns[0] && window.AVURL?.(ns[0]) ? `<img src="${esc(window.AVURL(ns[0]))}" alt="">` : ic('users')}</span><div><small>${esc(o.label)}</small><b>${ns.length ? ns.map(n => `<span class="pn">${window.PAV ? window.PAV(n, 22) : ''}${esc(n)}</span>`).join('') : 'لم يُسنَد بعد'}</b></div></div>`; }).join('');
+  // صورة الشخص: من الموقع العام (PAV) أو من قائمة المنسوبين في اللوحة، وإلا حرفان من اسمه
+  const face = n => {
+    if (window.PAV) return window.PAV(n, 56);
+    const st = window.App?.S?.staff?.find(s => s.full_name === n);
+    if (window.App?.avatarHtml && st) return window.App.avatarHtml(st, 56).s;
+    return `<span class="pav ini" style="--s:56px"><i>${esc(initials(n))}</i></span>`;
+  };
+  const owners = (d.owners || []).map((o, k) => { const ns = (o.names || []).filter(Boolean);
+    return `<section class="ow-g ${k ? 'ev' : 'rs'}"><h3>${ic('users')} ${esc(o.label)}${ns.length ? `<span class="ow-n">${nf(ns.length)}</span>` : ''}</h3>
+      ${ns.length ? `<div class="ow-l">${ns.map(n => `<div class="ow-p">${face(n)}<div><b>${esc(n)}</b><small>${k ? 'مقيّم' : 'مسؤول'}</small></div></div>`).join('')}</div>` : `<p class="ow-none">لم يُسنَد بعد</p>`}</section>`; }).join('');
   const head = `<header class="iw-h"><div class="iw-hc"><div class="iw-chips"><span class="iw-chip dom">${ic('layers')} ${esc(d.domName)}</span><span class="iw-chip">${ic('doc')} ${esc(d.stdName)}</span><span class="iw-chip code" dir="ltr">${esc(d.code)}</span>${d.status ? `<span class="iw-chip">${ic('check')} ${esc(d.status.label)}</span>` : ''}</div>
-      <h1>${esc(d.text)}</h1>${owners ? `<div class="iw-own">${owners}</div>` : ''}</div>
+      <h1>${esc(d.text)}</h1>${owners ? `<div class="ow">${owners}</div>` : ''}</div>
     <div class="iw-lvbox lv-${lv}"><div class="iw-ring" style="--p:${pct ?? 0}"><b>${pct != null ? nf(Math.round(pct)) + '%' : '—'}</b></div><strong>${esc(lvName)}</strong>${d.cycleName ? `<small>${esc(d.cycleName)}</small>` : ''}</div></header>`;
   const sec = (id, ico, title, body, extra = '') => `<section class="iw-sec" id="${id}" aria-labelledby="h-${id}"><h2 id="h-${id}">${ic(ico)} ${title}${extra}</h2>${body}</section>`;
   const g = d.guidance;
