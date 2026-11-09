@@ -49,8 +49,8 @@ async function load() {
 const newOw = () => ({ resp: { ind: new Map(), dom: new Map() }, eval: { ind: new Map(), dom: new Map() } });
 let owners = newOw();
 const avByName = new Map();   // الاسم ← رابط الصورة (للفريق فقط، كالأسماء نفسها)
-const ini = n => String(n || '؟').trim().split(/\s+/).slice(0, 2).map(x => x[0]).join('');
-const pav = (n, sz = 26) => `<span class="pav" style="--s:${sz}px">${avByName.has(n) ? `<img src="${esc(avByName.get(n))}" alt="" loading="lazy">` : `<i>${esc(ini(n))}</i>`}</span>`;
+const ini = n => { const w = String(n || '؟').trim().split(/\s+/), l = w.length > 1 ? w[w.length - 1].replace(/^ال/, '') : ''; return w[0][0] + (l ? l[0] : ''); };
+const pav = (n, sz = 26) => `<span class="pav${avByName.has(n) ? '' : ' ini'}" style="--s:${sz}px">${avByName.has(n) ? `<img src="${esc(avByName.get(n))}" alt="" loading="lazy">` : `<i>${esc(ini(n))}</i>`}</span>`;
 window.PAV = pav; window.AVURL = n => avByName.get(n) || '';
 const isTeam = () => !!(role && ['coordinator','team_member','principal','reviewer'].includes(role.role));
 async function loadOwners() {
@@ -72,6 +72,9 @@ const ownersOf = (r, kind = 'resp') => [...new Set([...(owners[kind].ind.get(r.c
 const peopleOf = (rs, kind) => [...new Set(rs.flatMap(r => ownersOf(r, kind)))];
 const NONE = 'لم يُسند بعد';
 const names = a => a.length ? esc(a.join('، ')) : NONE;
+const personBlk = (label, a) => `<div class="lp"><span class="lp-l">${label}</span>${a.length
+  ? `<div class="lp-v"><span class="lp-st">${a.slice(0, 3).map(n => pav(n, 38)).join('')}${a.length > 3 ? `<span class="pav more" style="--s:38px"><i>+${num(a.length - 3)}</i></span>` : ''}</span><b class="lp-n" title="${esc(a.join('، '))}">${esc(a.join('، '))}</b></div>`
+  : `<div class="lp-v"><span class="lp-none">${NONE}</span></div>`}</div>`;
 const namesAv = a => a.length ? a.map(n => `<span class="pn">${pav(n, 22)}${esc(n)}</span>`).join('') : NONE;
 const cycles = () => [...new Map(rows.map(r => [r.cycle_id, r.cycle_name]))];
 const byCycle = id => rows.filter(r => r.cycle_id === id);
@@ -195,7 +198,7 @@ function lrow(r) {
     <div class="lr-code"><small>المؤشر</small><b>${esc(r.indicator_code)}</b></div>
     <div class="lr-main"><div class="lr-tags"><span class="lr-tag dom">${ic('layers')} ${esc(r.domain_name)}</span><span class="lr-tag">${ic('doc')} المعيار ${esc(r.standard_code)}</span></div>
       <p>${esc(r.official_text)}</p>
-      ${team ? `<div class="lr-people"><span>${ic('users')} المسؤول: ${namesAv(ownersOf(r, 'resp'))}</span><span>${ic('users')} المقيم: ${namesAv(ownersOf(r, 'eval'))}</span></div>` : ''}</div>
+      ${team ? `<div class="lr-people">${personBlk('المسؤول', ownersOf(r, 'resp'))}${personBlk('المقيّم', ownersOf(r, 'eval'))}</div>` : ''}</div>
     <div class="lr-side">${st}<div class="lr-bar"><span style="width:${pct}%"></span></div><span class="lr-go">عرض التفاصيل ${ic('arrow')}</span></div></a>`;
 }
 function pillsHtml(all) {

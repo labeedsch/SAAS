@@ -559,3 +559,5 @@ button.kc{font:inherit;text-align:start;cursor:pointer;width:100%} .kc.on{outlin
 .wchip{display:inline-flex;align-items:center;gap:6px}.wchip .av{box-shadow:none}
 
 @media (max-width:760px){.db-hero.cmp{grid-template-columns:1fr;padding:18px 16px}}
+
+.pav i,.av i{display:block;width:100%;text-align:center;line-height:1;margin:0;padding:0;font-style:normal}

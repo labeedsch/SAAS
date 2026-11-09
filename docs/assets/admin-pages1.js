@@ -120,7 +120,7 @@ Pages.staff = async () => {
 };
 // صورة المنسوب: تُصغَّر في المتصفح إلى 320px وتُرفع إلى حاوية avatars (الكتابة للمنسق فقط عبر سياسات التخزين)
 const avUrl = p => p ? sb.storage.from('avatars').getPublicUrl(p).data.publicUrl : '';
-const initials = n => (n || '؟').trim().split(/\s+/).slice(0, 2).map(x => x[0]).join('');
+const initials = n => { const w = String(n || '؟').trim().split(/\s+/), l = w.length > 1 ? w[w.length - 1].replace(/^ال/, '') : ''; return w[0][0] + (l ? l[0] : ''); };
 App.avatarHtml = (st, size = 40) => h`<span class="av" style="--s:${size}px">${st?.avatar_path ? h`<img src="${avUrl(st.avatar_path)}" alt="" loading="lazy">` : h`<i>${initials(st?.full_name || st?.display_name)}</i>`}</span>`;
 const shrink = file => new Promise((res, rej) => {
   const img = new Image(), u = URL.createObjectURL(file);

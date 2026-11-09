@@ -621,3 +621,22 @@ nav .ng .ngm a.on::after{display:none}
 .pav img{width:100%;height:100%;object-fit:cover;display:block} .pav i{font-style:normal}
 .pn{display:inline-flex;align-items:center;gap:6px;margin-inline-end:10px;vertical-align:middle}
 .iown .av img,.iw-own .av img{width:100%;height:100%;object-fit:cover;border-radius:50%;display:block} .iown .av,.iw-own .av{overflow:hidden}
+
+/* المسؤول والمقيّم في بطاقة المؤشر: كتلتان بصورة دائرية كاملة الحجم واسم واضح */
+.lr-people{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 14px;margin-top:12px;padding-top:12px;border-top:1px dashed var(--line);font-size:inherit;color:inherit}
+.lp{display:grid;gap:5px;min-width:0}
+.lp-l{font-size:.72rem;font-weight:700;color:var(--muted);letter-spacing:.2px}
+.lp-v{display:flex;align-items:center;gap:10px;min-width:0}
+.lp-st{display:inline-flex;flex:none}
+.lp-st .pav{box-shadow:0 0 0 2px var(--surface,#fff),0 1px 3px rgba(0,0,0,.15);background:var(--b);color:var(--f)}
+.lp-st .pav+.pav{margin-inline-start:-12px}
+.lp-st .pav.more{background:var(--soft);color:var(--ink2);font-size:.72rem}
+.lp-n{min-width:0;font-size:.88rem;font-weight:700;color:var(--ink);line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.lp-none{font-size:.84rem;color:var(--muted);font-weight:500;padding-block:8px}
+@media (max-width:520px){.lr-people{grid-template-columns:1fr}}
+
+.pav.ini{background:linear-gradient(135deg,var(--f,#1c8d8c),color-mix(in srgb,var(--f,#1c8d8c) 62%,#0c3b4a));color:#fff}
+.lp-st .pav.ini{background:linear-gradient(135deg,var(--f),color-mix(in srgb,var(--f) 62%,#0c3b4a));color:#fff}
+
+.pav i,.av i{display:block;width:100%;text-align:center;line-height:1;margin:0;padding:0;font-style:normal}
+.pav.ini{font-size:calc(var(--s)*.34);letter-spacing:0}.lp-st .pav+.pav{margin-inline-start:-10px}
