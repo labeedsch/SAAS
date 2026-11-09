@@ -273,6 +273,38 @@ body.pub #adminLink{color:var(--goldink);background:var(--acc2soft)}
 .h2-stats div{padding:8px 4px;border-radius:14px;background:rgba(255,255,255,.1)}
 .h2-stats b{display:block;font-size:1.35rem;line-height:1.2;font-variant-numeric:tabular-nums} .h2-stats span{font-size:.74rem;color:rgba(255,255,255,.82)}
 @media (max-width:900px){.hero2{grid-template-columns:1fr;padding:26px 22px;gap:22px}.h2-panel{flex-direction:row;justify-content:center;flex-wrap:wrap}.h2-ring{width:120px;height:120px}.h2-ring b{font-size:1.6rem}.h2-stats{flex:1 1 220px;grid-template-columns:repeat(2,1fr)}}
+
+/* هيدر الصفحة الرئيسية (hero3): هوية «الخطط الذكية»: تيل مخضرّ، عنوان ذهبي، بطاقات زجاجية، ونافذة توضيحية */
+.hero3{--h3a:#52aaad;--h3b:#3f8a96;--h3c:#3c7f8c;position:relative;display:grid;grid-template-columns:minmax(0,1.2fr) minmax(300px,1fr);grid-template-areas:"txt art" "tiles tiles";gap:26px 30px;align-items:center;padding:38px 44px 30px;border-radius:34px;color:#fff;overflow:hidden;isolation:isolate;box-shadow:var(--shadow2);
+background:radial-gradient(70% 90% at 100% 100%,rgba(130,172,118,.85),transparent 62%),radial-gradient(60% 80% at 0 0,rgba(84,176,177,.9),transparent 65%),linear-gradient(120deg,var(--h3a) 0%,var(--h3b) 48%,var(--h3c) 100%)}
+.hero3::before{content:"";position:absolute;inset:0;z-index:-1;background:linear-gradient(rgba(255,255,255,.07) 1px,transparent 1px) 0 0/44px 44px,linear-gradient(90deg,rgba(255,255,255,.07) 1px,transparent 1px) 0 0/44px 44px;-webkit-mask-image:linear-gradient(to bottom,#000,transparent 92%);mask-image:linear-gradient(to bottom,#000,transparent 92%)}
+.h3-txt{grid-area:txt;min-width:0}
+.hero3 .chip{background:rgba(255,255,255,.16);border-color:rgba(255,255,255,.34);color:#fff;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+.hero3 h1{font-size:clamp(2.3rem,5vw,3.7rem);font-weight:800;line-height:1.15;margin:14px 0 6px;color:#fff} .hero3 h1 .gold{color:#fbe3a5}
+.h3-sub{margin:0;font-size:clamp(1.15rem,2.2vw,1.6rem);font-weight:700;color:#d6f1f0}
+.h3-p{margin:10px 0 0;max-width:54ch;line-height:1.9;color:rgba(255,255,255,.88)}
+.hero3 .pills{margin:16px 0 0}
+.hero3 .pill{background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.3)} .hero3 .pill .ico{color:#fbe3a5}
+.h3-cta{margin-top:16px} .hero3 .btn{min-height:46px;padding-inline:20px;border-radius:14px}
+.h3-art{grid-area:art;position:relative;min-height:290px}
+.h3-mock{position:absolute;inset:16px 8% 40px 4%;background:#f8fbfc;border-radius:22px;box-shadow:0 20px 44px rgba(6,40,52,.32);transform:rotate(-4deg);padding:38px 24px 64px;display:grid;gap:20px;align-content:start}
+.h3-mock::before{content:"";position:absolute;top:13px;inset-inline-start:18px;width:48px;height:10px;background:radial-gradient(circle,#e87979 4px,transparent 5px) 0 50%/16px 10px,radial-gradient(circle,#efc24f 4px,transparent 5px) 16px 50%/16px 10px,radial-gradient(circle,#62c58a 4px,transparent 5px) 32px 50%/16px 10px;background-repeat:no-repeat}
+.h3-mock .r{display:flex;align-items:center;gap:12px} .h3-mock .r i{flex:none;width:32px;height:32px;border-radius:10px;background:var(--k)}
+.h3-mock .r s{display:block;flex:1;height:9px;border-radius:99px;text-decoration:none;background:linear-gradient(to left,var(--k) var(--w),#d9e5ea var(--w))}
+.h3-fl{position:absolute;display:grid;place-items:center;width:50px;height:50px;border-radius:16px;color:#fff;box-shadow:0 10px 22px rgba(6,40,52,.28)} .h3-fl .ico{width:24px;height:24px}
+.h3-fl.f1{top:4px;inset-inline-start:-1%;background:#e8a43f} .h3-fl.f2{top:34%;inset-inline-start:0;background:#4fa87a} .h3-fl.f3{top:-6px;inset-inline-start:36%;background:rgba(63,138,150,.72);border:1px solid rgba(255,255,255,.45);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+.h3-ring{position:absolute;inset:auto 0 0 16%;display:flex;align-items:center;gap:14px;padding:12px 18px;border-radius:22px;background:rgba(38,98,112,.78);border:1px solid rgba(255,255,255,.38);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);box-shadow:0 12px 28px rgba(6,40,52,.28)}
+.h3-ring .rg{--p:0;position:relative;display:grid;place-items:center;flex:none;width:64px;height:64px;border-radius:50%;background:conic-gradient(#fff calc(var(--p)*1%),rgba(255,255,255,.26) 0)}
+.h3-ring .rg::before{content:"";position:absolute;inset:6px;border-radius:50%;background:#2d6f7e} .h3-ring .rg b{position:relative;font-size:1rem;font-weight:800;font-variant-numeric:tabular-nums}
+.h3-ring div b{display:block;font-size:1.05rem} .h3-ring small{color:rgba(255,255,255,.85);font-size:.82rem}
+.h3-tiles{grid-area:tiles;display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.hero3 .tile{display:flex;align-items:center;gap:12px;background:rgba(255,255,255,.13);border:1px solid rgba(255,255,255,.3);border-radius:20px;padding:12px 16px;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
+.hero3 .tile i{display:grid;place-items:center;flex:none;width:42px;height:42px;border-radius:13px;background:rgba(255,255,255,.2);color:#fff}
+.hero3 .tile b{display:block;font-size:1.6rem;line-height:1.15;font-variant-numeric:tabular-nums;color:#fff} .hero3 .tile span{font-size:.84rem;color:rgba(255,255,255,.85)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .hero3{--h3a:#2c7a82;--h3b:#235f72;--h3c:#244f5a}}
+:root[data-theme="dark"] .hero3{--h3a:#2c7a82;--h3b:#235f72;--h3c:#244f5a}
+@media (max-width:900px){.hero3{grid-template-columns:1fr;grid-template-areas:"txt" "art" "tiles";padding:26px 20px 22px;gap:20px}.h3-art{min-height:290px}.h3-tiles{grid-template-columns:repeat(2,1fr);gap:10px}.hero3 .tile{padding:10px 12px}.hero3 .tile b{font-size:1.35rem}}
+@media (max-width:420px){.h3-ring{inset-inline:0}.h3-mock{inset-inline:2%}}
 .sec .sub{margin:2px 0 0;font-size:.88rem;font-weight:400}
 
 /* بطاقات المجالات */

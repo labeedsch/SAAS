@@ -229,15 +229,17 @@ function home() {
   const cnt = k => new Set(rs.map(r => r[k])).size;
   if (!isTeam()) { hm.f.eval = []; hm.f.resp = []; if (hm.group === 'resp' || hm.group === 'eval') hm.group = 'none'; }
   const pp = pctOf(pub, rs.length);
-  view.innerHTML = `<section class="hero2"><div class="h2-txt"><span class="chip">${ic('cal')} ${first ? esc(first[1]) : 'التقويم الذاتي المدرسي'}</span>
+  view.innerHTML = `<section class="hero3"><div class="h3-txt"><span class="chip">${ic('cal')} ${first ? esc(first[1]) : 'التقويم الذاتي المدرسي'}</span>
     <h1><span class="gold">التقويم الذاتي</span> الذكي</h1>
-    <p class="h2-sch">مدرسة لبيد بن ربيعة المتوسطة</p>
-    <p class="h2-p">بوابة شفافة تعرض مجالات التقويم الذاتي ومعاييره ومؤشراته ونتائجه المعتمدة، وفق دليل هيئة تقويم التعليم والتدريب.</p>
-    <div class="h2-cta"><button type="button" class="btn gold" id="goInd">استعرض المؤشرات ${ic('arrow')}</button></div>
-    <div class="pills"><span class="pill">${ic('check')} نتائج معتمدة</span><span class="pill">${ic('doc')} شواهد موثّقة</span><span class="pill">${ic('shield')} خصوصية محمية</span></div></div>
-    <div class="h2-panel"><div class="h2-ring" style="--p:${first ? pp : 0}" role="img" aria-label="نسبة النشر ${pp}%"><div><b>${first ? num(pp) + '%' : '—'}</b><small>نسبة النشر</small></div></div>
-      <div class="h2-stats"><div><b>${num(first ? cnt('domain_id') : 4)}</b><span>مجالات</span></div><div><b>${num(first ? cnt('standard_id') : 11)}</b><span>معياراً</span></div>
-        <div><b>${num(first ? rs.length : 49)}</b><span>مؤشراً</span></div><div><b>${first ? num(pub) : '—'}</b><span>${first ? 'منشورة' : 'لا دورة منشورة'}</span></div></div></div></section>` +
+    <h2 class="h3-sub">مدرسة لبيد بن ربيعة المتوسطة</h2>
+    <p class="h3-p">بوابة شفافة تعرض مجالات التقويم الذاتي ومعاييره ومؤشراته ونتائجه المعتمدة، وفق دليل هيئة تقويم التعليم والتدريب.</p>
+    <div class="pills"><span class="pill">${ic('check')} نتائج معتمدة</span><span class="pill">${ic('doc')} شواهد موثّقة</span><span class="pill">${ic('shield')} خصوصية محمية</span></div>
+    <div class="h3-cta"><button type="button" class="btn gold" id="goInd">استعرض المؤشرات ${ic('arrow')}</button></div></div>
+    <div class="h3-art" aria-hidden="true"><div class="h3-mock"><div class="r" style="--k:#3f8a96;--w:68%"><i></i><s></s></div><div class="r" style="--k:#e8a43f;--w:46%"><i></i><s></s></div><div class="r" style="--k:#7b57cf;--w:58%"><i></i><s></s></div></div>
+      <span class="h3-fl f1">${ic('bell')}</span><span class="h3-fl f2">${ic('check')}</span><span class="h3-fl f3">${ic('doc')}</span>
+      <div class="h3-ring"><div class="rg" style="--p:${first ? pp : 0}"><b>${first ? num(pp) + '%' : '—'}</b></div><div><b>نسبة النشر</b><small>${first ? `${num(pub)} من ${num(rs.length)} مؤشراً` : 'لا دورة منشورة'}</small></div></div></div>
+    <div class="h3-tiles"><div class="tile"><i>${ic('grid')}</i><div><b>${num(first ? cnt('domain_id') : 4)}</b><span>مجالات</span></div></div><div class="tile"><i>${ic('layers')}</i><div><b>${num(first ? cnt('standard_id') : 11)}</b><span>معياراً</span></div></div>
+      <div class="tile"><i>${ic('bars')}</i><div><b>${num(first ? rs.length : 49)}</b><span>مؤشراً</span></div></div><div class="tile"><i>${ic('check')}</i><div><b>${first ? num(pub) : '—'}</b><span>${first ? 'منشورة' : 'لا دورة منشورة'}</span></div></div></div></section>` +
     (first && rs.length ? ''+
       `<div class="sec" id="ihead"><div><h2>مؤشرات التقويم</h2><p class="muted sub">ابحث وافرز وجمّع المؤشرات كما تريد.</p></div><span class="chip" id="icount"></span></div>
       <div class="fbar" id="fbar" role="search"><label class="fsearch">${ic('search')}<input type="search" id="iq" placeholder="ابحث بالرمز أو النص أو المسؤول أو المقيم" value="${esc(hm.q)}" aria-label="بحث في المؤشرات"></label>
