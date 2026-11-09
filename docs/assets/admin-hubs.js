@@ -2,7 +2,7 @@
    كل قسم يغلّف الصفحات القائمة بتبويبات داخلية دون تكرار منطقها. تُحمَّل بعد admin-team.js وقبل admin.js. */
 (() => {
 const { sb, h, raw, S, L, nf, short, sb_, badge, btn, table, panel, must, staffName, role, isCoord } = App;
-const CP = ['coordinator', 'principal'];
+const CP = ['coordinator', 'principal'], CPR = ['coordinator', 'principal', 'reviewer'];
 const ok = r => r === '*' || r.includes(role());
 
 const DASH = [
@@ -13,7 +13,7 @@ const DASH = [
 const INDS = [
   ['list', 'المؤشرات والتقييم', '*', 'المؤشرات الاثنان والخمسون مع المسؤول والمقيّم والحالة والمستوى وعدد الشواهد المعتمدة.'],
   ['evidence', 'الشواهد', '*', 'الشواهد المرفوعة وحالة مراجعتها واعتمادها، ومعاينة ملفاتها.'],
-  ['map', 'خريطة التقدم', '*', 'كل معيار ومؤشراته بحالتها ومقيّمها وشواهدها، لمعرفة أين يتوقف العمل.'],
+  ['map', 'خريطة التقدم', CPR, 'كل معيار ومؤشراته بحالتها ومقيّمها وشواهدها، لمعرفة أين يتوقف العمل.'],
 ];
 (App.HUBS ||= {}).dashboard = { title: 'لوحة المتابعة الشاملة', tabs: DASH }; App.HUBS.inds = { title: 'إدارة المؤشرات', tabs: INDS };
 App.DASH_TABS = DASH.map(t => t[0]).filter(t => t !== 'overview');

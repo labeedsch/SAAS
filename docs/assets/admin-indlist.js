@@ -12,8 +12,39 @@ const fresh = () => ({ q: '', st: '', mine: false, sort: 'code', group: 'none', 
 let hm = fresh();
 App.indFilter = o => { hm = fresh(); if (o?.st) hm.st = o.st; if (o?.mine) hm.mine = true; };
 
+
+/* عضو الفريق: المؤشرات المسندة إليه فقط، كقائمة بارزة؛ علامة صح للمكتمل وعلامة تعديل لما يحتاج عملاً */
+const MST = { done: ['check', 'مكتمل', 'ok'], wait: ['clock', 'بانتظار الاعتماد', 'info'], need: ['edit', 'بحاجة إلى عمل', 'warn'] };
+const MF = { q: '', st: '' };
+async function memberInds() {
+  const D = await App.data(), me = S.me.staff_id, { ref, om, resp } = D;
+  const mine = new Map(); resp.filter(r => r.staff_id === me).forEach(r => { const o = mine.get(r.indicator_id) || { ev: false, rs: false }; o[r.kind === 'evaluator' ? 'ev' : 'rs'] = true; mine.set(r.indicator_id, o); });
+  const rows = ref.inds.filter(i => mine.has(i.id)).map(i => {
+    const o = om[i.id] || {}, st = o.eval_status || 'not_evaluated', m = mine.get(i.id), evs = D.evid.filter(e => e.indicator_id === i.id), bad = evs.filter(e => ['needs_completion', 'rejected'].includes(e.status));
+    const k = st === 'approved' ? 'done' : st === 'submitted' ? 'wait' : 'need';
+    const why = k !== 'need' ? '' : bad.length ? `${nf(bad.length)} شاهد يحتاج استكمالاً` : st === 'draft' ? 'التقييم مسودة لم تُرسل' : m.ev ? 'لم يُقيَّم بعد' : !evs.length ? 'لم تُرفع شواهد بعد' : 'استكمال المتطلبات';
+    return { i, k, why, m, ea: o.approved_evidence || 0, et: o.total_evidence ?? evs.length, pct: o.achievement_pct };
+  }).sort((a, b) => ['need', 'wait', 'done'].indexOf(a.k) - ['need', 'wait', 'done'].indexOf(b.k) || codeCmp(a.i.code, b.i.code));
+  const cnt = k => rows.filter(r => r.k === k).length;
+  const pill = (k, t, n) => `<button type="button" class="spill${MF.st === k ? ' on' : ''}${n ? '' : ' zero'}" data-mst="${k}" aria-pressed="${MF.st === k}">${t}<em>${nf(n)}</em></button>`;
+  const rowH = r => { const [ic, lb, tn] = MST[r.k]; return h`<a class="mi ${r.k}" href="#ind/${r.i.id}"><span class="mi-s ${tn}" title="${lb}">${App.ico(ic)}</span>
+    <div class="mi-b"><div class="mi-t"><b dir="ltr">${r.i.code}</b><span>${short(r.i.official_text, 130)}</span></div>
+      <div class="mi-m"><small>${r.i.dom?.name_ar || ''} · ${r.i.std?.name_ar || ''}</small>${r.m.ev ? h`<span class="bdg info">مقيّم</span>` : ''}${r.m.rs ? h`<span class="bdg">مسؤول</span>` : ''}<span class="bdg ${tn}">${lb}</span>${r.why ? h`<span class="mi-w">${r.why}</span>` : ''}</div></div>
+    <div class="mi-n"><b>${r.pct != null ? nf(Math.round(r.pct)) + '%' : '—'}</b><small>${nf(r.ea)} / ${nf(r.et)} شواهد</small></div><span class="mi-go">${App.ico('prev')}</span></a>`; };
+  const fill = v => {
+    const rs = rows.filter(r => (!MF.st || r.k === MF.st) && (!MF.q.trim() || [r.i.code, r.i.official_text, r.i.dom?.name_ar, r.i.std?.name_ar].join(' ').toLowerCase().includes(MF.q.trim().toLowerCase())));
+    v.querySelector('#mpills').innerHTML = pill('', 'الكل', rows.length) + pill('need', 'بحاجة إلى عمل', cnt('need')) + pill('wait', 'بانتظار الاعتماد', cnt('wait')) + pill('done', 'مكتملة', cnt('done'));
+    v.querySelector('#mlist').innerHTML = (rs.length ? h`<div class="mlist">${rs.map(rowH)}</div>` : h`<div class="pn"><p class="muted empty">${rows.length ? 'لا مؤشرات مطابقة.' : 'لم يُسنَد إليك مؤشر في هذه الدورة بعد.'}</p></div>`).s;
+  };
+  const p = rows.length ? cnt('done') / rows.length * 100 : 0;
+  return { html: h`<section class="mhead"><div><b>${nf(cnt('done'))} <span class="of">من ${nf(rows.length)}</span></b><small>مؤشراتك المكتملة</small><i><u style="width:${p}%"></u></i></div><div class="mh-k need">${App.ico('edit')}<b>${nf(cnt('need'))}</b><small>بحاجة إلى عمل</small></div><div class="mh-k wait">${App.ico('clock')}<b>${nf(cnt('wait'))}</b><small>بانتظار الاعتماد</small></div><div class="mh-k done">${App.ico('check')}<b>${nf(cnt('done'))}</b><small>مكتملة</small></div></section>
+    <div class="fbar"><label class="fsearch">${App.ico('search')}<input type="search" id="mq" placeholder="ابحث بالرمز أو النص" value="${MF.q}" aria-label="بحث"></label><div class="pills2" id="mpills"></div></div><div id="mlist"></div>`,
+    after: v => { fill(v); v.addEventListener('click', e => { const t = e.target.closest('[data-mst]'); if (t && v.contains(t)) { MF.st = t.dataset.mst; fill(v); } }); v.querySelector('#mq').addEventListener('input', e => { MF.q = e.target.value; fill(v); }); } };
+}
+
 Pages.inds = async () => {
   const nc = App.needCycle(); if (nc) return nc;
+  if (role() === 'team_member') return memberInds();
   const D = await App.data(), { ref, om, resp, lvs } = D, me = S.me.staff_id;
   const lname = Object.fromEntries(lvs.map(l => [l.id, l.label_ar])), pend = {}, evOk = {};
   D.evid.forEach(e => { if (['new', 'under_review'].includes(e.status)) pend[e.indicator_id] = (pend[e.indicator_id] || 0) + 1; });
