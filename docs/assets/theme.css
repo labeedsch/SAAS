@@ -20,7 +20,7 @@ a{color:var(--brand)} h1,h2,h3{text-wrap:balance;margin:0}
 .ico{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:none}
 
 /* الترويسة: هوية وزارة التعليم، خلفية بيضاء وشريط أخضر موحّد */
-header{position:sticky;top:0;z-index:20;background:var(--hdrbg);border-bottom:0}
+header{position:sticky;top:0;z-index:40;background:var(--hdrbg);border-bottom:0}
 header::after{content:"";display:block;height:3px;background:var(--stripe)}
 .top{display:flex;align-items:center;gap:18px;padding-block:10px;flex-wrap:wrap}
 .bm{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--ink)} .bm svg{width:40px;height:40px}
@@ -544,3 +544,32 @@ body.pub nav a[hidden]{display:none}
 .lr-img{width:120px;aspect-ratio:320/180;border-radius:14px;overflow:hidden;background:color-mix(in srgb,var(--f,var(--brand)) 9%,var(--surface));display:grid;place-items:center}
 .lr-img .pill-art{width:100%;height:100%}
 @media (max-width:720px){.lrow2{grid-template-columns:auto minmax(0,1fr)}.lr-img{width:84px}.lr-img+.lr-code{display:none}}
+
+/* قائمة «تحليل النتائج» المنسدلة */
+.ng{position:relative;display:inline-flex}
+.ngb{position:relative;display:inline-flex;align-items:center;gap:7px;padding:8px 14px;border:0;border-radius:12px;background:none;color:var(--ink2);font:inherit;font-weight:600;white-space:nowrap;cursor:pointer;transition:background .15s,color .15s}
+.ngb .ico{width:17px;height:17px} .ngb .car{width:13px;height:13px;transition:transform .15s}
+.ngb:hover,.ng.open .ngb{background:color-mix(in srgb,var(--brand) 8%,transparent);color:var(--brand2)}
+.ng.open .ngb .car{transform:rotate(180deg)}
+.ngb.on{color:var(--brand2);font-weight:700}
+.ngb.on::after{content:"";position:absolute;inset-inline:14px;bottom:2px;height:3px;border-radius:3px;background:var(--moe)}
+.ngb:focus-visible{outline:2px solid var(--brand);outline-offset:2px}
+.ngm{display:none;position:absolute;inset-inline-start:0;top:calc(100% + 6px);z-index:30;min-width:270px;padding:8px;flex-direction:column;gap:2px;background:var(--surface);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow2)}
+.ng.open .ngm{display:flex}
+nav .ng .ngm a{display:block;padding:10px 12px;border-radius:10px;color:var(--ink2);font-weight:500;white-space:nowrap}
+nav .ng .ngm a:hover{background:var(--soft);color:var(--brand2)}
+nav .ng .ngm a.on{background:var(--brandsoft);color:var(--brand2);font-weight:700}
+nav .ng .ngm a.on::after{display:none}
+@media (max-width:760px){
+  body.pub .ng{display:block}
+  body.pub .ngb{width:100%;min-height:46px;padding:12px 14px;font-size:1rem;border-radius:10px;pointer-events:none}
+  body.pub .ngb .car{display:none}
+  body.pub .ngb.on::after{display:none}
+  body.pub .ngm{display:flex;position:static;min-width:0;padding:0 0 4px;padding-inline-start:18px;border:0;box-shadow:none;background:none}
+  body.pub nav .ng .ngm a{min-height:42px;padding:10px 14px;font-size:.96rem;white-space:normal}
+}
+@media (max-width:900px){
+  /* لوحة التحكم: شريط أفقي، فتُعرض عناصر القائمة مباشرة في الصف */
+  .adm .ng,.adm .ngm{display:contents}
+  .adm .ngb{display:none}
+}
