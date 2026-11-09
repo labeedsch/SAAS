@@ -1,6 +1,6 @@
 /* قائمة الترويسة على الجوال: فتح/إغلاق، وإغلاقها عند اختيار رابط أو الضغط خارجها أو Esc */
 (() => {
-  const btn = document.getElementById('navToggle'), nav = document.getElementById('nav');
+  const btn = document.getElementById('navToggle'), nav = document.getElementById('nav') || document.getElementById('pubnav');
   if (!btn || !nav) return;
   const hd = btn.closest('header');
   const set = on => { hd.classList.toggle('open', on); btn.setAttribute('aria-expanded', on ? 'true' : 'false'); };

@@ -517,3 +517,20 @@ button.kc{font:inherit;text-align:start;cursor:pointer;width:100%} .kc.on{outlin
 #pubnav a:hover{background:color-mix(in srgb,var(--brand) 8%,transparent)}
 #pubnav #adminLink{color:var(--goldink);background:var(--acc2soft)}
 @media (max-width:760px){.adm .bm svg{width:40px;height:40px}.adm .bm b{font-size:1rem}}
+
+/* الجوال: روابط الموقع تصير قائمة منسدلة بزر القائمة (كالموقع العام) بدل أن تنضغط في خانة ضيقة */
+@media (max-width:900px){.adm #pubnav{order:3;flex:1 1 100%;justify-content:flex-start;overflow-x:auto}}
+@media (max-width:760px){
+  .adm header .top{gap:10px}
+  .adm #pubnav{display:none;flex-direction:column;align-items:stretch;gap:2px;padding:6px;background:var(--surface);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow2);overflow:visible}
+  .adm header.open #pubnav{display:flex}
+  .adm #pubnav a{min-height:46px;padding:12px 14px;font-size:1rem;border-radius:10px}
+  .adm #pubnav a.on{background:var(--brandsoft)}
+  .adm .ng{display:block} .adm .ngb{width:100%;min-height:46px;padding:12px 14px;font-size:1rem;border-radius:10px;pointer-events:none} .adm .ngb .car{display:none}
+  .adm .ngm{display:flex;position:static;min-width:0;padding:0 0 4px;padding-inline-start:18px;border:0;box-shadow:none;background:none}
+  .adm #pubnav .ng .ngm a{min-height:42px;padding:10px 14px;font-size:.96rem;white-space:normal}
+}
+/* ترويسة ثابتة أخفّ على الجوال: أزرار القائمة بارتفاع موحّد، ووصف الصفحة يُخفى */
+@media (max-width:700px){#menu{align-items:stretch}#menu>a{justify-content:center}.pgd{display:none}}
+@media (max-width:420px){.adm header .top{flex-wrap:wrap;min-width:0}.adm .bm{min-width:0;flex:1 1 0;max-width:100%}.adm .bm *{min-width:0}.adm .bm small,.adm .bm span{overflow:hidden;text-overflow:ellipsis}}
+@media (max-width:420px){.wc,.calbox,.agbox,.ag-h{min-width:0;max-width:100%;box-sizing:border-box}}
