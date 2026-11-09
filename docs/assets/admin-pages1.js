@@ -112,6 +112,8 @@ Pages.staff = async () => {
 const avUrl = p => p ? sb.storage.from('avatars').getPublicUrl(p).data.publicUrl : '';
 const initials = n => { const w = String(n || '؟').trim().split(/\s+/), l = w.length > 1 ? w[w.length - 1].replace(/^ال/, '') : ''; return w[0][0] + (l ? l[0] : ''); };
 App.avatarHtml = (st, size = 40) => h`<span class="av" style="--s:${size}px">${st?.avatar_path ? h`<img src="${avUrl(st.avatar_path)}" alt="" loading="lazy">` : h`<i>${initials(st?.full_name || st?.display_name)}</i>`}</span>`;
+App.pcell = (id, size = 24) => h`<span class="pcell">${App.avatarHtml(S.staff.find(s => s.id === id) || { full_name: staffName(id) }, size)}<span>${staffName(id)}</span></span>`;
+App.ncell = (n, size = 24) => h`<span class="pcell">${App.avatarHtml(S.staff.find(s => s.full_name === n) || { full_name: n }, size)}<span>${n}</span></span>`;
 const shrink = file => new Promise((res, rej) => {
   const img = new Image(), u = URL.createObjectURL(file);
   img.onload = () => { const N = 320, k = Math.min(img.width, img.height), c = document.createElement('canvas'); c.width = c.height = N;
@@ -176,7 +178,7 @@ Pages.assign = async (a) => {
   const sid = a[0] || '';
   let mine = [];
   if (sid) mine = (await must(sb.from('staff_responsibilities').select('*').eq('cycle_id', S.cid).eq('staff_id', sid))).sort((x, y) => codeCmp(x.code, y.code));
-  const chips = (list, kind, iid) => h`<div class="chips">${list.filter(x => x.kind === kind).map(x => h`<span class="chip2">${staffName(x.staff_id)}${x.due_date ? h` <small>${dt(x.due_date)}</small>` : ''} <button data-a="asDel" data-t="indicator_assignments" data-id="${x.id}" aria-label="إزالة">✕</button></span>`)}${btn('+', 'asAdd', { iid, kind })}</div>`;
+  const chips = (list, kind, iid) => h`<div class="chips">${list.filter(x => x.kind === kind).map(x => h`<span class="chip2">${App.pcell(x.staff_id, 20)}${x.due_date ? h` <small>${dt(x.due_date)}</small>` : ''} <button data-a="asDel" data-t="indicator_assignments" data-id="${x.id}" aria-label="إزالة">✕</button></span>`)}${btn('+', 'asAdd', { iid, kind })}</div>`;
   return h`${pageHead('إدارة المسؤوليات')}
   ${panel('ملف مسؤوليات منسوب', h`<div class="flt"><label>المنسوب <select id="asPick"><option value="">اختر…</option>${S.staff.map(s => h`<option value="${s.id}" ${s.id === sid ? raw('selected') : ''}>${s.full_name}</option>`)}</select></label></div>
     ${sid ? h`<h3 style="margin:8px 0">${staffName(sid)}: ${nf(mine.length)} مؤشراً</h3>${table([

@@ -117,8 +117,8 @@ Pages.meeting = async ([id]) => {
   return h`${pageHead(m.title, h`${sb_('meet', m.status)} ${co ? h`${btn('تعديل', 'mtEdit')} ${btn('حذف', 'mtDel', {}, 'bad')}` : ''} ${btn('المرفقات', 'tfOpen', { t: 'meeting', id })}`)}
   <div class="pn"><dl class="kv"><dt>التاريخ</dt><dd>${dt(m.meeting_date)} ${m.start_time ? '· ' + m.start_time.slice(0, 5) : ''}</dd><dt>المكان</dt><dd>${m.location || '—'}</dd></dl></div>
   ${mine && m.status !== 'cancelled' ? panel('حضورك', h`<p>ردّك الحالي: ${sb_('rsvp', mine.rsvp)}</p>`, h`${btn('سأحضر', 'myRsvp', { i: mine.id, v: 'confirmed' }, 'pri')} ${btn('أعتذر', 'myRsvp', { i: mine.id, v: 'declined' })}`) : ''}
-  ${panel('محاور الاجتماع', table([{ h: 'المحور', f: a => a.title }, { h: 'المسؤول', f: a => staffName(a.responsible_staff_id) }, { h: 'الوقت', f: a => a.minutes_allocated ? nf(a.minutes_allocated) + ' د' : '—' }, { h: '', f: a => co ? btn('✕', 'agDel', { i: a.id }, 'bad') : '' }], ag, 'لا محاور'), co ? btn('+ محور', 'agAdd') : '')}
-  ${panel('المدعوون والحضور', h`${table([{ h: 'الاسم', f: i => staffName(i.staff_id) }, { h: 'الصفة', f: i => i.invitee_kind === 'team' ? 'فريق التقويم' : 'طرف مساند' },
+  ${panel('محاور الاجتماع', table([{ h: 'المحور', f: a => a.title }, { h: 'المسؤول', f: a => a.responsible_staff_id ? App.pcell(a.responsible_staff_id, 24) : '—' }, { h: 'الوقت', f: a => a.minutes_allocated ? nf(a.minutes_allocated) + ' د' : '—' }, { h: '', f: a => co ? btn('✕', 'agDel', { i: a.id }, 'bad') : '' }], ag, 'لا محاور'), co ? btn('+ محور', 'agAdd') : '')}
+  ${panel('المدعوون والحضور', h`${table([{ h: 'الاسم', f: i => App.pcell(i.staff_id, 28) }, { h: 'الصفة', f: i => i.invitee_kind === 'team' ? 'فريق التقويم' : 'طرف مساند' },
     { h: 'تأكيد الحضور المسبق', f: i => h`${sb_('rsvp', i.rsvp)}${i.rsvp_reason ? h`<br><small class="muted">${i.rsvp_reason}</small>` : ''}` },
     { h: 'الحضور الفعلي', f: i => i.attended === true ? badge('حضر', 'ok') : i.attended === false ? badge('غاب', 'bad') : badge('لم يُسجَّل') },
     { h: '', f: i => co ? h`<div class="chips">${btn('حضر', 'ivAtt', { i: i.id, v: '1' })}${btn('غاب', 'ivAtt', { i: i.id, v: '0' })}${btn('✕', 'ivDel', { i: i.id }, 'bad')}</div>` : '' }], inv, 'لا مدعوون')}<p class="muted">تأكيد الحضور المسبق لا يُعدّ حضوراً فعلياً؛ يُسجَّل الحضور الفعلي أثناء الاجتماع.</p>`, co ? h`${btn('+ مدعوون', 'ivAdd')} ${btn('تجهيز دعوات واتساب', 'ivInvite')}` : '')}
@@ -192,7 +192,7 @@ Pages.visit = async ([id]) => {
   return h`${pageHead('زيارة فنية: ' + v.target_party, h`${sb_('visit', v.status)} ${co ? h`${btn('تعديل', 'vsEdit')} ${btn('حذف', 'vsDel', {}, 'bad')}` : ''} ${btn('المرفقات', 'tfOpen', { t: 'visit', id })}`)}
   <div class="pn"><dl class="kv"><dt>التاريخ</dt><dd>${dt(v.visit_date)} ${v.visit_time ? '· ' + v.visit_time.slice(0, 5) : ''}</dd><dt>المنسوب المستهدف</dt><dd>${staffName(v.target_staff_id)}</dd><dt>الغرض</dt><dd class="txt">${v.purpose || '—'}</dd><dt>ملاحظات</dt><dd class="txt">${v.notes || '—'}</dd></dl>
    <p class="muted">لا تغيّر الزيارة تقييم المؤشر تلقائياً ولا تعتمد الشواهد؛ التقييم من اختصاص مقيّمي المؤشرات.</p></div>
-  ${panel('فريق الزيارة', h`<div class="chips">${vt.length ? vt.map(t => h`<span class="chip2">${staffName(t.staff_id)} ${co ? h`<button data-a="vsTeamDel" data-s="${t.staff_id}" aria-label="إزالة">✕</button>` : ''}</span>`) : h`<span class="muted">لا أعضاء</span>`}</div>`, co ? btn('+ عضو', 'vsTeam') : '')}
+  ${panel('فريق الزيارة', h`<div class="chips">${vt.length ? vt.map(t => h`<span class="chip2">${App.pcell(t.staff_id, 22)} ${co ? h`<button data-a="vsTeamDel" data-s="${t.staff_id}" aria-label="إزالة">✕</button>` : ''}</span>`) : h`<span class="muted">لا أعضاء</span>`}</div>`, co ? btn('+ عضو', 'vsTeam') : '')}
   ${panel('البطاقات الفنية للمؤشرات', cards.length ? cards.map(k => h`<div class="pn" style="box-shadow:none"><div class="pnh"><h2><a href="#ind/${k.indicator_id}" dir="ltr">${ref.im[k.indicator_id]?.code}</a> ${sb_('follow', k.followup)}</h2>
     <div class="pa">${can ? h`${btn('تعديل', 'vcEdit', { c: k.id })}` : ''}${co ? h`${btn('إلى مهمة', 'vcTask', { c: k.id })} ${btn('إلى خطة التحسين', 'vcImp', { c: k.id })} ${btn('✕', 'vcDel', { c: k.id }, 'bad')}` : ''}</div></div>
     <p class="muted">${ref.im[k.indicator_id]?.official_text}</p>
@@ -312,7 +312,7 @@ Pages.wa = async () => {
   <div class="pn"><p>حالة الخدمة: ${st.enabled ? badge('مشغّلة', 'ok') : badge('متوقفة', 'warn')} · الإرسال ${st.send_from.slice(0, 5)} – ${st.send_to.slice(0, 5)} (${st.timezone})</p>
    <p class="muted">تُسجَّل الرسائل هنا في الطابور. الإرسال الفعلي يتطلب ربط حساب WhatsApp Business Platform عبر دالة خادم تحفظ المفتاح كسرّ، ولم يُربط بعد؛ لا تُرسل رسائل حالياً.</p></div>
   ${panel('القوالب', table([{ h: 'القالب', f: t => h`<b>${t.title_ar}</b><br><small class="muted txt">${App.short(t.body_ar, 110)}</small>` }, { h: 'الرابط', f: t => t.link_policy === 'required' ? badge('يتضمن رابطاً', 'info') : badge('بلا رابط') }, { h: 'التفعيل', f: t => t.enabled ? badge('مفعّل', 'ok') : badge('معطّل') }, { h: '', f: t => btn('تعديل', 'waTpl', { c: t.code }) }], ts))}
-  ${panel('سجل الرسائل (آخر 100)', table([{ h: 'الوقت', f: m => dtt(m.created_at) }, { h: 'المستلم', f: m => staffName(m.staff_id) }, { h: 'القالب', f: m => ts.find(t => t.code === m.template_code)?.title_ar }, { h: 'الحالة', f: m => h`${sb_('wa', m.status)}${m.error ? h`<br><small class="err">${m.error}</small>` : ''}` }, { h: 'النص', f: m => App.short(m.body, 70) }], ms, 'لا رسائل'))}`;
+  ${panel('سجل الرسائل (آخر 100)', table([{ h: 'الوقت', f: m => dtt(m.created_at) }, { h: 'المستلم', f: m => App.pcell(m.staff_id, 22) }, { h: 'القالب', f: m => ts.find(t => t.code === m.template_code)?.title_ar }, { h: 'الحالة', f: m => h`${sb_('wa', m.status)}${m.error ? h`<br><small class="err">${m.error}</small>` : ''}` }, { h: 'النص', f: m => App.short(m.body, 70) }], ms, 'لا رسائل'))}`;
 };
 
 // ===== التقارير =====
@@ -354,10 +354,10 @@ Pages.reports = async ([k]) => {
 
 // ===== سجل النشاط =====
 Pages.log = async () => {
-  const [lg, pr] = await Promise.all([must(sb.from('activity_log').select('*').order('created_at', { ascending: false }).limit(200)), sb.from('profiles').select('id,display_name')]);
-  const pm = Object.fromEntries((pr.data || []).map(p => [p.id, p.display_name])); const AC = { INSERT: 'إضافة', UPDATE: 'تعديل', DELETE: 'حذف' };
+  const [lg, pr] = await Promise.all([must(sb.from('activity_log').select('*').order('created_at', { ascending: false }).limit(200)), sb.from('profiles').select('id,display_name,staff_id')]);
+  const pm = Object.fromEntries((pr.data || []).map(p => [p.id, p.display_name])), ps = Object.fromEntries((pr.data || []).map(p => [p.id, p.staff_id])); const AC = { INSERT: 'إضافة', UPDATE: 'تعديل', DELETE: 'حذف' };
   const diff = r => { if (!r.new_data || !r.old_data) return ''; return Object.keys(r.new_data).filter(k => JSON.stringify(r.new_data[k]) !== JSON.stringify(r.old_data[k]) && k !== 'updated_at').slice(0, 6).join('، '); };
   return h`${pageHead('سجل النشاط')}<p class="muted">آخر 200 عملية. السجل للإضافة فقط ولا يمكن تعديله أو حذفه.</p><div class="pn">${table([
-    { h: 'الوقت', f: r => dtt(r.created_at) }, { h: 'المنفّذ', f: r => pm[r.actor_id] || (r.actor_id ? r.actor_id.slice(0, 8) : 'النظام') }, { h: 'الإجراء', f: r => AC[r.action] || r.action }, { h: 'الكيان', f: r => r.entity_type }, { h: 'الحقول المتغيرة', f: r => diff(r) }], lg, 'لا سجلات')}</div>`;
+    { h: 'الوقت', f: r => dtt(r.created_at) }, { h: 'المنفّذ', f: r => ps[r.actor_id] ? App.pcell(ps[r.actor_id], 24) : (pm[r.actor_id] || (r.actor_id ? r.actor_id.slice(0, 8) : 'النظام')) }, { h: 'الإجراء', f: r => AC[r.action] || r.action }, { h: 'الكيان', f: r => r.entity_type }, { h: 'الحقول المتغيرة', f: r => diff(r) }], lg, 'لا سجلات')}</div>`;
 };
 })();

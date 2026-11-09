@@ -8,7 +8,7 @@ const CP = ['coordinator', 'principal'], CPR = ['coordinator', 'principal', 'rev
 // القائمة العلوية: أربعة أقسام رئيسية فقط. الصفحات الداخلية (علامة 1) تُعرض كتبويبات داخل قسمها وتبقى روابطها القديمة تعمل وصلاحياتها كما هي
 const MENU = [
   ['desk', 'مكتبي الإلكتروني', ['team_member']],      // الصفحة الأساسية لعضو الفريق
-  ['dashboard', 'التقويم الذاتي', ['coordinator', 'principal', 'reviewer']],
+  ['dashboard', 'مكتبي الإلكتروني', ['coordinator', 'principal', 'reviewer']],
   ['inds', 'إدارة المؤشرات', '*'],
   ['team', 'إدارة الفريق', ['coordinator', 'principal', 'reviewer']],
   ['platform', 'إدارة المنصة', ['coordinator', 'principal', 'reviewer']],

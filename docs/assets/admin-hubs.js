@@ -15,7 +15,7 @@ const INDS = [
   ['evidence', 'الشواهد', '*', 'الشواهد المرفوعة وحالة مراجعتها واعتمادها، ومعاينة ملفاتها.'],
   ['map', 'خريطة التقدم', CPR, 'كل معيار ومؤشراته بحالتها ومقيّمها وشواهدها، لمعرفة أين يتوقف العمل.'],
 ];
-(App.HUBS ||= {}).dashboard = { title: 'التقويم الذاتي', tabs: DASH }; App.HUBS.inds = { title: 'إدارة المؤشرات', tabs: INDS };
+(App.HUBS ||= {}).dashboard = { title: 'مكتبي الإلكتروني', tabs: DASH }; App.HUBS.inds = { title: 'إدارة المؤشرات', tabs: INDS };
 App.DASH_TABS = DASH.map(t => t[0]).filter(t => t !== 'overview');
 App.INDS_TABS = INDS.map(t => t[0]).filter(t => t !== 'list');
 
