@@ -458,3 +458,15 @@ button.kc{font:inherit;text-align:start;cursor:pointer;width:100%} .kc.on{outlin
 .iw-ddp input{width:18px;height:18px;accent-color:var(--brand)} .iw-ddp label:has(input:checked){background:var(--brandsoft);font-weight:700}
 .iw-ddf{position:sticky;bottom:-10px;display:flex;justify-content:space-between;gap:8px;margin:8px -10px -10px;padding:10px;background:var(--surface);border-top:1px solid var(--line)}
 @media (prefers-reduced-motion:reduce){.iw-dd>summary,.iw-dd>summary::after{transition:none}}
+
+/* الاسترشاد: محتوى معرفي للقراءة فقط */
+.iw-gd{margin:0 0 12px;border-radius:18px;border:1px solid var(--line);background:var(--surface);overflow:hidden}
+.iw-gd>summary{display:flex;align-items:center;gap:8px;padding:12px 16px;cursor:pointer;font-weight:700;background:var(--soft);list-style:none}
+.iw-gd>summary::-webkit-details-marker{display:none} .iw-gd>summary::after{content:"▾";margin-inline-start:auto;transition:transform .2s} .iw-gd[open]>summary::after{transform:rotate(180deg)}
+.iw-gd>summary small,.iw-gev h4 small{font-weight:400;color:var(--muted);font-size:.8rem}
+.iw-gd .ico{width:18px;height:18px;flex:none}
+.iw-gnote{margin:12px 16px 0;padding:10px 12px;border-radius:12px;background:#fff4d6;color:#6b4e00;display:flex;gap:8px;align-items:center}
+.iw-gg{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:14px 16px 0} .iw-gg section,.iw-gev{padding:12px 14px;border-radius:14px;background:var(--soft);border:1px solid var(--line)}
+.iw-gd h4{display:flex;align-items:center;gap:6px;margin:0 0 6px;font-size:.95rem} .iw-gd p{margin:0;line-height:1.9}
+.iw-gev{margin:12px 16px 16px} .iw-gev ol{margin:6px 0 0;padding-inline-start:22px;display:grid;gap:4px;line-height:1.8}
+@media (max-width:900px){.iw-gg{grid-template-columns:1fr}}

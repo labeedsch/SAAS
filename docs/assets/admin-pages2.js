@@ -50,7 +50,7 @@ Pages.inds = async () => {
 Pages.ind = async ([id]) => {
   const nc = App.needCycle(); if (nc) return nc;
   const ref = await App.ref(); const ind = ref.im[id]; if (!ind) return h`<div class="pn"><p>المؤشر غير موجود.</p></div>`;
-  const [ev, ia, da, se, evd, vc, tk, dl, lv, ei, pv] = await Promise.all([
+  const [ev, ia, da, se, evd, vc, tk, dl, lv, ei, pv, gd, gde] = await Promise.all([
     must(sb.from('evaluations').select('*').eq('cycle_id', S.cid).eq('indicator_id', id).maybeSingle()),
     must(sb.from('indicator_assignments').select('*').eq('cycle_id', S.cid).eq('indicator_id', id)),
     must(sb.from('domain_assignments').select('*').eq('cycle_id', S.cid).eq('domain_id', ind.dom.id)),
@@ -62,6 +62,8 @@ Pages.ind = async ([id]) => {
     must(sb.from('evaluation_levels').select('*').order('sort_order')),
     must(sb.from('evidence_indicators').select('evidence_id').eq('indicator_id', id)),
     isCoord() ? must(sb.from('technical_visits').select('id,visit_date,target_party,status').eq('cycle_id', S.cid).eq('status', 'planned').order('visit_date')) : [],
+    must(sb.from('indicator_guidance').select('interpretation,significance').eq('indicator_id', id).maybeSingle()),
+    must(sb.from('indicator_guidance_evidence').select('sort_order,title').eq('indicator_id', id).order('sort_order')),
   ]);
   // الارتباطات: شواهد مشتركة مع مؤشرات أخرى، وبطاقات زيارة تشمل مؤشرات من مجالات أخرى
   const ownIds = new Set(evd.map(e => e.id)), sharedIds = ei.map(x => x.evidence_id).filter(x => !ownIds.has(x)), visitIds = [...new Set(vc.map(v => v.visit_id))];
@@ -128,7 +130,7 @@ Pages.ind = async ([id]) => {
   const levels = lv.filter(l => l.min_pct != null).map(l => ({ id: l.id, label: l.label_ar, code: l.code, min: Number(l.min_pct), max: Number(l.max_pct) }));
   const lvOf = p => p == null || p === '' || isNaN(p) ? null : levels.find(l => p >= l.min && (p < l.max || (l.max === 100 && p <= 100))) || null;
   const doneIds = new Set(vc.map(v => v.visit_id));
-  const model = { id, ind, ref, cyc, active, ev, evAll, se, vc, tk, dl, levels, lvOf, mates: visitMates, planned: pv.filter(v => !doneIds.has(v.id)), respNames, evalNames, iEvaluate, canUpload,
+  const model = { id, ind, ref, cyc, active, ev, evAll, se, gd, gde, vc, tk, dl, levels, lvOf, mates: visitMates, planned: pv.filter(v => !doneIds.has(v.id)), respNames, evalNames, iEvaluate, canUpload,
     linked, sibs, logHtml, due: dl[0]?.due_date, domIdx, back: App.indBack?.() || { href: '#inds', label: 'العودة للمؤشرات' }, domC };
   const save = async status => {
     const g = k => ($('#iw-' + k)?.value ?? '').trim(), pct = g('pct') === '' ? null : Number(g('pct'));

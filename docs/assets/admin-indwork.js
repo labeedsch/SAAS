@@ -38,7 +38,7 @@ document.addEventListener('click', e => {
 document.addEventListener('keydown', e => { if (e.key === 'Escape') document.querySelectorAll('.iw-dd[open]').forEach(d => { d.open = false; d.querySelector('summary').focus(); }); });
 
 App.indWork = d => {
-  const { id, ind, ev, evAll, se, vc, tk, levels, lvOf, active } = d, co = isCoord(), pr = role() === 'principal';
+  const { id, ind, ev, evAll, se, gd, gde, vc, tk, levels, lvOf, active } = d, co = isCoord(), pr = role() === 'principal';
   const st = ev?.status || 'not_evaluated', cur = ev?.achievement_pct != null ? lvOf(Number(ev.achievement_pct)) : null;
   const ap = evAll.filter(e => e.status === 'approved'), fix = evAll.filter(e => ['needs_completion', 'rejected'].includes(e.status)), pend = evAll.filter(e => ['new', 'under_review'].includes(e.status));
   const upTitles = new Set(evAll.map(e => (e.title || '').trim()));
@@ -75,6 +75,12 @@ App.indWork = d => {
       <div class="iw-c"><h3>المطلوب</h3>${ind.requirements_text ? h`<p class="iw-req">${ind.requirements_text}</p>` : h`<p class="muted">لا شرح متطلبات لهذا المؤشر في الدليل المرجعي؛ يُقرأ النص الرسمي أعلاه كما ورد.</p>`}</div>
       <div class="iw-c"><h3>مستويات التقييم</h3><ol class="iw-lvs">${levels.map(l => h`<li class="lv-${LVK[l.code] || 'x'}"><b>${l.label}</b><span dir="ltr">${nf(l.min)} – ${nf(l.max)}%</span></li>`)}</ol><small class="muted">يُشتق المستوى من نسبة التحقق وفق الدليل، والحد الأعلى غير شامل (عدا 100).</small></div>
     </div>
+    ${gd ? h`<details class="iw-gd" open><summary>${ic('book')} الاسترشاد <small>للقراءة فقط</small></summary>
+      ${ind.is_government_applicable === false ? h`<p class="iw-gnote" role="note">${ic('alert')} تنبيه: هذا المؤشر يستهدف المدارس الأهلية والعالمية ولا ينطبق على المدارس الحكومية.</p>` : ''}
+      <div class="iw-gg"><section><h4>${ic('note')} تفسير المؤشر</h4><p>${gd.interpretation}</p></section>
+        <section><h4>${ic('flag')} ماذا يدل عليه؟</h4><p>${gd.significance}</p></section></div>
+      <section class="iw-gev"><h4>${ic('clip')} الشواهد المقترحة <small>استرشادية، وليست شواهد مرفوعة</small></h4>
+        ${gde.length ? h`<ol>${gde.map(x => h`<li>${x.title}</li>`)}</ol>` : h`<p class="muted">لا شواهد مقترحة.</p>`}</section></details>` : ''}
     <div class="iw-c wide"><div class="iw-ch"><h3>الشواهد المقترحة (نوع الشواهد المطلوبة)</h3>${co ? btn('+ شاهد مقترح', 'seAdd', {}, 'sm') : ''}</div>
       <p class="muted sm">استرشادية: لا تُحسب إنجازاً ولا تدخل في اكتمال الشواهد، وتُستبدل بالشواهد الفعلية.</p>
       ${se.length ? h`<ul class="iw-se">${se.map(s => { const up = upTitles.has((s.title || '').trim()); return h`<li class="${up ? 'up' : ''}"><span class="iw-si">${ic(up ? 'check' : 'clip')}</span><div><b>${s.title}</b>${s.description ? h`<small>${s.description}</small>` : ''}</div>
