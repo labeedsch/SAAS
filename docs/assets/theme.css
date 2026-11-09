@@ -536,3 +536,5 @@ body.pub nav a[hidden]{display:none}
 .pcard .pwho{margin:4px 0}
 .pcard .bar{height:8px}
 .pcard .pfoot{padding-top:4px;justify-content:flex-end}
+.pcard .pimg{aspect-ratio:320/105}
+.pcard .pimg .pill-art{height:100%;width:auto;max-width:100%}
