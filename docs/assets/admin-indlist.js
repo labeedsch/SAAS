@@ -61,7 +61,7 @@ async function memberInds() {
         (open ? `<div class="fbody">${facetOpts(k).map(([v, t]) => { const c = rows.filter(r => pass(r, k) && fv(r, k).includes(v)).length;
           return `<label class="fopt${c ? '' : ' zero'}"><input type="checkbox" data-mf="${k}" data-v="${esc(v)}"${MF.f[k].includes(v) ? ' checked' : ''}><span>${esc(t)}</span><em>${nf(c)}</em></label>`; }).join('')}</div>` : '') + '</section>'; }).join('')}</div>`; };
   /* شارات الأسماء: بالضغط تُفرز بها؛ واسمك مميّز بعلامة «أنت» */
-  const pchips = (ps, key, none) => (ps.length ? ps : [{ id: NOP2, name: NOP2 }]).map(x => h`<span class="wchip${MF.f[key].includes(x.name) ? ' on' : ''}${x.id === NOP2 ? ' none' : ''}${x.id === me ? ' me' : ''}" role="button" tabindex="0" data-mwk="${key}" data-mwv="${x.name}" title="فرز حسب: ${x.id === NOP2 ? none : x.name}">${x.id === NOP2 ? none : x.name}${x.id === me ? h` <em>أنت</em>` : ''}</span>`);
+  const pchips = (ps, key, none) => (ps.length ? ps : [{ id: NOP2, name: NOP2 }]).map(x => h`<span class="wchip${MF.f[key].includes(x.name) ? ' on' : ''}${x.id === NOP2 ? ' none' : ''}${x.id === me ? ' me' : ''}" role="button" tabindex="0" data-mwk="${key}" data-mwv="${x.name}" title="فرز حسب: ${x.id === NOP2 ? none : x.name}">${x.id === NOP2 ? '' : App.avatarHtml(App.S.staff.find(s => s.id === x.id) || { full_name: x.name }, 20)}${x.id === NOP2 ? none : x.name}${x.id === me ? h` <em>أنت</em>` : ''}</span>`);
   const rowH = r => { const [ic, lb, tn] = MST[r.k]; return h`<a class="mi ${r.k}" href="#ind/${r.i.id}"><span class="mi-s ${tn}" title="${lb}">${App.ico(ic)}</span>
     <div class="mi-b"><div class="mi-t"><b dir="ltr">${r.i.code}</b><span>${short(r.i.official_text, 130)}</span></div>
       <div class="mi-m"><small>${r.i.dom?.name_ar || ''} · ${r.i.std?.name_ar || ''}</small><span class="bdg ${tn}">${lb}</span>${r.lvl ? h`<span class="bdg">${r.lvl}</span>` : ''}${r.why ? h`<span class="mi-w">${r.why}</span>` : ''}</div>
@@ -157,7 +157,7 @@ Pages.inds = async () => {
           return `<label class="fopt${c ? '' : ' zero'}"><input type="checkbox" data-f="${k}" data-v="${esc(v)}"${hm.f[k].includes(v) ? ' checked' : ''}><span>${esc(t)}</span><em>${nf(c)}</em></label>`; }).join('')}</div>` : '') + '</section>'; }).join('')}</div>`; };
 
   /* شارات المسؤول/المقيّم: بالضغط عليها يُفرز بها (تُضاف إلى فلتر المسؤول أو المقيّم وتُلغى بضغطة ثانية) */
-  const chips = (names, key, none) => (names.length ? names : [NOP]).map(n => h`<span class="wchip${hm.f[key].includes(n) ? ' on' : ''}${n === NOP ? ' none' : ''}" role="button" tabindex="0" data-wk="${key}" data-wv="${n}" title="فرز حسب: ${n === NOP ? none : n}">${n === NOP ? none : n}</span>`);
+  const chips = (names, key, none) => (names.length ? names : [NOP]).map(n => h`<span class="wchip${hm.f[key].includes(n) ? ' on' : ''}${n === NOP ? ' none' : ''}" role="button" tabindex="0" data-wk="${key}" data-wv="${n}" title="فرز حسب: ${n === NOP ? none : n}">${n === NOP ? '' : App.avatarHtml(App.S.staff.find(s => s.full_name === n) || { full_name: n }, 20)}${n === NOP ? none : n}</span>`);
   const tbl = xs => table([
     { h: 'الرمز', f: r => h`<a href="#ind/${r.i.id}" dir="ltr"><b>${r.i.code}</b></a>` }, { h: 'المؤشر', f: r => short(r.i.official_text, 80) },
     { h: 'المسؤول', f: r => h`<div class="wc">${chips(r.rs, 'resp', 'بلا مسؤول')}</div>` }, { h: 'المقيّم', f: r => h`<div class="wc">${chips(r.ev, 'eval', 'بلا مقيّم')}</div>` },

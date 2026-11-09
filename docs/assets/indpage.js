@@ -45,7 +45,7 @@ function render(d) {
   const pct = d.pct != null && !isNaN(d.pct) ? Math.max(0, Math.min(100, +d.pct)) : null;
   const ownerCards = (d.owners || []).map(o => {
     const names = (o.names || []).filter(Boolean), first = names[0];
-    return `<div class="iown"><span class="av">${first ? esc(initials(first)) : ic('users')}</span><div><small>${esc(o.label)}</small><b title="${esc(names.join('، '))}">${first ? esc(first) + (names.length > 1 ? ` <em>+${nf(names.length - 1)}</em>` : '') : 'غير مُسند'}</b>${o.sub ? `<span>${esc(o.sub)}</span>` : ''}</div></div>`; }).join('');
+    return `<div class="iown"><span class="av">${first ? (window.AVURL?.(first) ? `<img src="${esc(window.AVURL(first))}" alt="">` : esc(initials(first))) : ic('users')}</span><div><small>${esc(o.label)}</small><b title="${esc(names.join('، '))}">${first ? esc(first) + (names.length > 1 ? ` <em>+${nf(names.length - 1)}</em>` : '') : 'غير مُسند'}</b>${o.sub ? `<span>${esc(o.sub)}</span>` : ''}</div></div>`; }).join('');
   const chips = [
     `<span class="ichip dom">${ic('layers')} ${esc(d.domName)}</span>`,
     `<span class="ichip">${ic('doc')} ${esc(d.stdName)}</span>`,
@@ -85,7 +85,7 @@ function renderWork(d) {
   const pct = d.pct != null && !isNaN(d.pct) ? Math.max(0, Math.min(100, +d.pct)) : null;
   const lv = d.level?.cls ? LVK[d.level.cls] || 'x' : 'none', lvName = d.level?.label || d.noResult || 'غير منشور';
   const owners = (d.owners || []).map(o => { const ns = (o.names || []).filter(Boolean);
-    return `<div><span class="av">${ic('users')}</span><div><small>${esc(o.label)}</small><b>${ns.length ? esc(ns.join('، ')) : 'لم يُسنَد بعد'}</b></div></div>`; }).join('');
+    return `<div><span class="av">${ns[0] && window.AVURL?.(ns[0]) ? `<img src="${esc(window.AVURL(ns[0]))}" alt="">` : ic('users')}</span><div><small>${esc(o.label)}</small><b>${ns.length ? ns.map(n => `<span class="pn">${window.PAV ? window.PAV(n, 22) : ''}${esc(n)}</span>`).join('') : 'لم يُسنَد بعد'}</b></div></div>`; }).join('');
   const head = `<header class="iw-h"><div class="iw-hc"><div class="iw-chips"><span class="iw-chip dom">${ic('layers')} ${esc(d.domName)}</span><span class="iw-chip">${ic('doc')} ${esc(d.stdName)}</span><span class="iw-chip code" dir="ltr">${esc(d.code)}</span>${d.status ? `<span class="iw-chip">${ic('check')} ${esc(d.status.label)}</span>` : ''}</div>
       <h1>${esc(d.text)}</h1>${owners ? `<div class="iw-own">${owners}</div>` : ''}</div>
     <div class="iw-lvbox lv-${lv}"><div class="iw-ring" style="--p:${pct ?? 0}"><b>${pct != null ? nf(Math.round(pct)) + '%' : '—'}</b></div><strong>${esc(lvName)}</strong>${d.cycleName ? `<small>${esc(d.cycleName)}</small>` : ''}</div></header>`;

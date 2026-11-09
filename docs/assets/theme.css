@@ -615,3 +615,9 @@ nav .ng .ngm a.on::after{display:none}
   .adm .ng,.adm .ngm{display:contents}
   .adm .ngb{display:none}
 }
+
+/* صور الأشخاص (للفريق فقط): دائرية في بطاقات المؤشرات وصفحة المؤشر */
+.pav{--s:26px;display:inline-grid;place-items:center;flex:none;width:var(--s);height:var(--s);border-radius:50%;overflow:hidden;background:var(--b,var(--soft));color:var(--f,var(--brand));font-weight:800;font-size:calc(var(--s)*.4);box-shadow:0 0 0 2px var(--surface,#fff);vertical-align:middle}
+.pav img{width:100%;height:100%;object-fit:cover;display:block} .pav i{font-style:normal}
+.pn{display:inline-flex;align-items:center;gap:6px;margin-inline-end:10px;vertical-align:middle}
+.iown .av img,.iw-own .av img{width:100%;height:100%;object-fit:cover;border-radius:50%;display:block} .iown .av,.iw-own .av{overflow:hidden}
