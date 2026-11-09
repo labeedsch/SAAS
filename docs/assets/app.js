@@ -129,8 +129,8 @@ function pcard(r) {
   const stat = pub
     ? `<div class="pstat ${LV[r.level_label] || 'none'}"><span class="pst-l">${ic('check')} تم التقييم</span><b class="pst-v">${esc(r.level_label || 'منشور')}</b><span class="pst-p">${r.achievement_pct != null ? num(Math.round(r.achievement_pct)) + '%' : '—'}</span></div>`
     : `<div class="pstat none"><span class="pst-l">${ic('cal')} لم يُنشر التقييم بعد</span></div>`;
-  const who = isTeam()
-    ? `<div class="pwho"><div><small>مسؤول المؤشر</small><span class="av">${rp.length ? esc(initials(rp[0])) : ic('users')}</span><b title="${esc(rp.join('، '))}">${firstPlus(rp)}</b></div><div><small>المقيم</small><b title="${esc(ev.join('، '))}">${firstPlus(ev)}</b></div></div>` : '';
+  const pw = (label, a, sz = 40) => `<div class="pw"><span class="pw-st">${a.slice(0, 2).map(n => pav(n, sz)).join('')}${a.length > 2 ? `<span class="pav more" style="--s:${sz}px"><i>+${num(a.length - 2)}</i></span>` : ''}${a.length ? '' : `<span class="pav" style="--s:${sz}px">${ic('users')}</span>`}</span><div class="pw-t"><small>${label}</small><b title="${esc(a.join('، '))}">${a.length ? esc(a.join('، ')) : NONE}</b></div></div>`;
+  const who = isTeam() ? `<div class="pwho">${pw('مسؤول المؤشر', rp)}${pw('المقيّم', ev)}</div>` : '';
   return `<a class="pcard" style="--b:var(--c${k}b);--f:var(--c${k}f)" href="#ind/${r.cycle_id}/${r.indicator_id}">
     <div class="phead sm" data-fdom="${r.domain_id}" title="فرز حسب هذا المجال"><span>${ic('layers')} المجال ${num(r.domain_code)}</span><b>${esc(r.domain_name)}</b><em class="pgo" data-go="#domain/${r.cycle_id}/${r.domain_id}" title="الانتقال إلى صفحة المجال">${ic('arrow')}</em></div>
     <div class="pimg">${illus(i)}${badge}</div>

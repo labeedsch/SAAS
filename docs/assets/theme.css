@@ -657,3 +657,35 @@ nav .ng .ngm a.on::after{display:none}
 @media (max-width:760px){.ow{grid-template-columns:1fr}.ow-l{grid-template-columns:1fr}.ow-g{padding:14px}}
 .ow{grid-template-columns:minmax(0,3fr) minmax(0,2fr)}.ow-l{grid-template-columns:repeat(auto-fill,minmax(190px,1fr))}
 @media (max-width:760px){.ow{grid-template-columns:1fr}.ow-l{grid-template-columns:1fr}}
+
+/* بطاقات المؤشرات: المسؤول والمقيّم بصورة دائرية وسطر لكلٍّ منهما */
+.pcard .pwho{display:grid;grid-template-columns:1fr;gap:8px;margin:6px 0 4px}
+.pcard .pw{display:flex;align-items:center;gap:12px;min-width:0;padding:8px 12px;border-radius:16px;background:color-mix(in srgb,var(--f) 7%,var(--surface));border:1px solid color-mix(in srgb,var(--f) 16%,var(--line))}
+.pcard .pw-st{display:inline-flex;flex:none}.pcard .pw-st .pav+.pav{margin-inline-start:-12px}
+.pcard .pw-st .pav{box-shadow:0 0 0 2px var(--surface),0 1px 3px rgba(0,0,0,.14);background:var(--surface);color:var(--f)}
+.pcard .pw-st .pav.ini{background:linear-gradient(135deg,var(--f),color-mix(in srgb,var(--f) 62%,#0c3b4a));color:#fff}
+.pcard .pw-t{min-width:0;display:grid;gap:1px}
+.pcard .pw-t small{font-size:.72rem;font-weight:700;color:color-mix(in srgb,var(--f) 80%,var(--ink2))}
+.pcard .pw-t b{font-size:.92rem;font-weight:700;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* صفحة المؤشر بلون مجالها نفسه (كبطاقات الصفحة الرئيسية) */
+.iw.dc .iw-h{border-color:color-mix(in srgb,var(--f) 28%,var(--line));box-shadow:0 18px 44px -18px color-mix(in srgb,var(--f) 45%,transparent)}
+.iw.dc .iw-h::before{background:linear-gradient(90deg,color-mix(in srgb,var(--f) 55%,#0d3b4a),var(--f) 60%,color-mix(in srgb,var(--f) 55%,#fff))}
+.iw.dc .iw-h>.iw-lvbox{background:linear-gradient(180deg,var(--b),color-mix(in srgb,var(--b) 40%,var(--surface)));border-inline-start-color:color-mix(in srgb,var(--f) 20%,var(--line))}
+.iw.dc .iw-h h1{color:color-mix(in srgb,var(--f) 38%,#0d2f3a)}
+.iw.dc .iw-h .iw-chip{background:var(--b);color:var(--f)}
+.iw.dc .iw-h .iw-chip.dom{background:var(--f);color:#fff}
+.iw.dc .iw-h .iw-chip.code{background:var(--surface);border-color:var(--f);color:var(--f)}
+.iw.dc .ow-g,.iw.dc .ow-g.ev{--g:var(--f)}
+.iw.dc .iw-sec>h2 .ico{color:var(--f)}
+.iw.dc .iw-sec{border-color:color-mix(in srgb,var(--f) 14%,var(--line))}
+.iw.dc .iw-guide{background:linear-gradient(180deg,color-mix(in srgb,var(--b) 70%,var(--surface)),var(--surface));border-color:color-mix(in srgb,var(--f) 30%,var(--line))}
+.iw.dc .iw-guide>h2{color:var(--f)}
+.pcard .pwho>.pw{flex-direction:row;flex-wrap:nowrap;align-items:center;gap:12px;padding:8px 12px}
+.pcard .pw-t small{flex-basis:auto}.pcard .pw-t{flex:1}
+.pcard .pw-st .pav{--s:40px}
+.pcard .pw-st .pav+.pav{margin-inline-start:-8px}
+.iw.dc .iw-gd>summary{background:linear-gradient(135deg,var(--f),color-mix(in srgb,var(--f) 62%,#0d3b4a));color:#fff}
+.iw.dc .iw-gd>summary small,.iw.dc .iw-gd>summary .ico{color:#fff;opacity:.92}
+.iw.dc .iw-gg>section,.iw.dc .iw-gev{background:var(--b);border-color:color-mix(in srgb,var(--f) 28%,var(--line));color:var(--ink)}
+.iw.dc .iw-gg h4,.iw.dc .iw-gev h4{color:var(--f)}
+.iw.dc .iw-gd{border-color:color-mix(in srgb,var(--f) 30%,var(--line))}

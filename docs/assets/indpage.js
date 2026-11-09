@@ -106,7 +106,7 @@ function renderWork(d) {
   const evd = d.evidence ? sec('s-evid', 'clip', 'الشواهد المعتمدة', d.evidence.html, d.evidence.count != null ? ` <small>${nf(d.evidence.count)} شاهد</small>` : '') : '';
   const rel = (d.related || []).length ? `<details class="iw-sec more" open><summary>${ic('grid')} مؤشرات المعيار نفسه <span class="bdg">${nf(d.related.length)}</span></summary>
     <div class="iw-rel"><div>${d.related.map(r => `<a class="ilink" style="--b:var(--c${r.dom ?? 0}b);--f:var(--c${r.dom ?? 0}f)" href="${esc(r.href)}" title="${esc(String(r.text || '').slice(0, 90))}">${esc(r.code)}</a>`).join('')}</div></div></details>` : '';
-  return `<div class="iw">${d.back ? `<a class="iback" href="${esc(d.back.href)}">${esc(d.back.label)} ${ic('arrow')}</a>` : ''}${head}${gdh}${evl}${evd}${rel}</div>`;
+  return `<div class="iw${d.dom != null ? ' dc' : ''}"${d.dom != null ? ` style="--b:var(--c${d.dom}b);--f:var(--c${d.dom}f)"` : ''}>${d.back ? `<a class="iback" href="${esc(d.back.href)}">${esc(d.back.label)} ${ic('arrow')}</a>` : ''}${head}${gdh}${evl}${evd}${rel}</div>`;
 }
 
 window.IndPage = { render, renderWork, esc, nf, ic, weeks };
