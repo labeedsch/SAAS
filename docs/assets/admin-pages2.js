@@ -85,29 +85,58 @@ Pages.ind = async ([id]) => {
   Act.evAdd = () => evAdd(id);
   Act.dlSet = () => App.dlForm({ kind: 'indicator_close', indicator_id: id }, dl[0]);
   Act.indWa = () => App.waIndicator(id, resp);
-  const evTable = table([
-    { h: 'الشاهد', f: e => h`<b>${e.title}</b>${e.description ? h`<br><small class="muted">${App.short(e.description, 90)}</small>` : ''}${e.external_url ? h`<br><a href="${e.external_url}" target="_blank" rel="noopener">رابط خارجي</a>` : ''}` },
-    { h: 'التاريخ', f: e => dt(e.evidence_date) }, { h: 'الملفات', f: e => nf(e.evidence_files.length) }, { h: 'الحالة', f: e => h`${sb_('evid', e.status)}${e.review_note ? h`<br><small class="muted">${e.review_note}</small>` : ''}` },
-    { h: '', f: e => h`<div class="chips">${btn('معاينة', 'evView', { id: e.id, t: e.title })}${canReview() ? btn('مراجعة', 'evReview', { id: e.id }) : ''}${isCoord() ? btn('حذف', 'evDel', { id: e.id }, 'bad') : ''}</div>` },
-  ], evd, 'لم تُرفع شواهد فعلية لهذا المؤشر بعد');
-  const needed = se.length ? '' : '';
-  const html = h`${pageHead(h`<span class="ind-h"><code>${ind.code}</code></span>`, h`${sb_('eval', ev?.status || 'not_evaluated')} ${isCoord() ? btn('إرسال التفاصيل للمسؤولين (واتساب)', 'indWa') : ''}`)}
-  <div class="pn"><p style="font-size:1.1rem;margin:0 0 8px">${ind.official_text}</p><p class="muted">${ind.dom.name_ar} ‹ ${ind.std.name_ar}</p>
-    ${ind.requirements_text ? h`<h3>المطلوب</h3><p class="txt">${ind.requirements_text}</p>` : ''}
-    <dl class="kv"><dt>مسؤول المؤشر</dt><dd>${names(resp)}${dResp.length ? h` <span class="muted">(عبر المجال: ${names(dResp)})</span>` : ''}</dd>
-    <dt>مقيّم المؤشر</dt><dd>${names(evalr)}${dEval.length ? h` <span class="muted">(عبر المجال: ${names(dEval)})</span>` : ''}</dd>
-    <dt>موعد الإغلاق</dt><dd>${dl[0] ? dt(dl[0].due_date) : '—'} ${isCoord() ? btn(dl[0] ? 'تمديد' : 'تحديد', 'dlSet') : ''}</dd></dl></div>
-  ${panel('التقييم', ev ? h`<dl class="kv"><dt>المستوى</dt><dd>${lm[ev.level_id] || '—'}</dd><dt>نسبة التحقق</dt><dd>${ev.achievement_pct != null ? nf(ev.achievement_pct) + '٪' : '—'}</dd>
-    <dt>المبررات</dt><dd class="txt">${ev.justification || '—'}</dd><dt>جوانب القوة</dt><dd class="txt">${ev.strengths || '—'}</dd><dt>الفجوات</dt><dd class="txt">${ev.gaps_notes || '—'}</dd><dt>مصادر البيانات</dt><dd class="txt">${ev.data_sources || '—'}</dd>
-    <dt>الاعتماد</dt><dd>${ev.approved_at ? dtt(ev.approved_at) + ' — ' + (ev.approved_by ? 'معتمد' : '') : '—'}</dd></dl>` : h`<p class="muted">لم يُسجَّل تقييم لهذا المؤشر في هذه الدورة.</p>`,
-    iEvaluate && cyc.status === 'active' ? btn(ev ? 'تعديل التقييم' : 'تسجيل التقييم', 'evEdit', {}, 'pri') : h`<small class="muted">${cyc.status !== 'active' ? 'الدورة غير نشطة' : 'التقييم للمقيّم المسند'}</small>`)}
-  <div class="two">
-    ${panel('الشواهد المقترحة (استرشادية)', h`${se.length ? h`<ul>${se.map(s => h`<li><b>${s.title}</b>${s.description ? h` — ${s.description}` : ''} ${isCoord() ? btn('✕', 'seDel', { i: s.id }, 'bad') : ''}</li>`)}</ul>` : h`<p class="muted">لا توجد شواهد مقترحة.</p>`}<small class="muted">لا تدخل في حساب اكتمال الشواهد.</small>`, isCoord() ? btn('+ شاهد مقترح', 'seAdd') : '')}
-    ${panel('الزيارات الفنية', table([{ h: 'التاريخ', f: v => dt(v.technical_visits.visit_date) }, { h: 'الجهة', f: v => v.technical_visits.target_party || '—' }, { h: 'الفجوات', f: v => App.short(v.gaps, 60) || '—' }, { h: 'المتابعة', f: v => sb_('follow', v.followup) }, { h: '', f: v => h`<a href="#visit/${v.visit_id}">فتح</a>` }], vc, 'لا زيارات مرتبطة'))}
-  </div>
-  ${panel('الشواهد الفعلية', evTable, canUpload && cyc.status === 'active' ? btn('+ رفع شاهد', 'evAdd', {}, 'pri') : '')}
-  ${panel('المهام المرتبطة', table([{ h: 'المهمة', f: t => t.title }, { h: 'المكلّف', f: t => staffName(t.assignee_staff_id) }, { h: 'الموعد', f: t => dt(t.due_date) }, { h: 'الحالة', f: t => sb_('task', t.status) }], tk, 'لا مهام مرتبطة'))}`;
-  return html;
+  const T = x => x instanceof App.Raw ? x.s : String(x ?? '');
+  const LVC = { 'التميز': 'excellence', 'التقدم': 'advancement', 'الانطلاق': 'launch', 'التهيئة': 'preparation' };
+  const uniq = l => [...new Set(l)];
+  const respNames = uniq([...resp, ...dResp].map(a => staffName(a.staff_id))), evalNames = uniq([...evalr, ...dEval].map(a => staffName(a.staff_id)));
+  const domIdx = Math.max(0, ref.domains.findIndex(d => d.id === ind.dom.id));
+  const DOMC = [0, 3, 2, 1][domIdx % 4];
+  const evStatus = ev?.status || 'not_evaluated', lvLabel = ev ? lm[ev.level_id] : null;
+  const evApproved = evd.filter(e => e.status === 'approved').length, tkDone = tk.filter(t => t.status === 'completed').length;
+  const due = dl[0]?.due_date;
+  const evCards = evd.length ? `<div class="ievs">${evd.map(e => T(h`<div class="iev"><div class="iev-h"><span class="iev-ic">${raw(IndPage.ic('clip'))}</span><div><b>${e.title}</b>${e.description ? h`<small>${App.short(e.description, 90)}</small>` : ''}</div></div>
+      <div class="chips">${sb_('evid', e.status)}<span class="bdg">${dt(e.evidence_date)}</span><span class="bdg info">${nf(e.evidence_files.length)} ملف</span></div>
+      ${e.external_url ? h`<a href="${e.external_url}" target="_blank" rel="noopener">رابط خارجي</a>` : ''}${e.review_note ? h`<small class="muted">${e.review_note}</small>` : ''}
+      <div class="chips">${btn('معاينة', 'evView', { id: e.id, t: e.title })}${canReview() ? btn('مراجعة', 'evReview', { id: e.id }) : ''}${isCoord() ? btn('حذف', 'evDel', { id: e.id }, 'bad') : ''}</div></div>`)).join('')}</div>` : '<p class="muted">لم تُرفع شواهد فعلية لهذا المؤشر بعد.</p>';
+  const evalBody = ev ? T(h`<dl class="ikv"><dt>المستوى</dt><dd>${lvLabel || '—'}</dd><dt>نسبة التحقق</dt><dd>${ev.achievement_pct != null ? nf(ev.achievement_pct) + '٪' : '—'}</dd>
+    <dt>المبررات</dt><dd>${ev.justification || '—'}</dd><dt>جوانب القوة</dt><dd>${ev.strengths || '—'}</dd><dt>الفجوات والملاحظات</dt><dd>${ev.gaps_notes || '—'}</dd><dt>مصادر البيانات</dt><dd>${ev.data_sources || '—'}</dd>
+    <dt>الاعتماد</dt><dd>${ev.approved_at ? dtt(ev.approved_at) : '—'}</dd></dl>`) : '<p class="muted">لم يُسجَّل تقييم لهذا المؤشر في هذه الدورة.</p>';
+  const evalAct = iEvaluate && cyc.status === 'active' ? T(btn(ev ? 'تعديل التقييم' : 'تسجيل التقييم', 'evEdit', {}, 'pri')) : `<small class="muted">${cyc.status !== 'active' ? 'الدورة غير نشطة' : 'التقييم للمقيّم المسند'}</small>`;
+  const siblings = ref.inds.filter(i => i.standard_id === ind.standard_id && i.id !== id).map(i => ({ href: '#ind/' + i.id, code: i.code, text: i.official_text, dom: DOMC }));
+  // سجل التعديلات: للمنسق فقط (تفرضه سياسات قاعدة البيانات)، ويفشل بصمت لغيره
+  let logHtml = null;
+  if (isCoord()) {
+    const lg = await sb.from('activity_log').select('action,entity_type,actor_id,created_at,new_data').filter('new_data->>indicator_id', 'eq', id).order('created_at', { ascending: false }).limit(15);
+    if (!lg.error) {
+      const ids = [...new Set(lg.data.map(x => x.actor_id).filter(Boolean))];
+      const pr = ids.length ? await sb.from('profiles').select('id,display_name').in('id', ids) : { data: [] };
+      const pm = Object.fromEntries((pr.data || []).map(p => [p.id, p.display_name]));
+      const AC = { insert: 'إضافة', update: 'تعديل', delete: 'حذف' }, EN = { evaluations: 'تقييم', evidence: 'شاهد', tasks: 'مهمة', deadlines: 'موعد', indicator_assignments: 'إسناد', visit_cards: 'بطاقة زيارة', suggested_evidence: 'شاهد مقترح' };
+      logHtml = lg.data.length ? T(h`<ul class="ilist">${lg.data.map(x => h`<li><b>${AC[x.action] || x.action} ${EN[x.entity_type] || x.entity_type}</b> <small class="muted">— ${pm[x.actor_id] || 'النظام'} · ${dtt(x.created_at)}</small></li>`)}</ul>`) : '<p class="muted">لا سجلات لهذا المؤشر بعد.</p>';
+    }
+  }
+  const page = IndPage.render({
+    back: { href: '#inds', label: 'العودة للمؤشرات' }, dom: DOMC, domIdx, code: ind.code, text: ind.official_text, domName: ind.dom.name_ar, stdName: ind.std.name_ar, cycleName: cyc.name,
+    status: { label: L.eval[evStatus], cls: evStatus === 'approved' ? 'ok' : evStatus === 'submitted' ? 'info' : evStatus === 'draft' ? 'warn' : '' },
+    level: lvLabel ? { label: lvLabel, cls: LVC[lvLabel] || '' } : null, pct: ev?.achievement_pct, req: ind.requirements_text,
+    owners: [{ label: 'مسؤول المؤشر', names: respNames }, { label: 'مقيّم المؤشر', names: evalNames }],
+    heroActions: isCoord() ? T(btn('إرسال التفاصيل للمسؤولين (واتساب)', 'indWa')) : '',
+    stats: [{ label: 'نسبة التحقق', value: ev?.achievement_pct != null ? nf(ev.achievement_pct) + '٪' : '—' }, { label: 'الشواهد المعتمدة', value: `${nf(evApproved)} / ${nf(evd.length)}` },
+      { label: 'المهام المكتملة', value: `${nf(tkDone)} / ${nf(tk.length)}` }, { label: 'الزيارات الفنية', value: nf(vc.length) }],
+    about: [{ ico: 'layers', k: 'المجال', v: ind.dom.name_ar }, { ico: 'doc', k: 'المعيار', v: ind.std.name_ar }, { ico: 'check', k: 'الشواهد المقترحة', v: se.length ? nf(se.length) + ' شواهد استرشادية' : 'لا توجد شواهد مقترحة' }],
+    ident: [{ ico: 'grid', k: 'رمز المؤشر', v: ind.code }, { ico: 'layers', k: 'المجال', v: ind.dom.name_ar }, { ico: 'doc', k: 'المعيار', v: ind.std.name_ar }, { ico: 'cal', k: 'الدورة', v: `${cyc.name} · ${cyc.school_year}` },
+      { ico: 'check', k: 'حالة التقييم', v: L.eval[evStatus] }, { ico: 'bars', k: 'مستوى التقييم', v: lvLabel || '—' }, { ico: 'user', k: 'مسؤول المؤشر', v: respNames.join('، ') || '—' }, { ico: 'users', k: 'مقيّم المؤشر', v: evalNames.join('، ') || '—' },
+      { ico: 'clock', k: 'موعد إغلاق المؤشر', v: dt(due) }, { ico: 'history', k: 'آخر اعتماد', v: ev?.approved_at ? dtt(ev.approved_at) : '—' }],
+    note: 'الشواهد المقترحة استرشادية ولا تدخل في حساب اكتمال الشواهد، والزيارة الفنية لا تغيّر التقييم تلقائياً؛ التقييم من اختصاص مقيّم المؤشر.',
+    suggested: { html: (se.length ? T(h`<ul class="ilist">${se.map(s => h`<li><b>${s.title}</b>${s.description ? h` — ${s.description}` : ''} ${isCoord() ? btn('✕', 'seDel', { i: s.id }, 'bad') : ''}</li>`)}</ul>`) : '<p class="muted">لا توجد شواهد مقترحة.</p>'), actions: isCoord() ? T(btn('+ شاهد مقترح', 'seAdd')) : '' },
+    timeline: { start: cyc.start_date, end: cyc.end_date, deadline: due, lines: [['مدة الدورة', cyc.start_date || cyc.end_date ? `${dt(cyc.start_date)} إلى ${dt(cyc.end_date)}` : '—'], ['موعد إغلاق المؤشر', dt(due)]] },
+    evalCard: { html: evalBody, actions: evalAct },
+    evidence: { html: evCards, count: evd.length, actions: canUpload && cyc.status === 'active' ? T(btn('+ رفع شاهد', 'evAdd', {}, 'pri')) : '' },
+    extra: [
+      { title: 'الزيارات الفنية', ico: 'visit', html: T(table([{ h: 'التاريخ', f: v => dt(v.technical_visits.visit_date) }, { h: 'الجهة', f: v => v.technical_visits.target_party || '—' }, { h: 'الفجوات', f: v => App.short(v.gaps, 60) || '—' }, { h: 'المتابعة', f: v => sb_('follow', v.followup) }, { h: '', f: v => h`<a href="#visit/${v.visit_id}">فتح</a>` }], vc, 'لا زيارات مرتبطة')) },
+      { title: 'المهام المرتبطة', ico: 'task', html: T(table([{ h: 'المهمة', f: t => t.title }, { h: 'المكلّف', f: t => staffName(t.assignee_staff_id) }, { h: 'الموعد', f: t => dt(t.due_date) }, { h: 'الحالة', f: t => sb_('task', t.status) }], tk, 'لا مهام مرتبطة')) }],
+    related: siblings, log: logHtml ? { html: logHtml } : null });
+  return raw(page);
 };
 
 // ===== رفع الشواهد =====

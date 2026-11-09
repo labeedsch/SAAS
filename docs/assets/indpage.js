@@ -1,0 +1,83 @@
+/* صفحة المؤشر الموحّدة: تُستخدم في الموقع العام ولوحة التحكم بهوية «الخطط الذكية» (صفحة البرنامج)
+   المخرجات نصوص HTML. كل القيم النصية تُهرَّب هنا، وما يُمرَّر داخل حقول html يُعدّ موثوقاً (جاهزاً من المستدعي). */
+(() => {
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const nf = n => (n == null || n === '' || isNaN(n) ? '—' : Number(n).toLocaleString('ar-SA'));
+const IC = {
+  layers: '<path d="M12 3l9 5-9 5-9-5 9-5z"/><path d="M3 13l9 5 9-5"/>', check: '<path d="M5 12l5 5 9-10"/>',
+  doc: '<path d="M7 3h7l4 4v14H7z"/><path d="M14 3v5h5M10 13h5M10 17h5"/>', shield: '<path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M9 12l2 2 4-4"/>',
+  bell: '<path d="M6 16v-5a6 6 0 0112 0v5l2 2H4z"/><path d="M10 21h4"/>', cal: '<rect x="4" y="5" width="16" height="15" rx="3"/><path d="M8 3v4M16 3v4M4 10h16"/>',
+  bars: '<path d="M5 20V10M12 20V4M19 20v-7"/>', target: '<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/>',
+  book: '<path d="M5 4h9a4 4 0 014 4v12H9a4 4 0 01-4-4z"/><path d="M5 16a4 4 0 014-4h9"/>', arrow: '<path d="M19 12H5M11 6l-6 6 6 6"/>',
+  users: '<circle cx="9" cy="8" r="3"/><path d="M3 19c0-3 3-5 6-5s6 2 6 5M16 5a3 3 0 010 6M18 14c2 .6 3 2.2 3 5"/>', user: '<circle cx="12" cy="8" r="3.5"/><path d="M5 20c0-4 3-6 7-6s7 2 7 6"/>',
+  clock: '<circle cx="12" cy="12" r="8"/><path d="M12 8v4l3 2"/>', grid: '<rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="7" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/><rect x="13" y="13" width="7" height="7" rx="1.5"/>',
+  clip: '<path d="M8 12l6-6a3 3 0 014 4l-8 8a5 5 0 01-7-7l7-7"/>', visit: '<path d="M12 21s-6-5.5-6-10a6 6 0 0112 0c0 4.5-6 10-6 10z"/><circle cx="12" cy="11" r="2"/>',
+  task: '<rect x="5" y="4" width="14" height="17" rx="3"/><path d="M9 4v2h6V4M9 13l2 2 4-4"/>', note: '<path d="M5 4h14v12l-5 5H5z"/><path d="M14 21v-5h5M9 9h6M9 13h3"/>',
+  lock: '<rect x="4" y="11" width="16" height="9" rx="2"/><path d="M8 11V8a4 4 0 018 0v3"/>', pct: '<path d="M18 6L6 18"/><circle cx="8" cy="8" r="2"/><circle cx="16" cy="16" r="2"/>',
+  history: '<path d="M4 12a8 8 0 108-8H7M7 4L4 7l3 3"/><path d="M12 8v4l3 2"/>'
+};
+const DIC = ['book', 'bars', 'target', 'shield'];
+const ic = n => `<svg class="ico" viewBox="0 0 24 24" aria-hidden="true">${IC[n] || ''}</svg>`;
+const initials = n => { const p = String(n || '').trim().split(/\s+/); return (p[0]?.[0] || '') + (p[1]?.[0] || ''); };
+const spark = (x, y, c = '#8fc7cd') => `<path d="M${x} ${y - 9}q1.5 7.5 9 9-7.5 1.5-9 9-1.5-7.5-9-9 7.5-1.5 9-9z" fill="${c}" opacity=".85"/>`;
+
+// مقياس الأسابيع من بداية الدورة إلى نهايتها مع تمييز الأسبوع الحالي وأسبوع الإغلاق
+function weeks(start, end, deadline, now = new Date()) {
+  if (!start || !end) return null;
+  const s = new Date(start + 'T00:00:00'), e = new Date(end + 'T00:00:00'), W = 7 * 864e5;
+  const n = Math.min(60, Math.max(1, Math.ceil((e - s + 864e5) / W)));
+  const cur = now < s ? 0 : Math.min(n, Math.floor((now - s) / W) + 1);
+  const dw = deadline ? Math.floor((new Date(String(deadline).slice(0, 10) + 'T00:00:00') - s) / W) + 1 : null;
+  return { n, cur, dw: dw && dw >= 1 && dw <= n ? dw : null, ended: now > e, notStarted: now < s };
+}
+const weekBubbles = w => !w ? '' : `<div class="iweeks" role="list" aria-label="أسابيع الدورة">${Array.from({ length: w.n }, (_, i) => {
+  const k = i + 1, c = [k <= w.cur && k !== w.cur ? 'past' : '', k === w.cur ? 'now' : '', k === w.dw ? 'due' : ''].filter(Boolean).join(' ');
+  return `<span class="wk ${c}" role="listitem" title="${k === w.dw ? 'أسبوع موعد الإغلاق' : k === w.cur ? 'الأسبوع الحالي' : 'الأسبوع ' + nf(k)}">${nf(k)}</span>`; }).join('')}</div>`;
+
+const card = (cls, head, body, actions = '') => `<section class="icard-s ${cls || ''}"><div class="ish"><h2>${head}</h2><div class="isa">${actions}</div></div>${body}</section>`;
+
+/* d: { back:{href,label}, dom:0..3, code, text, domName, stdName, cycleName, status:{label,cls}, level:{label,cls}|null, pct,
+        req, owners:[{label,names:[]}], stats:[{label,value,cls}], about:[{ico,k,v}], ident:[{ico,k,v,html}], note,
+        suggested:{html,actions}, timeline:{start,end,deadline,lines:[[k,v]]}, evalCard:{html,actions}, evidence:{html,actions,count},
+        extra:[{title,ico,html,actions}], related:[{href,code,text,dom}], log:{html} } */
+function render(d) {
+  const k = d.dom ?? 0, i = Math.max(0, d.domIdx ?? 0);
+  const pct = d.pct != null && !isNaN(d.pct) ? Math.max(0, Math.min(100, +d.pct)) : null;
+  const ownerCards = (d.owners || []).map(o => {
+    const names = (o.names || []).filter(Boolean), first = names[0];
+    return `<div class="iown"><span class="av">${first ? esc(initials(first)) : ic('users')}</span><div><small>${esc(o.label)}</small><b title="${esc(names.join('، '))}">${first ? esc(first) + (names.length > 1 ? ` <em>+${nf(names.length - 1)}</em>` : '') : 'غير مُسند'}</b>${o.sub ? `<span>${esc(o.sub)}</span>` : ''}</div></div>`; }).join('');
+  const chips = [
+    `<span class="ichip dom">${ic('layers')} ${esc(d.domName)}</span>`,
+    `<span class="ichip">${ic('doc')} ${esc(d.stdName)}</span>`,
+    d.cycleName ? `<span class="ichip">${ic('cal')} ${esc(d.cycleName)}</span>` : '',
+    `<span class="ichip code" dir="ltr">${esc(d.code)}</span>`,
+    d.status ? `<span class="ichip st ${esc(d.status.cls || '')}">${ic('check')} ${esc(d.status.label)}</span>` : '',
+    d.level ? `<span class="ichip lv ${esc(d.level.cls || '')}">${esc(d.level.label)}</span>` : ''].join('');
+  const art = `<div class="iart" aria-hidden="true"><svg viewBox="0 0 320 190" class="iart-bg"><ellipse cx="160" cy="166" rx="100" ry="9" fill="currentColor" opacity=".16"/>${spark(48, 52)}${spark(276, 118)}${spark(270, 40, '#f0b34a')}</svg>
+    <div class="iring" style="--p:${pct ?? 0}"><div class="irg"><b>${pct != null ? nf(Math.round(pct)) + '٪' : '—'}</b></div><span>${pct != null ? 'نسبة التحقق' : 'بلا تقييم منشور'}</span></div><span class="iart-ic">${ic(DIC[i % 4])}</span></div>`;
+  const hero = `<section class="ihero"><div class="ihero-txt"><div class="ichips">${chips}</div>
+    <h1>${esc(d.text)}</h1>${d.req ? `<p class="isub">${esc(d.req)}</p>` : `<p class="isub">${esc(d.domName)} ‹ ${esc(d.stdName)}</p>`}
+    ${ownerCards ? `<div class="iowns">${ownerCards}</div>` : ''}${d.heroActions ? `<div class="ihacts">${d.heroActions}</div>` : ''}</div>${art}</section>`;
+  const stats = (d.stats || []).length ? `<div class="istats">${d.stats.map((s, n) => `<div class="istat s${n % 4}"><span>${esc(s.label)}</span><b>${esc(s.value)}</b></div>`).join('')}</div>` : '';
+  const about = `<section class="icard-s"><div class="ish"><h2>${ic('target')} حول المؤشر</h2></div><p class="iabout">${esc(d.text)}</p>${d.req ? `<p class="iabout req">${esc(d.req)}</p>` : ''}
+    ${(d.about || []).length ? `<div class="iminis">${d.about.map(a => `<div class="imini"><b>${ic(a.ico || 'doc')} ${esc(a.k)}</b><span>${esc(a.v)}</span></div>`).join('')}</div>` : ''}</section>`;
+  const ident = (d.ident || []).length ? `<section class="icard-s"><div class="ish"><h2>${ic('layers')} البطاقة التعريفية</h2></div>
+    <div class="idgrid">${d.ident.map(x => `<div class="idc"><span class="idi">${ic(x.ico || 'doc')}</span><div><small>${esc(x.k)}</small><b>${x.html ? x.html : esc(x.v ?? '—')}</b></div></div>`).join('')}</div>${d.note ? `<p class="inote">${esc(d.note)}</p>` : ''}</section>` : '';
+  const w = d.timeline ? weeks(d.timeline.start, d.timeline.end, d.timeline.deadline) : null;
+  const tl = d.timeline ? card('', `${ic('cal')} الجدول الزمني`, `${weekBubbles(w)}${w ? `<p class="isub sm">${w.notStarted ? 'لم تبدأ الدورة بعد.' : w.ended ? 'انتهت مدة الدورة.' : 'الأسبوع الحالي: ' + nf(w.cur) + ' من ' + nf(w.n) + '.'}${w.dw ? ' أسبوع موعد الإغلاق: ' + nf(w.dw) + '.' : ''}</p>` : '<p class="isub sm">لم تُحدَّد مدة الدورة.</p>'}
+    <div class="itl-lines">${(d.timeline.lines || []).map(l => `<p><b>${esc(l[0])}:</b> ${esc(l[1])}</p>`).join('')}</div>`) : '';
+  const sug = d.suggested ? card('', `${ic('doc')} الشواهد المقترحة`, d.suggested.html, d.suggested.actions) : '';
+  const two = (sug || tl) ? `<div class="itwo">${sug}${tl}</div>` : '';
+  const ev = d.evalCard ? card('stripe', `${ic('note')} التقييم ومبرراته`, d.evalCard.html, d.evalCard.actions) : '';
+  const evid = d.evidence ? card('stripe', `${ic('clip')} الشواهد الفعلية${d.evidence.count != null ? ` <small>${nf(d.evidence.count)} شاهد</small>` : ''}`, d.evidence.html, d.evidence.actions) : '';
+  const extra = (d.extra || []).map(x => card('', `${ic(x.ico || 'doc')} ${esc(x.title)}`, x.html, x.actions)).join('');
+  const extras = extra ? `<div class="itwo">${extra}</div>` : '';
+  const rel = (d.related || []).length ? card('', `${ic('grid')} مؤشرات ذات صلة <small>المعيار نفسه</small>`, `<div class="irel">${d.related.map(r => {
+    const kk = r.dom ?? k; return `<a class="irc" style="--b:var(--c${kk}b);--f:var(--c${kk}f)" href="${esc(r.href)}"><span class="irc-i" dir="ltr">${esc(r.code)}</span><div><b>المؤشر ${esc(r.code)}</b><small>${esc(r.text)}</small></div></a>`; }).join('')}</div>`) : '';
+  const log = d.log ? card('', `${ic('history')} سجل التعديلات والاعتمادات`, d.log.html) : '';
+  return `<div class="ipage" style="--b:var(--c${k}b);--f:var(--c${k}f)">${d.back ? `<a class="iback" href="${esc(d.back.href)}">${esc(d.back.label)} ${ic('arrow')}</a>` : ''}
+    ${hero}${stats}${about}${ident}${two}${ev}${evid}${extras}${rel}${log}</div>`;
+}
+
+window.IndPage = { render, esc, nf, ic, weeks };
+})();

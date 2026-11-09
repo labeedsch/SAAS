@@ -351,15 +351,25 @@ function standard(cid, sid) {
 
 async function indicator(cid, iid) {
   const r = byCycle(cid).find(x => x.indicator_id === iid); if (!r) { view.innerHTML = noResults(); return; }
-  const { count } = await sb.from('public_evidence_stubs').select('id', { count: 'exact', head: true }).eq('cycle_id', cid).eq('indicator_id', iid).eq('status', 'approved');
-  const pub = r.publish_state === 'published';
+  const { count } = await sb.from('public_evidence_stubs').select('id', { count: 'exact', head: true }).eq('cycle_id', cid).eq('indicator_id', iid);
+  const pub = r.publish_state === 'published', team = isTeam(), k = dColor(r), di = Math.max(0, domIdx(cid, r.domain_id));
+  const rp = ownersOf(r, 'resp'), ev = ownersOf(r, 'eval'), pct = pub && r.achievement_pct != null ? Number(r.achievement_pct) : null;
+  const sibs = byCycle(cid).filter(x => x.standard_id === r.standard_id && x.indicator_id !== iid).sort((a, b) => sortCodes(a.indicator_code, b.indicator_code))
+    .map(x => ({ href: `#ind/${cid}/${x.indicator_id}`, code: x.indicator_code, text: x.official_text, dom: k }));
+  const evalHtml = pub
+    ? `<dl class="ikv"><dt>المستوى</dt><dd>${esc(r.level_label || '—')}</dd><dt>نسبة التحقق</dt><dd>${pct != null ? num(Math.round(pct)) + '٪' : '—'}</dd><dt>مبررات التقييم</dt><dd>${esc(r.justification || '—')}</dd>${r.strengths ? `<dt>جوانب القوة</dt><dd>${esc(r.strengths)}</dd>` : ''}</dl>`
+    : `<p class="muted">لم يُنشر تقييم هذا المؤشر بعد.</p>`;
+  const evidHtml = count ? await evidenceBlock(cid, iid) : `<p class="muted">لا توجد شواهد معتمدة لهذا المؤشر بعد.</p>`;
   view.innerHTML = crumbs([['النتائج', '#results'], [r.cycle_name, '#cycle/' + cid], [r.domain_name, `#domain/${cid}/${r.domain_id}`], [r.standard_name, `#standard/${cid}/${r.standard_id}`], [r.indicator_code]]) +
-    `<div class="panel"><div class="sec" style="margin:0"><h2>المؤشر ${esc(r.indicator_code)}</h2>${pub ? lvl(r.level_label) : '<span class="lvl none">غير منشور</span>'}</div>
-      <p>${esc(r.official_text)}</p><p class="muted">${esc(r.domain_name)} ‹ ${esc(r.standard_name)}</p>${isTeam() ? `<p><b>المسؤول:</b> ${names(ownersOf(r, 'resp'))}<br><b>المقيم:</b> ${names(ownersOf(r, 'eval'))}</p>` : ''}</div>` +
-    (pub ? `<div class="panel"><h2>نسبة التحقق</h2><p class="pct" style="font-size:1.8rem;margin:0">${num(r.achievement_pct)}٪</p></div>
-      <div class="panel"><h2>مبررات التقييم</h2><p>${esc(r.justification || '—')}</p>${r.strengths ? `<h2>جوانب القوة</h2><p>${esc(r.strengths)}</p>` : ''}</div>`
-      : `<div class="panel"><p class="muted">لم يُنشر تقييم هذا المؤشر بعد.</p></div>`) +
-    (count ? `<div class="panel"><h2>الشواهد (${num(count)})</h2>${await evidenceBlock(cid, iid)}</div>` : '');
+    IndPage.render({
+      back: { href: `#standard/${cid}/${r.standard_id}`, label: 'العودة لمؤشرات المعيار' }, dom: k, domIdx: di, code: r.indicator_code, text: r.official_text, domName: r.domain_name, stdName: r.standard_name, cycleName: r.cycle_name,
+      status: { label: pub ? 'منشور' : 'غير منشور', cls: pub ? 'ok' : '' }, level: pub && r.level_label ? { label: r.level_label, cls: LV[r.level_label] || '' } : null, pct,
+      owners: team ? [{ label: 'مسؤول المؤشر', names: rp }, { label: 'مقيّم المؤشر', names: ev }] : [],
+      stats: [{ label: 'نسبة التحقق', value: pct != null ? num(Math.round(pct)) + '٪' : '—' }, { label: 'مستوى التقييم', value: pub ? (r.level_label || '—') : 'غير منشور' }, { label: 'الشواهد المعتمدة', value: num(count || 0) }, { label: 'مؤشرات المعيار', value: num(sibs.length + 1) }],
+      about: [{ ico: 'layers', k: 'المجال', v: r.domain_name }, { ico: 'doc', k: 'المعيار', v: r.standard_name }, { ico: 'cal', k: 'الدورة', v: r.cycle_name }],
+      ident: [{ ico: 'grid', k: 'رمز المؤشر', v: r.indicator_code }, { ico: 'layers', k: 'المجال', v: r.domain_name }, { ico: 'doc', k: 'المعيار', v: r.standard_name }, { ico: 'cal', k: 'الدورة', v: r.cycle_name },
+        { ico: 'check', k: 'حالة النشر', v: pub ? 'منشور' : 'غير منشور' }, { ico: 'bars', k: 'مستوى التقييم', v: pub ? (r.level_label || '—') : '—' }],
+      evalCard: { html: evalHtml }, evidence: { html: evidHtml, count: count || 0 }, related: sibs });
 }
 async function evidenceBlock(cid, iid) {
   if (role && ['external_evaluator','coordinator','team_member','principal','reviewer'].includes(role.role)) {
