@@ -24,52 +24,7 @@ App.short = short;
 const pct = (a, b) => b ? Math.round(a / b * 100) : 0;
 const bar = p => h`<div class="bar2"><span style="width:${p}%"></span></div>`;
 
-// ===== لوحة المتابعة =====
-Pages.dashboard = async () => {
-  const nc = needCycle(); if (nc) return nc;
-  const ref = await App.ref(); const c = App.cycle();
-  const [ov, ev, ts, cal, tk, lvs] = await Promise.all([
-    must(sb.from('cycle_indicator_overview').select('*').eq('cycle_id', S.cid)),
-    must(sb.from('evidence').select('status').eq('cycle_id', S.cid)),
-    sb.from('team_task_stats').select('*').eq('cycle_id', S.cid),
-    sb.from('team_calendar').select('*').eq('cycle_id', S.cid).gte('event_date', today()).order('event_date').limit(8),
-    sb.from('tasks').select('status,approval').eq('cycle_id', S.cid),
-    must(sb.from('evaluation_levels').select('*').order('sort_order')),
-  ]);
-  const cnt = (k) => ov.filter(o => o.eval_status === k).length;
-  const evc = (k) => ev.filter(e => e.status === k).length;
-  const tasks = (tk.data || []).filter(t => t.approval === 'approved');
-  const domRows = ref.domains.map(d => {
-    const rs = ov.filter(o => o.domain_id === d.id), a = rs.filter(o => o.eval_status === 'approved').length;
-    // نتيجة المجال: متوسط نسب المؤشرات المعتمدة (طريقة مؤقتة غير واردة في الدليل) ومستواها من عتبات الدليل
-    const v = rs.filter(o => o.eval_status === 'approved' && o.achievement_pct != null).map(o => Number(o.achievement_pct)), avg = v.length ? v.reduce((x, y) => x + y, 0) / v.length : null;
-    const lv = avg == null ? null : lvs.find(l => avg >= Number(l.min_pct)) || lvs[lvs.length - 1];
-    return { d, total: rs.length, a, p: pct(a, rs.length), avg, lv, ev: rs.reduce((s, o) => s + Number(o.approved_evidence), 0) };
-  });
-  return h`${pageHead(c.name, h`${sb_('cycle', c.status)}`)}
-  <div class="kpis">
-    <div class="kpi"><b>${nf(ov.length)}</b><span>مؤشراً في الدورة</span></div>
-    <div class="kpi"><b>${nf(cnt('approved'))}</b><span>تقييم معتمد</span></div>
-    <div class="kpi"><b>${nf(cnt('submitted'))}</b><span>بانتظار الاعتماد</span></div>
-    <div class="kpi"><b>${nf(cnt('not_evaluated'))}</b><span>لم يُقيَّم</span></div>
-    <div class="kpi"><b>${nf(evc('approved'))} / ${nf(ev.length)}</b><span>شواهد معتمدة</span></div>
-    <div class="kpi"><b>${nf(evc('new') + evc('under_review'))}</b><span>شواهد تنتظر المراجعة</span></div>
-  </div>
-  ${panel('تقدم المجالات', table([
-    { h: 'المجال', f: r => r.d.name_ar },
-    { h: 'النتيجة', f: r => r.avg == null ? h`<span class="muted">—</span>` : h`<div class="ires"><b>${nf(Math.round(r.avg))}٪</b><span class="lvl ${({ excellence: 'excellence', advancement: 'advancement', launch: 'launch', preparation: 'preparation' })[r.lv?.code] || 'none'}">${r.lv?.label_ar || ''}</span></div>` },
-    { h: 'المؤشرات', f: r => nf(r.total) }, { h: 'المعتمدة', f: r => nf(r.a) },
-    { h: 'التقدم', f: r => h`<div style="display:flex;gap:8px;align-items:center">${bar(r.p)}<span>${nf(r.p)}٪</span></div>` }, { h: 'شواهد معتمدة', f: r => nf(r.ev) },
-  ], domRows))}
-  <div class="two">
-    ${panel('أداء الفريق (المهام المعتمدة)', table([
-      { h: 'العضو', f: r => r.full_name }, { h: 'مكتملة', f: r => nf(r.completed) }, { h: 'جارية', f: r => nf(r.in_progress) }, { h: 'متأخرة', f: r => r.overdue ? badge(nf(r.overdue), 'bad') : '0' },
-    ], ts.data || [], 'لا توجد مهام معتمدة بعد'), h`<small class="muted">${nf(tasks.length)} مهمة معتمدة</small>`)}
-    ${panel('المواعيد القادمة', table([
-      { h: 'التاريخ', f: r => dt(r.event_date) }, { h: 'النوع', f: r => ({ meeting: 'اجتماع', task: 'مهمة', deadline: 'موعد إغلاق', visit: 'زيارة' })[r.kind] }, { h: 'العنوان', f: r => r.title },
-    ], cal.data || [], 'لا توجد مواعيد قادمة'))}
-  </div>`;
-};
+// ===== لوحة المتابعة: انتقلت إلى admin-dashboard.js =====
 
 // ===== الدورات =====
 const cycleFields = (gv) => [

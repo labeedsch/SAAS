@@ -17,6 +17,7 @@ async function queueWa(code, staffId, vars, link) {
   return r.error ? 'error:' + r.error.message : 'ok';
 }
 const waReport = res => { const c = res.reduce((a, r) => (a[r] = (a[r] || 0) + 1, a), {}); toast(`في الطابور: ${nf(c.ok || 0)}${c['no-optin'] ? ` · بلا موافقة/جوال: ${nf(c['no-optin'])}` : ''}${c['no-template'] ? ' · القالب غير موجود' : ''}`); };
+App.queueWa = queueWa; App.waReport = waReport;
 App.waIndicator = async (iid, resp) => {
   const ref = await App.ref(); const ind = ref.im[iid];
   const da = await must(sb.from('domain_assignments').select('staff_id').eq('cycle_id', S.cid).eq('domain_id', ind.dom.id).eq('kind', 'responsible'));

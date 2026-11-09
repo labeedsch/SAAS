@@ -6,6 +6,7 @@ const { sb, h, raw, $, $$, put, S, toast, run, role, isCoord, L } = App;
 
 const MENU = [
   ['dashboard', 'لوحة المتابعة', '*'],
+  ['alerts', 'التنبيهات', '*'],
   ['grp', 'التقويم'],
   ['inds', 'المؤشرات والتقييم', '*'],
   ['evidence', 'الشواهد', '*'],
@@ -31,10 +32,12 @@ function drawMenu() {
   const cur = location.hash.slice(1).split('/')[0] || 'dashboard';
   const groups = []; let g = { title: null, items: [] }; groups.push(g);
   for (const m of MENU) { if (m[0] === 'grp') { g = { title: m[1], items: [] }; groups.push(g); } else if (allowed(m[2])) g.items.push(m); }
-  const link = m => h`<a href="#${m[0]}" class="${m[0] === cur ? 'on' : ''}" ${m[0] === cur ? raw('aria-current="page"') : ''}>${m[1]}</a>`;
+  const badgeN = m => m[0] === 'alerts' && App.alertCount ? h` <span class="nb" aria-label="${App.alertCount} تنبيه">${App.alertCount > 99 ? '99+' : App.alertCount}</span>` : '';
+  const link = m => h`<a href="#${m[0]}" class="${m[0] === cur ? 'on' : ''}" ${m[0] === cur ? raw('aria-current="page"') : ''}>${m[1]}${badgeN(m)}</a>`;
   put($('#menu'), h`${groups.filter(x => x.items.length).map(x => x.title === null ? x.items.map(link)
     : h`<div class="mg"><button type="button" class="mb ${x.items.some(m => m[0] === cur) ? 'on' : ''}" data-mg aria-haspopup="true" aria-expanded="false">${x.title}${CHEV}</button><div class="mdd">${x.items.map(link)}</div></div>`)}`);
 }
+App.drawMenu = drawMenu;
 const closeMenus = () => $$('#menu .mg.open').forEach(el => { el.classList.remove('open'); el.querySelector('[data-mg]').setAttribute('aria-expanded', 'false'); });
 document.addEventListener('click', e => {
   const b = e.target.closest('[data-mg]');
@@ -65,6 +68,7 @@ async function boot() {
   $('#login').hidden = true; $('#shell').hidden = false;
   put($('#who'), h`${me.display_name || ''} · ${L.role[me.role]}`);
   route();
+  App.alerts().then(drawMenu).catch(() => {});
 }
 function drawCycles() {
   put($('#cycSel'), h`${S.cycles.length ? S.cycles.map(c => h`<option value="${c.id}" ${c.id === S.cid ? raw('selected') : ''}>${c.name} — ${L.cycle[c.status]}</option>`) : h`<option value="">لا توجد دورة</option>`}`);
@@ -102,7 +106,7 @@ async function route() {
   } catch (e) { console.error(e); put(view, h`<div class="pn"><p class="err">تعذّر تحميل الصفحة: ${App.errMsg(e)}</p></div>`); }
   window.scrollTo(0, 0);
 }
-App.refresh = async () => { const y = window.scrollY; await route(); window.scrollTo(0, y); };
+App.refresh = async () => { const y = window.scrollY; App.dropCache?.(); await route(); window.scrollTo(0, y); };
 
 document.addEventListener('click', async e => {
   const el = e.target.closest('[data-a]'); if (!el) return;
