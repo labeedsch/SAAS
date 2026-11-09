@@ -110,7 +110,7 @@ App.indWork = d => {
   const grp = (xs, t) => xs.length ? h`<div class="iw-rel"><h3>${t}</h3><div>${xs.map(r => h`<a class="ilink" style="--b:var(--c${d.domC(r)}b);--f:var(--c${d.domC(r)}f)" href="#ind/${r.id}" title="${App.short(r.official_text, 90)}">${r.code}</a>`)}</div></div>` : '';
   const related = (d.linked.length || d.sibs.length) ? h`<details class="iw-sec more"><summary>${ic('grid')} مؤشرات مرتبطة <span class="bdg">${nf(d.linked.length + d.sibs.length)}</span></summary>${grp(d.linked.map(x => d.ref.im[x.href.slice(5)]).filter(Boolean), 'مرتبطة بالشواهد والزيارات')}${grp(d.sibs.map(x => d.ref.im[x.href.slice(5)]).filter(Boolean), 'مؤشرات المعيار نفسه')}</details>` : '';
   const log = d.logHtml ? h`<details class="iw-sec more"><summary>${ic('history')} سجل التعديلات والاعتمادات</summary>${raw(d.logHtml)}</details>` : '';
-  return h`<div class="iw"><a class="iback" href="${d.back.href}">${d.back.label} ${ic('arrow')}</a>${head}<div class="iw-sticky">${nav}</div>${guide}${evid}${evalSec}${follow}${related}${log}</div>`;
+  return h`<div class="iw"><a class="iback" href="${d.back.href}">${d.back.label} ${ic('arrow')}</a>${head}${guide}${evid}${evalSec}${follow}${related}${log}</div>`;
 };
 
 // تنقّل داخلي بين الأقسام بلا تغيير عنوان الصفحة
