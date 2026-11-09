@@ -22,7 +22,7 @@
     if (!i) { box.innerHTML = '<h2>الرابط غير صالح</h2><p class="muted">تحقق من الرابط المرسل إليك أو تواصل مع منسق التقويم.</p>'; return; }
     const open = ['draft', 'scheduled'].includes(i.status);
     box.innerHTML = `<h2>${esc(i.title)}</h2><p>السلام عليكم ${esc(i.full_name)}،</p>
-      <dl class="kv" style="display:grid;grid-template-columns:90px 1fr;gap:6px"><dt class="muted">التاريخ</dt><dd style="margin:0">${esc(new Date(i.meeting_date + 'T00:00:00').toLocaleDateString('ar-SA', { dateStyle: 'full' }))}</dd>
+      <dl class="kv" style="display:grid;grid-template-columns:90px 1fr;gap:6px"><dt class="muted">التاريخ</dt><dd style="margin:0">${esc(new Date(i.meeting_date + 'T00:00:00').toLocaleDateString('ar-SA-u-ca-gregory-nu-latn', { dateStyle: 'full' }))}</dd>
       <dt class="muted">الوقت</dt><dd style="margin:0">${esc((i.start_time || '').slice(0, 5) || '—')}</dd><dt class="muted">المكان</dt><dd style="margin:0">${esc(i.location || '—')}</dd></dl>
       <p>ردّك الحالي: <b>${RS[i.rsvp]}</b></p>
       ${open ? `<div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn pri" id="y">سأحضر</button><button class="btn" id="n">أعتذر</button></div><p class="err" id="e" role="alert"></p>` : '<p class="muted">انتهى باب التأكيد لهذا الاجتماع.</p>'}

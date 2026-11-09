@@ -2,7 +2,7 @@
    المخرجات نصوص HTML. كل القيم النصية تُهرَّب هنا، وما يُمرَّر داخل حقول html يُعدّ موثوقاً (جاهزاً من المستدعي). */
 (() => {
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-const nf = n => (n == null || n === '' || isNaN(n) ? '—' : Number(n).toLocaleString('ar-SA'));
+const nf = n => (n == null || n === '' || isNaN(n) ? '—' : Number(n).toLocaleString('ar-SA-u-ca-gregory-nu-latn'));
 const IC = {
   layers: '<path d="M12 3l9 5-9 5-9-5 9-5z"/><path d="M3 13l9 5 9-5"/>', check: '<path d="M5 12l5 5 9-10"/>',
   doc: '<path d="M7 3h7l4 4v14H7z"/><path d="M14 3v5h5M10 13h5M10 17h5"/>', shield: '<path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M9 12l2 2 4-4"/>',
@@ -52,7 +52,7 @@ function render(d) {
     d.cycleName ? `<span class="ichip">${ic('cal')} ${esc(d.cycleName)}</span>` : '',
     `<span class="ichip code" dir="ltr">${esc(d.code)}</span>`,
     d.status ? `<span class="ichip st ${esc(d.status.cls || '')}">${ic('check')} ${esc(d.status.label)}</span>` : ''].join('');
-  const lvCls = d.level?.cls || 'none', lvName = d.level?.label || d.noResult || 'بلا نتيجة', pTxt = pct != null ? nf(Math.round(pct)) + '٪' : '—';
+  const lvCls = d.level?.cls || 'none', lvName = d.level?.label || d.noResult || 'بلا نتيجة', pTxt = pct != null ? nf(Math.round(pct)) + '%' : '—';
   const art = `<div class="iart lv-${esc(lvCls)}" role="img" aria-label="${pct != null ? 'النتيجة ' + pTxt + '، المستوى ' + esc(lvName) : esc(lvName)}"><svg viewBox="0 0 320 190" class="iart-bg" aria-hidden="true"><ellipse cx="160" cy="176" rx="100" ry="8" fill="currentColor" opacity=".16"/>${spark(48, 52)}${spark(276, 118)}${spark(270, 40, '#f0b34a')}</svg>
     <div class="iring" style="--p:${pct ?? 0}"><div class="irg"><b>${pTxt}</b></div><strong class="ilvname">${esc(lvName)}</strong></div><span class="iart-ic" aria-hidden="true">${ic(DIC[i % 4])}</span></div>`;
   const hero = `<section class="ihero"><div class="ihero-txt"><div class="ichips">${chips}</div>

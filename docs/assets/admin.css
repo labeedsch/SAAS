@@ -283,3 +283,29 @@ body.busy #lbar::after{content:"";position:absolute;inset-block:0;inset-inline-s
 .wb{display:flex;gap:8px;flex-wrap:wrap}
 .win .tm-day{margin:0 0 8px}
 .cmp-p{flex:1 1 280px;max-width:440px}
+
+/* ===== بطاقات المؤشرات بنمط الخطط الذكية ===== */
+.kcs{display:grid;grid-template-columns:repeat(6,1fr);gap:14px;margin-bottom:16px} .kcs.d4{grid-template-columns:repeat(4,1fr)}
+.kc{--f:var(--c0f);--b:var(--c0b);position:relative;display:grid;gap:6px;padding:16px 18px 14px;border-radius:24px;border:1px solid color-mix(in srgb,var(--f) 28%,var(--line));background:linear-gradient(160deg,var(--b),var(--surface) 140%);color:var(--ink);text-decoration:none;box-shadow:var(--shadow);overflow:hidden;transition:transform .15s,box-shadow .15s}
+a.kc:hover{transform:translateY(-3px);box-shadow:var(--shadow2)}
+.kc::after{content:"";position:absolute;inset-inline-start:-30px;bottom:-40px;width:110px;height:110px;border-radius:50%;background:color-mix(in srgb,var(--f) 10%,transparent);pointer-events:none}
+.kc>header{display:flex;align-items:center;gap:10px;min-width:0} .kc-l{font-weight:800;font-size:1rem;color:var(--ink);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.kc-i{display:grid;place-items:center;flex:none;width:38px;height:38px;border-radius:12px;background:color-mix(in srgb,var(--f) 18%,var(--surface));color:var(--f)} .kc-i .ico{width:20px;height:20px}
+.kc-v{font-size:2.5rem;font-weight:800;line-height:1.1;color:var(--f);font-variant-numeric:tabular-nums} .kc-v .of{font-size:1.1rem;color:var(--muted);font-weight:600}
+.kc-b{display:flex;align-items:center;gap:8px;direction:ltr} .kc-b i{flex:1;height:8px;border-radius:99px;background:color-mix(in srgb,var(--f) 16%,var(--soft));overflow:hidden;direction:rtl;display:block} .kc-b u{display:block;height:100%;border-radius:99px;background:var(--f);text-decoration:none}
+.kc-pc{flex:none;padding:1px 9px;border-radius:99px;font-size:.72rem;font-weight:800;color:var(--f);background:color-mix(in srgb,var(--f) 14%,var(--surface));font-variant-numeric:tabular-nums}
+.kc small{color:var(--muted);font-size:.82rem;position:relative;z-index:1}
+.kc.ok{--f:var(--c4f);--b:var(--c4b)} .kc.info{--f:var(--c1f);--b:var(--c1b)} .kc.warn{--f:var(--c3f);--b:var(--c3b)} .kc.bad{--f:var(--c5f);--b:var(--c5b)} .kc.mute{--f:#5b6b7a;--b:var(--soft)}
+.kc.d0{--f:var(--c0f);--b:var(--c0b)} .kc.d1{--f:var(--c1f);--b:var(--c1b)} .kc.d2{--f:var(--c2f);--b:var(--c2b)} .kc.d3{--f:var(--c3f);--b:var(--c3b)}
+.kc.teal.solid{background:linear-gradient(150deg,var(--brand),var(--navy2));border-color:transparent;color:#fff;box-shadow:0 14px 28px color-mix(in srgb,var(--brand) 32%,transparent)}
+.kc.solid .kc-l,.kc.solid .kc-v{color:#fff} .kc.solid small{color:rgba(255,255,255,.82)} .kc.solid .kc-i{background:rgba(255,255,255,.2);color:#fff} .kc.solid .kc-b i{background:rgba(255,255,255,.28)} .kc.solid .kc-b u{background:#fff} .kc.solid .kc-pc{background:rgba(255,255,255,.22);color:#fff} .kc.solid::after{background:rgba(255,255,255,.08)}
+@media (max-width:1100px){.kcs{grid-template-columns:repeat(3,1fr)} .kcs.d4{grid-template-columns:repeat(2,1fr)}}
+@media (max-width:640px){.kcs,.kcs.d4{grid-template-columns:repeat(2,1fr);gap:10px}.kc{padding:12px 12px 10px;border-radius:20px}.kc-v{font-size:2rem}.kc-l{font-size:.9rem}.kc-i{width:32px;height:32px}}
+@media (prefers-reduced-motion:reduce){.kc{transition:none}a.kc:hover{transform:none}}
+/* بطاقات الأرقام داخل النوافذ بالنمط نفسه */
+.ms{--f:var(--c0f);--b:var(--c0b);padding:12px 14px;border-radius:18px;border:1px solid color-mix(in srgb,var(--f) 24%,var(--line));background:linear-gradient(160deg,var(--b),var(--surface) 140%)}
+.ms b{color:var(--f)!important;font-size:1.5rem;font-weight:800}
+.ms.ok{--f:var(--c4f);--b:var(--c4b)} .ms.warn{--f:var(--c3f);--b:var(--c3b)} .ms.bad{--f:var(--c5f);--b:var(--c5b)} .ms.info{--f:var(--c1f);--b:var(--c1b)}
+.db-hero.cmp{grid-template-columns:1.2fr 1.3fr;padding:22px 24px} .db-hero.cmp .db-rings{gap:14px}
+.win{border-radius:24px}
+.kc>header,.win>header{background:none;border:0;box-shadow:none;padding:0;margin:0;position:static;backdrop-filter:none;min-height:0}

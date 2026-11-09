@@ -210,8 +210,8 @@ const LEVELS = [
 ];
 const lvl = p => LEVELS.find(l => p >= l.min && (p < l.max || (l.max === 100 && p <= 100)));
 const lc = p => 'lv-' + lvl(p).c;
-const nf = (n, d = 4) => Number(n).toLocaleString('ar-SA', { maximumFractionDigits: d });
-const pct = p => nf(p) + '٪';
+const nf = (n, d = 4) => Number(n).toLocaleString('ar-SA-u-ca-gregory-nu-latn', { maximumFractionDigits: d });
+const pct = p => nf(p) + '%';
 const badge = p => `<span class="bdg lvb ${lc(p)}">${lvl(p).n}</span>`;
 const tipOf = (n, p) => `${n}: ${pct(p)} — مستوى ${lvl(p).n}`;
 const ring = (p, cls = '') => `<svg class="gau ${cls}" viewBox="0 0 100 100" aria-hidden="true"><circle class="rt" cx="50" cy="50" r="42"/><circle class="rf" cx="50" cy="50" r="42" pathLength="100" style="--v:${p}"/></svg>`;
@@ -295,7 +295,7 @@ document.getElementById('app').innerHTML = `
       <div class="dchart">${DOMAINS.map(d => `<button type="button" class="dbar ${lc(d.p)}" data-go="d-${d.id}" data-tip="${tipOf(d.name, d.p)}. اضغط للتفاصيل" aria-label="${tipOf(d.name, d.p)}. انتقال إلى التفاصيل">
         <span class="rng">${ring(d.p)}<span data-count="${d.p}" data-short="1">${nf(d.p)}</span></span>
         <span><span class="dn">${d.name}</span><small>مستوى ${lvl(d.p).n}</small></span>${badge(d.p)}</button>`).join('')}</div>
-      <div class="legend">${LEVELS.map(l => `<span class="lg lv-${l.c}"><i></i>${l.n} <small>(${nf(l.min)}–${nf(l.max)}٪)</small></span>`).join('')}</div>
+      <div class="legend">${LEVELS.map(l => `<span class="lg lv-${l.c}"><i></i>${l.n} <small>(${nf(l.min)}–${nf(l.max)}%)</small></span>`).join('')}</div>
       ${dumbbell()}
     </div>
   </div>
@@ -317,8 +317,8 @@ document.getElementById('app').innerHTML = `
 <section class="blk" id="s-pri"><h2>أولويات التحسين والتدخل التطويري</h2>
   <div class="prios">${PRIORITIES.map((x, n) => `<article class="prio ${lc(x.p)}"><div class="pn">${nf(n + 1)}</div><div>
     <h3>${x.t} ${badge(x.p)}</h3>
-    <div class="bl" data-tip="${tipOf(x.t, x.p)}. المنطقة المخططة تمثل المسافة إلى بداية التميز (90٪)"><div class="bt"><i class="bv" style="--w:${x.p}%"></i><i class="gp" style="--s:${x.p}%;--g:${Math.max(0, 90 - x.p)}%"></i></div><b class="bn">${pct(x.p)}</b></div>
-    <div class="dist">${x.p < 90 ? `يبعد ${nf(Math.round((90 - x.p) * 10000) / 10000)} نقطة عن بداية مستوى التميز (٩٠٪)` : ''}</div>
+    <div class="bl" data-tip="${tipOf(x.t, x.p)}. المنطقة المخططة تمثل المسافة إلى بداية التميز (90%)"><div class="bt"><i class="bv" style="--w:${x.p}%"></i><i class="gp" style="--s:${x.p}%;--g:${Math.max(0, 90 - x.p)}%"></i></div><b class="bn">${pct(x.p)}</b></div>
+    <div class="dist">${x.p < 90 ? `يبعد ${nf(Math.round((90 - x.p) * 10000) / 10000)} نقطة عن بداية مستوى التميز (90%)` : ''}</div>
     <p><b>الإجراء المقترح:</b> ${x.a}</p>${x.i ? `<p><b>التدخل:</b> ${x.i}</p>` : ''}</div></article>`).join('')}</div>
   <p class="muted sm">الأولويات مرتبة من الأقل نسبة إلى الأعلى.</p>
   <div class="acts noprint" style="margin-top:10px"><button type="button" class="btn" onclick="window.print()">طباعة الصفحة</button></div>
@@ -336,7 +336,7 @@ function countUp(el) {
   const t0 = performance.now(), D = 1100;
   (function f(now) {
     const k = Math.min(1, (now - t0) / D), e = 1 - Math.pow(1 - k, 3), v = t * e;
-    el.textContent = k >= 1 ? fin : (isP ? nf(v, 1) + '٪' : nf(v, t % 1 ? 2 : 0));
+    el.textContent = k >= 1 ? fin : (isP ? nf(v, 1) + '%' : nf(v, t % 1 ? 2 : 0));
     if (k < 1) requestAnimationFrame(f);
   })(t0);
 }

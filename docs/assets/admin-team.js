@@ -52,7 +52,7 @@ function teamRows(D) {
 
 /* ===== النظرة العامة: لوحة متابعة تشغيلية (ماذا عندنا وما الذي يحتاج حركة)، لا إحصاءات ===== */
 const dueTxt = s => { const n = dayDiff(s); return n < 0 ? `متأخر ${nf(-n)} يوم` : n === 0 ? 'اليوم' : n === 1 ? 'غداً' : `بعد ${nf(n)} أيام`; };
-const longDate = s => new Date(String(s).slice(0, 10) + 'T00:00:00').toLocaleDateString('ar-SA-u-ca-gregory', { weekday: 'long', day: 'numeric', month: 'long' });
+const longDate = s => new Date(String(s).slice(0, 10) + 'T00:00:00').toLocaleDateString('ar-SA-u-ca-gregory-nu-latn', { weekday: 'long', day: 'numeric', month: 'long' });
 const DAYS = [['late', 'متأخر', d => d < 0], ['today', 'اليوم', d => d === 0], ['tomorrow', 'غداً', d => d === 1], ['week', 'هذا الأسبوع', d => d >= 2 && d <= 7], ['month', 'خلال شهر', d => d >= 8 && d <= 30]];
 const act = (label, a, data, cls) => ({ label, a, data, cls }), lnk = (label, href, cls) => ({ label, href, cls });
 

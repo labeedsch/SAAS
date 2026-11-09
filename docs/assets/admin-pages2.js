@@ -35,7 +35,7 @@ Pages.inds = async () => {
   <div class="pn">${table([
     { h: 'الرمز', f: r => h`<a href="#ind/${r.i.id}" dir="ltr"><b>${r.i.code}</b></a>` }, { h: 'المؤشر', f: r => App.short(r.i.official_text, 80) },
     { h: 'المسؤول', f: r => r.rs.map(x => staffName(x.staff_id)).join('، ') || '—' }, { h: 'المقيّم', f: r => r.ev.map(x => staffName(x.staff_id)).join('، ') || '—' },
-    { h: 'الحالة', f: r => sb_('eval', r.o.eval_status || 'not_evaluated') }, { h: 'النسبة', f: r => r.o.achievement_pct != null ? nf(r.o.achievement_pct) + '٪' : '—' },
+    { h: 'الحالة', f: r => sb_('eval', r.o.eval_status || 'not_evaluated') }, { h: 'النسبة', f: r => r.o.achievement_pct != null ? nf(r.o.achievement_pct) + '%' : '—' },
     { h: 'المستوى', f: r => lm[r.o.level_id] || '—' }, { h: 'الشواهد', f: r => `${nf(r.o.approved_evidence || 0)} / ${nf(r.o.total_evidence || 0)}` },
   ], rows, 'لا توجد مؤشرات مطابقة')}</div>
   <p class="muted">الشواهد: المعتمدة / الإجمالي. المؤشر الذي لا تقييم له يظهر «لم يُقيَّم» ولا يُحسب صفراً.</p>`;
@@ -80,7 +80,7 @@ Pages.ind = async ([id]) => {
   Act.evEdit = async () => {
     const stOpts = [['draft', L.eval.draft], ['submitted', L.eval.submitted]]; if (isCoord() || role() === 'principal') stOpts.push(['approved', L.eval.approved]);
     const v = await ask('تقييم المؤشر ' + ind.code, [
-      { k: 'achievement_pct', l: 'نسبة التحقق (٪)', t: 'number', min: 0, max: 100, hint: 'يُشتق المستوى منها: التميز 90+، التقدم 75، الانطلاق 50، التهيئة أقل' },
+      { k: 'achievement_pct', l: 'نسبة التحقق (%)', t: 'number', min: 0, max: 100, hint: 'يُشتق المستوى منها: التميز 90+، التقدم 75، الانطلاق 50، التهيئة أقل' },
       { k: 'status', l: 'حالة التقييم', t: 'select', req: 1, o: stOpts }, { k: 'justification', l: 'مبررات التقييم', t: 'textarea', rows: 5 },
       { k: 'strengths', l: 'جوانب القوة', t: 'textarea' }, { k: 'gaps_notes', l: 'الفجوات والملاحظات', t: 'textarea' }, { k: 'data_sources', l: 'مصادر البيانات', t: 'textarea', rows: 2 }], ev || { status: 'draft' }, { wide: true });
     if (!v) return;

@@ -4,7 +4,7 @@ const $ = s => document.querySelector(s), view = $('#view');
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const LV = { 'التميز':'excellence','التقدم':'advancement','الانطلاق':'launch','التهيئة':'preparation' };
 const lvl = l => `<span class="lvl ${LV[l]||'none'}">${esc(l||'غير مُقيَّم')}</span>`;
-const num = n => Number(n).toLocaleString('ar-SA');
+const num = n => Number(n).toLocaleString('ar-SA-u-ca-gregory-nu-latn');
 const DOM = [0, 3, 2, 1]; // ألوان المجالات الأربعة: تيل، ذهبي، بنفسجي، أزرق
 const IC = {
   layers:'<path d="M12 3l9 5-9 5-9-5 9-5z"/><path d="M3 13l9 5 9-5"/>', check:'<path d="M5 12l5 5 9-10"/>',
@@ -29,7 +29,7 @@ const grpLevel = rs => { const v = rs.filter(r => r.publish_state === 'published
   if (!v.length) return { key: 'none', avg: null };
   const avg = v.reduce((a, b) => a + b, 0) / v.length, t = THR.find(x => avg >= x[1]);
   return { key: t ? t[0] : 'preparation', avg }; };
-const resOf = rs => { const g = grpLevel(rs); return { g, txt: g.avg != null ? num(Math.round(g.avg)) + '٪' : '—', name: GL[g.key], p: g.avg != null ? Math.round(g.avg) : 0 }; };
+const resOf = rs => { const g = grpLevel(rs); return { g, txt: g.avg != null ? num(Math.round(g.avg)) + '%' : '—', name: GL[g.key], p: g.avg != null ? Math.round(g.avg) : 0 }; };
 const GL = { excellence: 'التميز', advancement: 'التقدم', launch: 'الانطلاق', preparation: 'التهيئة', none: 'بلا تقييم منشور' };
 async function load() {
   const { data, error } = await sb.from('public_results').select('*').order('indicator_code');
@@ -111,7 +111,7 @@ function pcard(r) {
     ? `<span class="av">${rp.length ? esc(initials(rp[0])) : ic('users')}</span><div><b title="${esc(rp.join('، '))}">${firstPlus(rp)}</b><small>${ic('users')} المقيم: <span title="${esc(ev.join('، '))}">${firstPlus(ev)}</span></small></div>`
     : `<span class="av">${ic(DIC[i % 4])}</span><div><b>${esc(r.standard_name)}</b><small>${ic('layers')} المعيار ${esc(r.standard_code)}</small></div>`;
   const stat = pub
-    ? `<div class="pstat ${LV[r.level_label] || 'none'}"><span class="pst-l">${ic('check')} تم التقييم</span><b class="pst-v">${esc(r.level_label || 'منشور')}</b><span class="pst-p">${r.achievement_pct != null ? num(Math.round(r.achievement_pct)) + '٪' : '—'}</span></div>`
+    ? `<div class="pstat ${LV[r.level_label] || 'none'}"><span class="pst-l">${ic('check')} تم التقييم</span><b class="pst-v">${esc(r.level_label || 'منشور')}</b><span class="pst-p">${r.achievement_pct != null ? num(Math.round(r.achievement_pct)) + '%' : '—'}</span></div>`
     : `<div class="pstat none"><span class="pst-l">${ic('cal')} لم يُنشر التقييم بعد</span></div>`;
   const who = isTeam()
     ? `<div class="pwho"><div><small>مسؤول المؤشر</small><span class="av">${rp.length ? esc(initials(rp[0])) : ic('users')}</span><b title="${esc(rp.join('، '))}">${firstPlus(rp)}</b></div><div><small>المقيم</small><b title="${esc(ev.join('، '))}">${firstPlus(ev)}</b></div></div>` : '';
@@ -175,7 +175,7 @@ function lrow(r) {
   const pub = r.publish_state === 'published';
   return `<a class="ind lrow" href="#ind/${r.cycle_id}/${r.indicator_id}"><code>${esc(r.indicator_code)}</code>
     <p>${esc(r.official_text)}<small class="lmeta">${esc(r.domain_name)} · المعيار ${esc(r.standard_code)}${isTeam() ? ` · المسؤول: ${names(ownersOf(r, 'resp'))} · المقيم: ${names(ownersOf(r, 'eval'))}` : ''}</small></p>
-    ${pub ? `${lvl(r.level_label)} <span class="pct">${num(r.achievement_pct)}٪</span>` : '<span class="lvl none">غير منشور</span>'}</a>`;
+    ${pub ? `${lvl(r.level_label)} <span class="pct">${num(r.achievement_pct)}%</span>` : '<span class="lvl none">غير منشور</span>'}</a>`;
 }
 function pillsHtml(all) {
   const base = all.filter(r => pass(r, 'st'));
@@ -220,7 +220,7 @@ function home() {
     <p class="h2-p">بوابة شفافة تعرض مجالات التقويم الذاتي ومعاييره ومؤشراته ونتائجه المعتمدة، وفق دليل هيئة تقويم التعليم والتدريب.</p>
     <div class="h2-cta"><button type="button" class="btn gold" id="goInd">استعرض المؤشرات ${ic('arrow')}</button><a class="btn ghost" href="#results">نتائج الدورات</a></div>
     <div class="pills"><span class="pill">${ic('check')} نتائج معتمدة</span><span class="pill">${ic('doc')} شواهد موثّقة</span><span class="pill">${ic('shield')} خصوصية محمية</span></div></div>
-    <div class="h2-panel"><div class="h2-ring" style="--p:${first ? pp : 0}" role="img" aria-label="نسبة النشر ${pp}٪"><div><b>${first ? num(pp) + '٪' : '—'}</b><small>نسبة النشر</small></div></div>
+    <div class="h2-panel"><div class="h2-ring" style="--p:${first ? pp : 0}" role="img" aria-label="نسبة النشر ${pp}%"><div><b>${first ? num(pp) + '%' : '—'}</b><small>نسبة النشر</small></div></div>
       <div class="h2-stats"><div><b>${num(first ? cnt('domain_id') : 4)}</b><span>مجالات</span></div><div><b>${num(first ? cnt('standard_id') : 11)}</b><span>معياراً</span></div>
         <div><b>${num(first ? rs.length : 49)}</b><span>مؤشراً</span></div><div><b>${first ? num(pub) : '—'}</b><span>${first ? 'منشورة' : 'لا دورة منشورة'}</span></div></div></div></section>` +
     (first && rs.length ? `<div class="sec"><div><h2>مجالات التقويم</h2><p class="muted sub">اضغط على أي مجال لفرز المؤشرات به، أو انتقل إلى صفحته الكاملة.</p></div></div>` + domCards(first[0], rs) +
@@ -273,7 +273,7 @@ function results() {
   if (!cs.length) { view.innerHTML = noResults(); return; }
   view.innerHTML = `<div class="sec"><h2>نتائج التقويم</h2></div><div class="grid">${cs.map(([id, name]) => {
     const rs = byCycle(id), p = pubCount(rs);
-    return `<a class="card" href="#cycle/${id}"><span class="ic">${ic('layers')}</span><div class="ct"><h3>${esc(name)}</h3><small>${num(p)} من ${num(rs.length)} مؤشراً منشور</small></div><b class="big">${num(pctOf(p, rs.length))}٪</b><div class="bar"><span style="width:${pctOf(p, rs.length)}%"></span></div></a>`;
+    return `<a class="card" href="#cycle/${id}"><span class="ic">${ic('layers')}</span><div class="ct"><h3>${esc(name)}</h3><small>${num(p)} من ${num(rs.length)} مؤشراً منشور</small></div><b class="big">${num(pctOf(p, rs.length))}%</b><div class="bar"><span style="width:${pctOf(p, rs.length)}%"></span></div></a>`;
   }).join('')}</div>`;
 }
 
@@ -311,7 +311,7 @@ function domain(cid, did) {
       : `<p class="muted tnote">بيانات المقيمين والمسؤولين متاحة لفريق التقويم بعد تسجيل الدخول.</p>`) +
     `<div class="sec" id="shead"><div><h2>معايير المجال</h2><p class="muted sub">اضغط على أي معيار لعرض مؤشراته.</p></div><div class="vbtns" id="svbtns"></div></div><div id="slist"></div>
     <div class="sec"><div><h2>مؤشرات المجال</h2><p class="muted sub">ملوّنة بمستوى كل مؤشر.</p></div></div><div class="irows">${rs.slice().sort((a, b) => sortCodes(a.indicator_code, b.indicator_code)).map(r => { const pub = r.publish_state === 'published';
-      return `<a class="irow glv ${pub ? (LV[r.level_label] || 'none') : 'none'}" href="#ind/${cid}/${r.indicator_id}"><code>${esc(r.indicator_code)}</code><span class="itx">${esc(r.official_text)}</span><span class="glbadge s">${pub ? esc(r.level_label || 'منشور') + (r.achievement_pct != null ? ' · ' + num(Math.round(r.achievement_pct)) + '٪' : '') : 'غير منشور'}</span></a>`; }).join('')}</div>`;
+      return `<a class="irow glv ${pub ? (LV[r.level_label] || 'none') : 'none'}" href="#ind/${cid}/${r.indicator_id}"><code>${esc(r.indicator_code)}</code><span class="itx">${esc(r.official_text)}</span><span class="glbadge s">${pub ? esc(r.level_label || 'منشور') + (r.achievement_pct != null ? ' · ' + num(Math.round(r.achievement_pct)) + '%' : '') : 'غير منشور'}</span></a>`; }).join('')}</div>`;
 
   const card = s => {
     const sr = rs.filter(r => r.standard_id === s.standard_id), sp = pubCount(sr), sc = pctOf(sp, sr.length);

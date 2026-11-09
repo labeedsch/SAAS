@@ -31,9 +31,9 @@ const L = {
 };
 const lab = (m, k) => L[m][k] ?? k ?? '—';
 const opts = m => Object.entries(L[m]);
-const nf = n => (n == null ? '—' : Number(n).toLocaleString('ar-SA'));
-const dt = d => d ? new Date(d.length <= 10 ? d + 'T00:00:00' : d).toLocaleDateString('ar-SA', { year: 'numeric', month: 'short', day: 'numeric' }) : '—';
-const dtt = d => d ? new Date(d).toLocaleString('ar-SA', { dateStyle: 'medium', timeStyle: 'short' }) : '—';
+const nf = n => (n == null ? '—' : Number(n).toLocaleString('ar-SA-u-ca-gregory-nu-latn'));
+const dt = d => d ? new Date(d.length <= 10 ? d + 'T00:00:00' : d).toLocaleDateString('ar-SA-u-ca-gregory-nu-latn', { year: 'numeric', month: 'short', day: 'numeric' }) : '—';
+const dtt = d => d ? new Date(d).toLocaleString('ar-SA-u-ca-gregory-nu-latn', { dateStyle: 'medium', timeStyle: 'short' }) : '—';
 const today = () => new Date().toISOString().slice(0, 10);
 const codeCmp = (a, b) => String(a).localeCompare(String(b), 'en', { numeric: true });
 

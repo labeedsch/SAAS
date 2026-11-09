@@ -84,7 +84,7 @@ function headFor(name, args) {
   const tabs = hub.tabs.filter(t => allowed(t[2])), t = tabs.find(x => x[0] === args[0]) || tabs[0];
   return { kick: hub.title, title: t?.[1] || hub.title, desc: t?.[3] || '' };
 }
-const hhmm = d => d.toLocaleTimeString('ar-SA', { hour: 'numeric', minute: '2-digit' });
+const hhmm = d => d.toLocaleTimeString('ar-SA-u-ca-gregory-nu-latn', { hour: 'numeric', minute: '2-digit' });
 function drawHead(hd) {
   App.head = hd || App.head; const x = App.head; if (!x) return;
   put($('#pghead'), h`<div class="wrap pgh"><div class="pgt"><small>${x.kick}</small><h1>${x.title}</h1></div><p class="pgd">${x.desc}</p>

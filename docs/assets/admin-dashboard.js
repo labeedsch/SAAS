@@ -96,7 +96,7 @@ function buildAlerts(D) {
   if (co || pr) add('eval', 'تقييمات بانتظار الاعتماد', 'note', 'تقييمات أرسلها المقيّمون وتنتظر الاعتماد النهائي.',
     evals.filter(e => e.status === 'submitted').sort((a, b) => new Date(a.updated_at) - new Date(b.updated_at)).map(e => ({
       uid: 'evl:' + e.id, tone: Math.floor((Date.now() - new Date(e.updated_at)) / MS) >= 3 ? 'bad' : 'warn', title: `${code(e.indicator_id)} — ${itext(e.indicator_id)}`,
-      sub: `${e.achievement_pct != null ? nf(Math.round(e.achievement_pct)) + '٪' : 'بلا نسبة'}${lvl(e.level_id) ? ' · ' + lvl(e.level_id) : ''} · أُرسل ${ago(e.updated_at)}`,
+      sub: `${e.achievement_pct != null ? nf(Math.round(e.achievement_pct)) + '%' : 'بلا نسبة'}${lvl(e.level_id) ? ' · ' + lvl(e.level_id) : ''} · أُرسل ${ago(e.updated_at)}`,
       acts: [open(e.indicator_id), ...(e.level_id ? [{ label: 'اعتماد', a: 'dbEvalApprove', data: { id: e.id }, cls: 'pri' }] : [])] })));
   if (co) {
     add('tprop', 'مقترحات مهام تنتظر قرارك', 'task', 'اقتراحات الأعضاء لا تصبح تكليفاً إلا باعتمادك.',
@@ -215,6 +215,12 @@ const logLine = (l, D) => {
 };
 
 /* ===== اللوحة الشاملة: نظرة كاملة على المنصة، ولكل قسم نافذته ===== */
+const ring = (p, label, sub, tone) => {
+  const v = Math.max(0, Math.min(100, p || 0)), C = 2 * Math.PI * 34;
+  return h`<div class="db-ring ${tone}"><div class="db-rg"><svg viewBox="0 0 80 80" aria-hidden="true"><circle class="t" cx="40" cy="40" r="34"/><circle class="v" cx="40" cy="40" r="34" stroke-dasharray="${(v / 100 * C).toFixed(1)} ${C.toFixed(1)}" transform="rotate(-90 40 40)"/></svg><b>${nf(Math.round(v))}%</b></div><strong>${label}</strong><small>${sub}</small></div>`;
+};
+/* بطاقة مؤشر بنمط بطاقات الخطط الذكية: أيقونة، رقم كبير، شريط مع نسبة، وصف */
+const kc = (tone, icon, label, value, p, cap, href, solid) => h`<${raw(href ? 'a' : 'div')} ${raw(href ? `href="${href}"` : '')} class="kc ${tone} ${solid ? 'solid' : ''}"><header><span class="kc-i">${ico(icon)}</span><span class="kc-l">${label}</span></header><b class="kc-v">${value}</b><div class="kc-b"><span class="kc-pc">${nf(Math.round(p || 0))}%</span><i><u style="width:${Math.max(0, Math.min(100, p || 0))}%"></u></i></div><small>${cap}</small></${raw(href ? 'a' : 'div')}>`;
 const win = (cls, icon, title, href, linkLabel, body) => h`<section class="win ${cls}"><header><span class="db-gi">${ico(icon)}</span><h2>${title}</h2><a class="btn sm" href="${href}">${linkLabel}</a></header>${body}</section>`;
 const ms = (label, v, tone = '') => h`<div class="ms ${tone}"><b>${nf(v)}</b><small>${label}</small></div>`;
 const mini = (xs, empty) => xs.length ? h`<ul class="wl">${xs}</ul>` : h`<p class="muted empty">${empty}</p>`;
@@ -254,11 +260,13 @@ Pages.dashboard = async () => {
   return h`
   ${strip.length ? h`<div class="db-strip" role="region" aria-label="الإعلانات">${ico('mega')}<div>${strip.slice(0, 5).map(a => h`<a href="#ann" class="${a.priority}">${a.priority !== 'normal' ? h`<b>${L.prio[a.priority]}:</b> ` : ''}${a.title}${!co && !readSet.has(a.id) ? h` <i class="db-dot" title="لم تطّلع عليه"></i>` : ''}</a>`)}</div><a class="btn sm" href="#ann">كل الإعلانات</a></div>` : ''}
 
-  <section class="cmp"><div class="cmp-h"><div><small>${c.name} · ${L.cycle[c.status] || ''}${c.academic_year ? ' · ' + c.academic_year : ''}</small><h2>إنجاز التقويم الذاتي</h2>
-      <p class="muted">${left == null ? 'لم يُحدَّد تاريخ نهاية الدورة.' : left >= 0 ? 'متبقٍ ' + nf(left) + ' يوماً على نهاية الدورة (' + dt(c.end_date) + ')' : 'تجاوزت الدورة نهايتها بـ ' + nf(-left) + ' يوماً'}</p></div>
-    <div class="cmp-p" role="img" aria-label="${pct}٪ من المؤشرات معتمدة"><b>${nf(pct)}٪</b><span class="mp-bar big"><i style="width:${pct}%"></i></span><small>${nf(nOk)} من ${nf(nInd)} مؤشراً معتمداً</small></div></div>
-    <div class="cmp-t">${ms('مجالات منجزة من ' + nf(doms.length), domDone, 'ok')}${ms('مجالات متبقية', doms.length - domDone, doms.length - domDone ? 'warn' : '')}${ms('معايير منجزة من ' + nf(stds.length), stdDone, 'ok')}${ms('مؤشرات متبقية', nInd - nOk, nInd - nOk ? 'warn' : '')}${ms('شواهد معتمدة من ' + nf(evid.length), evOk)}${ms('مهام منجزة من ' + nf(tk.length), tkDone)}</div>
-    <div class="cmp-d">${doms.map(({ d, n, ok, done }, i) => h`<a href="#inds/map" class="cd ${done ? 'done' : ''}" style="--f:var(--c${i % 4}f);--b:var(--c${i % 4}b)"><b>${d.name_ar}</b><span class="mp-bar"><i style="width:${n ? Math.round(ok / n * 100) : 0}%"></i></span><small>${done ? 'منجز' : 'متبقٍ ' + nf(n - ok) + ' من ' + nf(n)}</small></a>`)}</div></section>
+  <section class="db-hero cmp"><div class="db-ht"><small>لوحة التحكم · ${c.name}</small><h1>متابعة التقويم الذاتي</h1>
+      <p class="muted">${left == null ? 'لم يُحدَّد تاريخ نهاية الدورة.' : left >= 0 ? 'متبقٍ ' + nf(left) + ' يوماً على نهاية الدورة · ' + dt(c.end_date) : 'تجاوزت الدورة نهايتها بـ ' + nf(-left) + ' يوماً'}</p>
+      <div class="chips"><a class="db-chip ${A.total ? 'warn' : 'ok'}" href="#dashboard/alerts">${ico('bell')} ${A.total ? nf(A.total) + ' تحتاج إجراء' : 'لا إجراءات معلّقة'}</a><span class="db-chip">${ico('layers')} ${nf(stdDone)} معيار منجز من ${nf(stds.length)}</span><span class="db-chip">${ico('task')} ${nf(tkDone)} مهمة منجزة من ${nf(tk.length)}</span></div></div>
+    <div class="db-rings">${ring(pct, 'إنجاز المؤشرات', nf(nOk) + ' من ' + nf(nInd) + ' معتمد', 'info')}${ring(doms.length ? domDone / doms.length * 100 : 0, 'المجالات المنجزة', nf(domDone) + ' من ' + nf(doms.length) + ' · متبقٍ ' + nf(doms.length - domDone), 'ok')}${ring(evid.length ? evOk / evid.length * 100 : 0, 'الشواهد المعتمدة', nf(evOk) + ' من ' + nf(evid.length), '')}</div></section>
+
+  <div class="kcs">${kc('teal', 'layers', 'كل المؤشرات', nf(nInd), pct, 'المعتمد منها ' + nf(nOk), '#inds/map', true)}${kc('ok', 'check', 'معتمد', nf(nOk), nInd ? nOk / nInd * 100 : 0, 'تقييم موثّق ومعتمد', '#inds/list')}${kc('info', 'clock', 'بانتظار الاعتماد', nf(nSub), nInd ? nSub / nInd * 100 : 0, 'أُرسل للمراجعة', '#inds/list')}${kc('mute', 'note', 'مسودة', nf(nDr), nInd ? nDr / nInd * 100 : 0, 'تقييم لم يكتمل', '#inds/list')}${kc('warn', 'alert', 'لم يُقيَّم', nf(nNo), nInd ? nNo / nInd * 100 : 0, 'لم يبدأ تقييمه', '#inds/list')}${kc('bad', 'users', 'بلا مقيّم', nf(noEv), nInd ? noEv / nInd * 100 : 0, 'يحتاج إسناداً', '#platform/assign')}</div>
+  <div class="kcs d4">${doms.map(({ d, n, ok, done }, i) => kc('d' + (i % 4), 'flag', d.name_ar, h`${nf(ok)}<span class="of"> / ${nf(n)}</span>`, n ? ok / n * 100 : 0, done ? 'منجز' : 'متبقٍ ' + nf(n - ok) + ' مؤشراً', '#inds/map'))}</div>
 
   <div class="wins">
   ${win('w-act ' + (A.bySev.bad ? 'bad' : A.total ? 'warn' : 'ok'), 'bell', 'إجراءات تحتاج قرارك', '#dashboard/alerts', 'كل التنبيهات (' + nf(A.total) + ')',
