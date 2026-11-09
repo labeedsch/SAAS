@@ -8,6 +8,7 @@
     const max = root.scrollHeight - innerHeight;
     const p = max > 0 ? Math.min(1, Math.max(0, scrollY / max)) : 0;
     root.style.setProperty('--sp', p.toFixed(4));
+    const hd = document.querySelector('header'); if (hd) hd.classList.toggle('scrolled', scrollY > 8);
   };
   const tick = () => { if (!raf) raf = requestAnimationFrame(update); };
   addEventListener('scroll', tick, { passive: true });

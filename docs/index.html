@@ -15,6 +15,8 @@
 <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap"></noscript>
 <link rel="stylesheet" href="assets/theme.css?v=20261112i">
 <link rel="stylesheet" href="assets/admin.css?v=20261111v">
+<link rel="stylesheet" href="assets/motion.css?v=20261112q">
+<link rel="stylesheet" href="assets/home.css?v=20261112q">
 </head>
 <body class="pub">
 <header><div class="wrap top">
@@ -23,7 +25,7 @@
   <nav id="nav"><a href="#home" data-n="home"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 11l8-7 8 7v9H4z"/><path d="M10 20v-5h4v5"/></svg>الرئيسية</a><a href="about.html" data-n="about"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 11v5M12 8v.1"/></svg>عن النظام</a><div class="ng"><button type="button" class="ngb" aria-haspopup="true" aria-expanded="false"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19h16M7 16V9M12 16V5M17 16v-4"/></svg>تحليل النتائج<svg class="ico car" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button><div class="ngm" role="menu"><a href="analysis.html" role="menuitem">تحليل نتائج التقويم الذاتي</a><a href="external-analysis.html" role="menuitem">تحليل نتائج التقويم الخارجي</a><a href="comparison.html" role="menuitem">مقارنة التقويم الذاتي بالخارجي</a></div></div><a href="admin.html" id="adminLink" hidden><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="7" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/><rect x="13" y="13" width="7" height="7" rx="1.5"/></svg>لوحة التحكم</a><a href="#login" data-n="login" id="loginLink" class="navbtn">دخول</a></nav>
   <span class="moe"><b>وزارة التعليم</b><small>Ministry of Education</small></span>
 </div></header>
-<main class="wrap" id="view"><p class="muted">جارٍ التحميل…</p></main>
+<main class="wrap" id="view"><div class="skel" role="status" aria-busy="true" aria-label="جارٍ التحميل"><div class="sk-hero"></div><div class="sk-bar"></div><div class="sk-row"></div><div class="sk-row"></div><div class="sk-row"></div></div></main>
 <footer class="credit"><div class="wrap cr"><span class="moe"><b>وزارة التعليم</b><small>Ministry of Education</small></span><div class="mid"><b>مدرسة لبيد بن ربيعة المتوسطة</b><span>مدير المدرسة: خالد بن عبدالرحمن الباش</span><span>التقويم الذاتي – 1448هـ</span></div><div class="mid" style="margin-inline-start:auto"><small>أحد منتجات</small><b>مختبر الأفكار — عبدالعزيز المديني AI</b></div></div></footer>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="assets/config.js?v=20261111v"></script>
@@ -32,6 +34,7 @@
 <script src="assets/app.js?v=20261112p"></script>
 <script src="assets/nav.js?v=20261111v"></script>
 <script src="assets/navgroup.js?v=20261111v"></script>
+<script src="assets/motion.js?v=20261112r" defer></script>
 <script src="assets/footer.js?v=20261112h"></script>
 <script src="assets/navprogress.js?v=20261112a" defer></script>
 </body>

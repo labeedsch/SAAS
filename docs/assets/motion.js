@@ -4,8 +4,8 @@
 (() => {
   if (matchMedia('(prefers-reduced-motion:reduce)').matches || !('IntersectionObserver' in window)) return;
   const NUM = /^([+−-]?)(\d[\d,]*)(\.\d+)?(%?)$/, FRAC = /^(\d[\d,]*)\/(\d[\d,]*)$/;
-  const COUNT = '.k b,.hgau .mid b,.gapw b,.pcts,.bn,.pv,.sc .rng b,.dbar .rng>span,.kc-v,.kc-pc,.db-k b,.db-rg b,.mo-n';
-  const BARS = '.kc-b u,.db-pb span', RINGS = '.db-rg .v', REVEAL = '.k,.sc,.prio,.dbar,.kc,.db-k,.db-g,.db-ring,.cd';
+  const COUNT = '.k b,.hgau .mid b,.gapw b,.pcts,.bn,.pv,.sc .rng b,.dbar .rng>span,.kc-v,.kc-pc,.db-k b,.db-rg b,.mo-n,.hero3 .tile b,.h3-ring .rg b';
+  const BARS = '.kc-b u,.db-pb span,.lr-bar span,.pcard .bar span', RINGS = '.db-rg .v', REVEAL = '.k,.sc,.prio,.dbar,.kc,.db-k,.db-g,.db-ring,.cd,.hero3 .tile,.lrow2,.pcard';
   const CARD = '.kc,.db-k,.db-ring,.k,.sc,.dbar,.gapw,.dsec,.srow,.prio,.cd,.db-g';
   const done = new WeakSet(), seen = new Map(), shown = new Set(), jobs = new WeakMap();
   const ease = t => 1 - Math.pow(1 - t, 3);
