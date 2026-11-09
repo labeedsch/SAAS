@@ -173,6 +173,10 @@ document.addEventListener('click', async e => {
 });
 $('#cycSel').onchange = e => { S.cid = e.target.value || null; try { localStorage.setItem('cyc', S.cid || ''); } catch {} route(); };
 $('#out').onclick = async () => { await sb.auth.signOut(); S.me = null; showLogin(); };
+// انتهاء الجلسة من جهة الخادم (أو تسجيل الخروج من تبويب آخر): نرجع إلى شاشة الدخول برسالة واضحة بدل أخطاء صامتة
+sb.auth.onAuthStateChange((ev) => { if (ev === 'SIGNED_OUT' && S.me) { S.me = null; showLogin('انتهت الجلسة، سجّل الدخول من جديد.'); } });
+window.addEventListener('offline', () => toast('لا يوجد اتصال بالإنترنت: لن تُحفظ التعديلات حتى يعود', true));
+window.addEventListener('online', () => { toast('عاد الاتصال'); App.refresh?.(); });
 window.addEventListener('hashchange', () => route());
 // الشريط العلوي (الشعار) يختفي عند التمرير ويبقى شريط الأقسام وترويسة الصفحة ثابتَين
 const setHH = () => { const hh = $('.astick header')?.offsetHeight || 0, st = document.documentElement.style; st.setProperty('--hh', hh + 'px'); st.setProperty('--sh', Math.max(0, ($('.astick')?.offsetHeight || 0) - hh) + 'px'); };

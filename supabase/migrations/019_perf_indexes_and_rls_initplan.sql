@@ -1,0 +1,43 @@
+-- فهارس للمفاتيح الأجنبية المستخدمة في الاستعلامات اليومية للوحة المنسق
+create index if not exists tasks_cycle_idx on public.tasks(cycle_id);
+create index if not exists tasks_assignee_idx on public.tasks(assignee_staff_id);
+create index if not exists tasks_proposed_by_idx on public.tasks(proposed_by);
+create index if not exists tasks_indicator_idx on public.tasks(indicator_id);
+create index if not exists tasks_meeting_idx on public.tasks(meeting_id);
+create index if not exists tasks_visit_idx on public.tasks(visit_id);
+create index if not exists evidence_cycle_ind_idx on public.evidence(cycle_id, indicator_id);
+create index if not exists evidence_uploaded_by_idx on public.evidence(uploaded_by);
+create index if not exists evidence_files_evidence_idx on public.evidence_files(evidence_id);
+create index if not exists evidence_indicators_ind_idx on public.evidence_indicators(indicator_id);
+create index if not exists evaluations_indicator_idx on public.evaluations(indicator_id);
+create index if not exists meetings_cycle_idx on public.meetings(cycle_id);
+create index if not exists meeting_invitees_staff_idx on public.meeting_invitees(staff_id);
+create index if not exists meeting_agenda_meeting_idx on public.meeting_agenda_items(meeting_id);
+create index if not exists meeting_decisions_meeting_idx on public.meeting_decisions(meeting_id);
+create index if not exists technical_visits_cycle_idx on public.technical_visits(cycle_id);
+create index if not exists visit_cards_indicator_idx on public.visit_cards(indicator_id);
+create index if not exists visit_cards_resp_idx on public.visit_cards(responsible_staff_id);
+create index if not exists visit_team_staff_idx on public.visit_team(staff_id);
+create index if not exists indicator_assignments_ind_idx on public.indicator_assignments(indicator_id);
+create index if not exists indicator_assignments_staff_idx on public.indicator_assignments(staff_id);
+create index if not exists domain_assignments_domain_idx on public.domain_assignments(domain_id);
+create index if not exists domain_assignments_staff_idx on public.domain_assignments(staff_id);
+create index if not exists deadlines_ind_idx on public.deadlines(indicator_id);
+create index if not exists deadlines_domain_idx on public.deadlines(domain_id);
+create index if not exists announcements_cycle_idx on public.announcements(cycle_id);
+create index if not exists announcement_reads_profile_idx on public.announcement_reads(profile_id);
+create index if not exists whatsapp_messages_staff_idx on public.whatsapp_messages(staff_id);
+create index if not exists whatsapp_messages_cycle_idx on public.whatsapp_messages(cycle_id);
+create index if not exists suggested_evidence_ind_idx on public.suggested_evidence(indicator_id);
+
+-- سياسات RLS: تقييم auth.uid() مرة واحدة لكل استعلام بدل كل صف (نفس المنطق تماماً)
+alter policy profiles_self on public.profiles using ((id = (select auth.uid())) or private.is_coordinator());
+alter policy ev_insert on public.evidence with check (private.is_coordinator() or (private.is_team() and status = 'new'::evidence_status and private.cycle_is_open(cycle_id) and uploaded_by = (select auth.uid()) and private.i_evaluate(cycle_id, indicator_id)));
+alter policy evf_insert on public.evidence_files with check (exists (select 1 from public.evidence e where e.id = evidence_files.evidence_id and (private.is_coordinator() or (private.is_team() and e.uploaded_by = (select auth.uid()) and e.status = 'new'::evidence_status))));
+alter policy evi_insert on public.evidence_indicators with check (private.is_coordinator() or exists (select 1 from public.evidence e where e.id = evidence_indicators.evidence_id and e.uploaded_by = (select auth.uid()) and e.status = 'new'::evidence_status));
+alter policy tasks_insert on public.tasks with check (private.is_coordinator() or (private.current_app_role() = 'team_member'::app_role and approval = 'proposed'::task_approval and status = 'new'::task_status and proposed_by = (select auth.uid()) and assignee_staff_id is null));
+alter policy tasks_read on public.tasks using (private.is_coordinator() or private.is_principal() or private.is_reviewer() or assignee_staff_id = private.my_staff_id() or proposed_by = (select auth.uid()));
+alter policy tasks_update on public.tasks using (private.is_coordinator() or private.is_principal() or assignee_staff_id = private.my_staff_id() or (proposed_by = (select auth.uid()) and approval = 'proposed'::task_approval)) with check (private.is_coordinator() or private.is_principal() or assignee_staff_id = private.my_staff_id() or (proposed_by = (select auth.uid()) and approval = 'proposed'::task_approval));
+alter policy tfiles_insert on public.team_files with check (private.is_team() and uploaded_by = (select auth.uid()));
+alter policy annread_insert on public.announcement_reads with check (private.is_team() and profile_id = (select auth.uid()));
+alter policy annread_read on public.announcement_reads using (private.is_coordinator() or profile_id = (select auth.uid()));

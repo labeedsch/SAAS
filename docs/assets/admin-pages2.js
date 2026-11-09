@@ -207,7 +207,7 @@ Pages.evidence = async () => {
   const ev = await must(q);
   Act.evAddAny = () => evAdd(null);
   const html = h`${pageHead('الشواهد', ['coordinator', 'team_member'].includes(role()) ? btn('+ رفع شاهد', 'evAddAny', {}, 'pri') : '')}
-  <div class="flt"><select id="efSt"><option value="">كل الحالات</option>${Object.entries(L.evid).map(([k, v]) => h`<option value="${k}" ${EF.st === k ? raw('selected') : ''}>${v}</option>`)}</select></div>
+  <div class="flt"><select id="efSt" aria-label="حالة الشاهد"><option value="">كل الحالات</option>${Object.entries(L.evid).map(([k, v]) => h`<option value="${k}" ${EF.st === k ? raw('selected') : ''}>${v}</option>`)}</select></div>
   <div class="pn">${table([
     { h: 'المؤشر', f: e => h`<a href="#ind/${e.indicator_id}" dir="ltr">${ref.im[e.indicator_id]?.code || '—'}</a>` }, { h: 'الشاهد', f: e => h`<b>${e.title}</b>` },
     { h: 'رفعه', f: e => dtt(e.created_at) }, { h: 'الملفات', f: e => nf(e.evidence_files.length) }, { h: 'الحالة', f: e => sb_('evid', e.status) },

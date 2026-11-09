@@ -700,3 +700,4 @@ button.kc{font:inherit;text-align:start;cursor:pointer;width:100%} .kc.on{outlin
 .wchip{max-width:100%;min-width:0}.wchip{white-space:normal;overflow-wrap:anywhere}
 .flt>*{max-width:100%}.flt select,.flt input{max-width:100%;min-width:0}
 .hm-c{min-width:0;flex:0 0 auto}
+@media (max-width:600px),(pointer:coarse){.btn.sm,.adm .btn.sm{min-height:38px;padding-block:8px}.chips .btn,.tl-a .btn{min-height:38px}}
