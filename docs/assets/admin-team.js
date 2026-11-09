@@ -3,6 +3,8 @@
    تُحمَّل بعد admin-dashboard.js وقبل admin.js. */
 (() => {
 const { h, raw, S, L, nf, dt, staffName, badge, btn, table, panel, isCoord, role } = App;
+const di = n => h`<span class="dico" aria-hidden="true">${App.ico(n)}</span>`;   // أيقونة زخرفية: لا تستجيب للنقر
+const DICO = { late: 'alert', today: 'clock', tomorrow: 'cal', week: 'cal', month: 'history' }, KIND = { 'اجتماع': 'cal', 'زيارة فنية': 'visit', 'متابعة زيارة': 'clip', 'مهمة': 'task', 'إغلاق': 'flag' }, KCI = { new: 'note', in_progress: 'clock', awaiting_review: 'doc', late: 'alert' };
 const MS = 864e5, pad = n => String(n).padStart(2, '0');
 const tod = () => { const d = new Date(); return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`; };
 const dayDiff = s => Math.round((new Date(String(s).slice(0, 10) + 'T00:00:00') - new Date(tod() + 'T00:00:00')) / MS);
@@ -84,9 +86,9 @@ function agenda(D) {
   });
   return out.sort((a, b) => a.d.localeCompare(b.d) || a.time.localeCompare(b.time));
 }
-const agItem = (x, k) => h`<li class="db-it ${x.tone}"><div class="db-itx"><b><span class="bdg ${x.tone === 'bad' ? 'bad' : x.kind === 'مهمة' || x.kind === 'إغلاق' || x.kind === 'متابعة زيارة' ? 'warn' : 'info'}">${x.kind}</span> ${x.title}</b><small>${k === 'late' || k === 'week' || k === 'month' ? dt(x.d) + ' · ' : ''}${x.time ? x.time + ' · ' : ''}${x.sub}</small></div><div class="chips">${x.acts.map(a => a.href ? h`<a class="btn sm ${a.cls || ''}" href="${a.href}">${a.label}</a>` : btn(a.label, a.a, a.data || {}, a.cls || ''))}</div></li>`;
+const agItem = (x, k) => h`<li class="db-it ${x.tone}"><div class="db-itx"><b><span class="bdg ${x.tone === 'bad' ? 'bad' : x.kind === 'مهمة' || x.kind === 'إغلاق' || x.kind === 'متابعة زيارة' ? 'warn' : 'info'}">${KIND[x.kind] ? di(KIND[x.kind]) : ''}${x.kind}</span> ${x.title}</b><small>${k === 'late' || k === 'week' || k === 'month' ? dt(x.d) + ' · ' : ''}${x.time ? x.time + ' · ' : ''}${x.sub}</small></div><div class="chips">${x.acts.map(a => a.href ? h`<a class="btn sm ${a.cls || ''}" href="${a.href}">${a.label}</a>` : btn(a.label, a.a, a.data || {}, a.cls || ''))}</div></li>`;
 function agendaSections(items) {
-  return DAYS.map(([k, label, f]) => { const xs = items.filter(x => f(dayDiff(x.d))); return xs.length ? h`<section class="tm-day ${k}"><h3>${label}${k === 'today' || k === 'tomorrow' ? h` <small>${longDate(xs[0].d)}</small>` : ''}</h3>
+  return DAYS.map(([k, label, f]) => { const xs = items.filter(x => f(dayDiff(x.d))); return xs.length ? h`<section class="tm-day ${k}"><h3>${di(DICO[k])}${label}${k === 'today' || k === 'tomorrow' ? h` <small>${longDate(xs[0].d)}</small>` : ''}</h3>
     <ul class="tm-ul">${xs.map(x => agItem(x, k))}</ul></section>` : ''; });
 }
 App.agendaItems = agenda; App.agendaFlat = xs => h`<ul class="tm-ul">${xs.map(x => agItem(x, 'week'))}</ul>`;
@@ -110,11 +112,11 @@ async function overview() {
   const rows = teamRows(D);
   const quick = co ? h`<div class="tm-quick"><a class="btn sm pri" href="#team/tasks">+ مهمة</a><a class="btn sm pri" href="#team/meetings">+ اجتماع</a><a class="btn sm pri" href="#team/visits">+ زيارة فنية</a><a class="btn sm" href="#team/cal">+ موعد إغلاق</a></div>` : '';
   return h`${quick}
-  ${gs.length ? panel(co ? 'ينتظر قرارك الآن' : 'يخصّك الآن', h`<div class="db-ac">${gs.map(g => App.groupCard(g, 4))}</div>`, h`<a class="btn sm" href="#alerts">كل التنبيهات</a>`) : ''}
-  ${panel('الأجندة: ما هو قادم', shown.length ? agendaSections(shown) : h`<p class="muted empty">لا اجتماعات ولا زيارات ولا مواعيد ولا مهام ذات موعد خلال الشهر القادم.</p>`)}
-  ${panel(co ? 'متابعة المهام' : 'مهامي', tk.length ? h`<div class="tm-kb">${KCOL.map(([k, l]) => { const xs = tk.filter(t => colOf(t) === k).sort((a, b) => (a.due_date || '9').localeCompare(b.due_date || '9'));
-      return h`<div class="tm-kcol ${k}"><h3>${l}${xs.length ? h` <span class="bdg ${k === 'late' ? 'bad' : ''}">${nf(xs.length)}</span>` : ''}</h3>${xs.length ? xs.slice(0, 6).map(card) : h`<p class="muted">—</p>`}${xs.length > 6 ? h`<a class="db-more" href="#team/tasks">+ ${nf(xs.length - 6)} أخرى</a>` : ''}</div>`; })}</div>` : h`<p class="muted empty">لا مهام نشطة${co ? '. أنشئ مهمة أو راجع مقترحات الأعضاء من تبويب المهام' : ''}.</p>`, h`<a class="btn sm" href="#team/tasks">كل المهام</a>`)}
-  ${panel('الزيارات الفنية القادمة', vplan.length ? h`<ul class="tm-ul">${vplan.slice(0, 6).map(v => { const cs = D.cards.filter(c => c.visit_id === v.id); return h`<li class="db-it ${dayDiff(v.visit_date) < 0 ? 'bad' : 'info'}"><div class="db-itx"><b>${v.target_party}</b><small>${dt(v.visit_date)} · ${dueTxt(v.visit_date)} · ${cs.length ? nf(cs.length) + ' بطاقة مؤشر' : 'لم تُجهَّز البطاقات بعد'}</small></div><a class="btn sm" href="#visit/${v.id}">فتح</a></li>`; })}</ul>` : h`<p class="muted empty">لا زيارات فنية مخططة.</p>`, h`<a class="btn sm" href="#team/visits">كل الزيارات</a>`)}
+  ${gs.length ? panel(h`${di('bell')}${co ? 'ينتظر قرارك الآن' : 'يخصّك الآن'}`, h`<div class="db-ac">${gs.map(g => App.groupCard(g, 4))}</div>`, h`<a class="btn sm" href="#alerts">كل التنبيهات</a>`) : ''}
+  ${panel(h`${di('cal')}الأجندة: ما هو قادم`, shown.length ? agendaSections(shown) : h`<p class="muted empty">لا اجتماعات ولا زيارات ولا مواعيد ولا مهام ذات موعد خلال الشهر القادم.</p>`)}
+  ${panel(h`${di('task')}${co ? 'متابعة المهام' : 'مهامي'}`, tk.length ? h`<div class="tm-kb">${KCOL.map(([k, l]) => { const xs = tk.filter(t => colOf(t) === k).sort((a, b) => (a.due_date || '9').localeCompare(b.due_date || '9'));
+      return h`<div class="tm-kcol ${k}"><h3>${di(KCI[k])}${l}${xs.length ? h` <span class="bdg ${k === 'late' ? 'bad' : ''}">${nf(xs.length)}</span>` : ''}</h3>${xs.length ? xs.slice(0, 6).map(card) : h`<p class="muted">—</p>`}${xs.length > 6 ? h`<a class="db-more" href="#team/tasks">+ ${nf(xs.length - 6)} أخرى</a>` : ''}</div>`; })}</div>` : h`<p class="muted empty">لا مهام نشطة${co ? '. أنشئ مهمة أو راجع مقترحات الأعضاء من تبويب المهام' : ''}.</p>`, h`<a class="btn sm" href="#team/tasks">كل المهام</a>`)}
+  ${panel(h`${di('visit')}الزيارات الفنية القادمة`, vplan.length ? h`<ul class="tm-ul">${vplan.slice(0, 6).map(v => { const cs = D.cards.filter(c => c.visit_id === v.id); return h`<li class="db-it ${dayDiff(v.visit_date) < 0 ? 'bad' : 'info'}"><div class="db-itx"><b>${v.target_party}</b><small>${dt(v.visit_date)} · ${dueTxt(v.visit_date)} · ${cs.length ? nf(cs.length) + ' بطاقة مؤشر' : 'لم تُجهَّز البطاقات بعد'}</small></div><a class="btn sm" href="#visit/${v.id}">فتح</a></li>`; })}</ul>` : h`<p class="muted empty">لا زيارات فنية مخططة.</p>`, h`<a class="btn sm" href="#team/visits">كل الزيارات</a>`)}
   <details class="pn tm-more"><summary>أعضاء الفريق وأعمالهم</summary>${table([
     { h: 'المنسوب', f: r => h`<b>${r.s.full_name}</b><br><small class="muted">${r.s.job_title || ''}</small>` },
     { h: 'مقيّم / مسؤول', f: r => `${nf(r.ne)} / ${nf(r.nr)}` }, { h: 'مهام جارية', f: r => nf(r.open) }, { h: 'متأخرة', f: r => r.late ? badge(nf(r.late), 'bad') : '0' },

@@ -357,3 +357,7 @@ button.kc{font:inherit;text-align:start;cursor:pointer;width:100%} .kc.on{outlin
   #menu>a .ico{width:20px;height:20px}
   #menu>a .nb{top:1px}
 }
+/* أيقونات زخرفية في صفحة الفريق: لا تستجيب للنقر ولا تُحدَّد */
+.dico{display:inline-grid;place-items:center;vertical-align:-3px;margin-inline-end:6px;pointer-events:none;user-select:none;-webkit-user-select:none;cursor:inherit}
+.dico .ico{width:18px;height:18px;color:var(--brand)} .bdg .dico{margin-inline-end:4px} .bdg .dico .ico{width:13px;height:13px;color:currentColor}
+.tm-day h3 .dico .ico{color:currentColor} .tm-kcol h3 .dico .ico{color:currentColor}
