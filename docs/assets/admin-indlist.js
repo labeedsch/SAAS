@@ -145,7 +145,7 @@ Pages.inds = async () => {
   const advLabel = () => { const n = Object.values(hm.f).reduce((a, x) => a + x.length, 0); return `${App.ico('layers').s} الفرز المتقدم${n ? ` <em class="fn">${nf(n)}</em>` : ''}`; };
   const vbtnsHtml = () => [['table', 'جدول', 'list'], ['cards', 'بطاقات', 'grid']].map(([k, t, i]) => `<button type="button" class="vbtn${hm.view === k ? ' on' : ''}" data-view="${k}" aria-pressed="${hm.view === k}">${App.ico(i).s} <span>${t}</span></button>`).join('');
   const toolbar = () => h`<div class="fbar" id="fbar" role="search"><label class="fsearch">${App.ico('search')}<input type="search" id="iq" placeholder="ابحث بالرمز أو النص أو المقيّم أو المسؤول" value="${hm.q}" aria-label="بحث في المؤشرات"></label>
-    <button type="button" class="fbtn${hm.adv ? ' on' : ''}" id="advbtn" aria-expanded="${hm.adv}">${raw(advLabel())}</button><div class="pills2" id="pills">${raw(pillsHtml())}</div><div class="vbtns" id="vbtns">${raw(vbtnsHtml())}</div></div><div class="fpanel" id="fpanel" ${hm.adv ? '' : raw('hidden')}>${hm.adv ? raw(panelHtml()) : ''}</div>`;
+    <button type="button" class="fbtn${hm.adv ? ' on' : ''}" id="advbtn" aria-expanded="${hm.adv}">${raw(advLabel())}</button><div class="pills2" id="pills">${raw(pillsHtml())}</div></div><div class="fpanel" id="fpanel" ${hm.adv ? '' : raw('hidden')}>${hm.adv ? raw(panelHtml()) : ''}</div>`;
 
   const pillsHtml = () => { const base = rows.filter(r => pass(r, 'st')); const mk = (key, label, n) => `<button type="button" class="spill${hm.st === key ? ' on' : ''}${n ? '' : ' zero'}" data-st="${key}" aria-pressed="${hm.st === key}">${label}<em>${nf(n)}</em></button>`;
     return mk('', 'الكل', base.length) + ST.map(([k, t]) => mk(k, t, base.filter(r => r.st === k).length)).join('') + `<button type="button" class="spill${hm.mine ? ' on' : ''}" data-mine="1" aria-pressed="${hm.mine}">مؤشراتي فقط<em>${nf(rows.filter(r => r.mine && pass(r, 'mine')).length)}</em></button>`; };
@@ -165,11 +165,21 @@ Pages.inds = async () => {
     { h: 'الشواهد', f: r => h`${nf(r.ea)} / ${nf(r.et)}${r.ep ? h` <span class="bdg info" title="بانتظار المراجعة">${nf(r.ep)}</span>` : ''}` },
   ], xs, 'لا توجد مؤشرات مطابقة');
   const cards = xs => xs.length ? h`<div class="icards">${xs.map(r => h`<a class="icard ${r.st}" href="#ind/${r.i.id}"><header><b dir="ltr">${r.i.code}</b>${sb_('eval', r.st)}</header><p>${short(r.i.official_text, 110)}</p><small>${r.i.dom?.name_ar} · ${r.i.std?.name_ar}</small><div class="iwho"><div><small>مسؤول المؤشر</small><div class="wc">${chips(r.rs, 'resp', 'بلا مسؤول')}</div></div><div><small>المقيّم</small><div class="wc">${chips(r.ev, 'eval', 'بلا مقيّم')}</div></div></div><footer>${r.pct != null ? h`<span class="bdg">${nf(r.pct)}%${r.lvl ? ' · ' + r.lvl : ''}</span>` : ''}<span class="muted">شواهد ${nf(r.ea)}/${nf(r.et)}</span>${r.ep ? h`<span class="bdg info">${nf(r.ep)} بانتظار المراجعة</span>` : ''}</footer></a>`)}</div>` : h`<div class="pn"><p class="muted empty">لا توجد مؤشرات مطابقة.</p></div>`;
-  const body = xs => { const v = hm.view === 'cards' ? cards : tbl;
-    if (hm.group === 'none') return hm.view === 'cards' ? v(xs) : h`<div class="pn">${v(xs)}</div>`;
+  /* صفوف بنفس تصميم صفحة عضو الفريق: أيقونة الحالة، الرمز والنص، شارات الحالة والمستوى، المسؤول والمقيّم، ثم النسبة والشواهد */
+  const kOf = st => st === 'approved' ? 'done' : st === 'submitted' ? 'wait' : 'need';
+  const whyOf = r => kOf(r.st) !== 'need' ? '' : r.st === 'draft' ? 'التقييم مسودة لم تُرسل' : !r.ev.length ? 'لا مقيّم للمؤشر' : !r.et ? 'لم تُرفع شواهد بعد' : 'ينتظر التقييم';
+  const rowC = r => { const k = kOf(r.st), [ic, lb, tn] = { done: ['check', 'مكتمل', 'ok'], wait: ['clock', 'بانتظار الاعتماد', 'info'], need: ['edit', 'بحاجة إلى عمل', 'warn'] }[k], why = whyOf(r);
+    return h`<a class="mi ${k}" href="#ind/${r.i.id}"><span class="mi-s ${tn}" title="${lb}">${App.ico(ic)}</span>
+    <div class="mi-b"><div class="mi-t"><b dir="ltr">${r.i.code}</b><span>${short(r.i.official_text, 130)}</span></div>
+      <div class="mi-m"><small>${r.i.dom?.name_ar || ''} · ${r.i.std?.name_ar || ''}</small><span class="bdg ${tn}">${lb}</span>${r.lvl ? h`<span class="bdg">${r.lvl}</span>` : ''}${why ? h`<span class="mi-w">${why}</span>` : ''}${r.ep ? h`<span class="bdg info" title="بانتظار المراجعة">${nf(r.ep)} شواهد للمراجعة</span>` : ''}</div>
+      <div class="iwho"><div><small>مسؤول المؤشر</small><div class="wc">${chips(r.rs, 'resp', 'بلا مسؤول')}</div></div><div><small>مقيّم المؤشر</small><div class="wc">${chips(r.ev, 'eval', 'بلا مقيّم')}</div></div></div></div>
+    <div class="mi-n"><b>${r.pct != null ? nf(Math.round(r.pct)) + '%' : '—'}</b><small>${nf(r.ea)} / ${nf(r.et)} شواهد</small></div><span class="mi-go">${App.ico('prev')}</span></a>`; };
+  const lst = xs => xs.length ? h`<div class="mlist">${xs.map(rowC)}</div>` : h`<div class="pn"><p class="muted empty">لا مؤشرات مطابقة. غيّر الفلاتر أو أعد ضبطها.</p></div>`;
+  const body = xs => {
+    if (hm.group === 'none') return lst(xs);
     const g = new Map(); xs.forEach(r => groupOf(r)[0].forEach(k => (g.get(k) || g.set(k, []).get(k)).push(r)));
     const keys = [...g.keys()]; if (hm.group === 'eval' || hm.group === 'resp') keys.sort((a, b) => (a.startsWith('بلا')) - (b.startsWith('بلا')) || a.localeCompare(b, 'ar'));
-    return keys.length ? keys.map(k => h`<section class="igrp"><h3>${k} <span class="bdg">${nf(g.get(k).length)}</span></h3>${hm.view === 'cards' ? v(g.get(k)) : h`<div class="pn">${v(g.get(k))}</div>`}</section>`) : v([]); };
+    return keys.length ? keys.map(k => h`<section class="igrp"><h3>${k} <span class="bdg">${nf(g.get(k).length)}</span></h3>${lst(g.get(k))}</section>`) : lst([]); };
 
   const html = h`${toolbar()}<div class="sec-h"><span class="chip" id="icount">${nf(sortRows(rows.filter(r => pass(r))).length)} من ${nf(rows.length)} مؤشراً</span><div class="pa">${btn('تصدير CSV', 'indCsv')}</div></div><div id="ilist">${body(sortRows(rows.filter(r => pass(r))))}</div>`;
   const top = h`<div id="idomwrap">${domCards()}</div>`;
@@ -179,7 +189,6 @@ Pages.inds = async () => {
       $('#icount', v).textContent = `${nf(rs.length)} من ${nf(rows.length)} مؤشراً`;
       $('#pills', v).innerHTML = pillsHtml();
       const ab = $('#advbtn', v); ab.className = 'fbtn' + (hm.adv ? ' on' : ''); ab.setAttribute('aria-expanded', hm.adv); ab.innerHTML = advLabel();
-      $('#vbtns', v).innerHTML = vbtnsHtml();
       const fp = $('#fpanel', v); fp.hidden = !hm.adv;
       if (hm.adv) { const sc = [...v.querySelectorAll('.fbody')].map(e => e.scrollTop); fp.innerHTML = panelHtml(); [...v.querySelectorAll('.fbody')].forEach((e, i) => { e.scrollTop = sc[i] || 0; }); }
       $('#idomwrap', v).innerHTML = domCards().s;
