@@ -305,6 +305,16 @@ background:radial-gradient(70% 90% at 100% 100%,rgba(130,172,118,.85),transparen
 :root[data-theme="dark"] .hero3{--h3a:#2c7a82;--h3b:#235f72;--h3c:#244f5a}
 @media (max-width:900px){.hero3{grid-template-columns:1fr;grid-template-areas:"txt" "art" "tiles";padding:26px 20px 22px;gap:20px}.h3-art{min-height:290px}.h3-tiles{grid-template-columns:repeat(2,1fr);gap:10px}.hero3 .tile{padding:10px 12px}.hero3 .tile b{font-size:1.35rem}}
 @media (max-width:420px){.h3-ring{inset-inline:0}.h3-mock{inset-inline:2%}}
+
+/* توحيد مقاييس الهيدر في كل الصفحات على مقاس هيدر الرئيسية (hero3) */
+.hero3,body .hero2,body .lhero,body .ax-hero,body .ab-hero{--h3a:#52aaad;--h3b:#3f8a96;--h3c:#3c7f8c;position:relative;isolation:isolate;overflow:hidden;border-radius:34px;padding:38px 44px;min-height:300px;color:#fff;box-shadow:var(--shadow2)}
+body .lhero,body .ax-hero,body .ab-hero{animation:none;background:radial-gradient(70% 90% at 100% 100%,rgba(130,172,118,.85),transparent 62%),radial-gradient(60% 80% at 0 0,rgba(84,176,177,.9),transparent 65%),linear-gradient(120deg,var(--h3a) 0%,var(--h3b) 48%,var(--h3c) 100%)}
+body .lhero::before{content:"";position:absolute;inset:0;z-index:-1;width:auto;aspect-ratio:auto;background:linear-gradient(rgba(255,255,255,.07) 1px,transparent 1px) 0 0/44px 44px,linear-gradient(90deg,rgba(255,255,255,.07) 1px,transparent 1px) 0 0/44px 44px;-webkit-mask-image:linear-gradient(to bottom,#000,transparent 92%);mask-image:linear-gradient(to bottom,#000,transparent 92%)}
+body .hero2 h1,body .lhero h1,body .ax-hero h1,body .ab-hero h1{font-size:clamp(2.3rem,5vw,3.7rem);font-weight:800;line-height:1.15;margin:14px 0 6px}
+.hero3{min-height:0}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) :is(body .lhero,body .ax-hero,body .ab-hero){--h3a:#2c7a82;--h3b:#235f72;--h3c:#244f5a}}
+:root[data-theme="dark"] :is(body .lhero,body .ax-hero,body .ab-hero){--h3a:#2c7a82;--h3b:#235f72;--h3c:#244f5a}
+@media (max-width:900px){.hero3,body .hero2,body .lhero,body .ax-hero,body .ab-hero{padding:26px 20px;min-height:0;border-radius:28px}}
 .sec .sub{margin:2px 0 0;font-size:.88rem;font-weight:400}
 
 /* بطاقات المجالات */
