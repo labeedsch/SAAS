@@ -511,3 +511,7 @@ body.pub nav a[hidden]{display:none}
 .lr-go{display:inline-flex;align-items:center;justify-content:flex-end;gap:6px;color:var(--f);font-weight:700;font-size:.85rem;transition:gap .15s} .lr-go .ico{width:16px;height:16px} .lrow2:hover .lr-go{gap:10px}
 @media (max-width:720px){.lrow2{grid-template-columns:auto minmax(0,1fr);gap:12px;padding:12px 14px}.lr-side{grid-column:1/-1}.lr-code{min-width:64px;padding:8px 10px}.lr-code b{font-size:1.15rem}}
 @media (prefers-reduced-motion:reduce){.lrow2,.lr-go{transition:none}.lrow2:hover{transform:none}}
+
+/* زر «عرض التفاصيل» بنفس لون الشريط العلوي للبطاقة */
+.pcard .pbtn{background:color-mix(in srgb,var(--f) 11%,var(--surface));color:color-mix(in srgb,var(--f) 82%,var(--ink));border:1px solid color-mix(in srgb,var(--f) 20%,var(--line))}
+.pcard:hover .pbtn{background:color-mix(in srgb,var(--f) 20%,var(--surface));color:color-mix(in srgb,var(--f) 82%,var(--ink))}
