@@ -133,6 +133,25 @@ Act.vsNew = async () => {
   const { team, ...row } = v; const r = await run(sb.from('technical_visits').insert({ ...row, cycle_id: S.cid, created_by: S.me.id }).select('id').single()); if (!r) return;
   if (team.length) await run(sb.from('visit_team').insert(team.map(s => ({ visit_id: r.id, staff_id: s })))); toast('أُنشئت الزيارة'); location.hash = '#visit/' + r.id;
 };
+
+/* من صفحة المؤشر: زيارة فنية جديدة بمؤشر واحد، أو إضافة بطاقة المؤشر إلى زيارة مخططة */
+const cardFields = () => [{ k: 'existing_practices', l: 'الممارسات والإجراءات القائمة', t: 'textarea' }, { k: 'verified_items', l: 'ما تم الاطلاع عليه والتحقق منه', t: 'textarea' }, { k: 'strengths', l: 'جوانب القوة', t: 'textarea' },
+  { k: 'gaps', l: 'الفجوات والنواقص', t: 'textarea' }, { k: 'recommendations', l: 'التوصيات الفنية', t: 'textarea' }, { k: 'required_actions', l: 'الإجراءات المطلوبة', t: 'textarea' },
+  { k: 'responsible_staff_id', l: 'المسؤول عن الإجراء', t: 'select', o: staffOpts() }, { k: 'due_date', l: 'موعد التنفيذ', t: 'date' }, { k: 'followup', l: 'حالة المتابعة', t: 'select', req: 1, o: Object.entries(L.follow) }];
+App.indVisit = async (iid, planned = []) => {
+  let vid = null;
+  if (planned.length) {
+    const c = await ask('زيارة فنية للمؤشر', [{ k: 'visit', l: 'الزيارة', t: 'select', req: 1, o: [['new', '+ زيارة جديدة'], ...planned.map(v => [v.id, `${dt(v.visit_date)} · ${v.target_party || 'زيارة مخططة'}`])] }], { visit: 'new' }); if (!c) return;
+    if (c.visit !== 'new') vid = c.visit;
+  }
+  if (!vid) {
+    const v = await ask('زيارة فنية جديدة', [...vf(), { k: 'team', l: 'فريق الزيارة', t: 'multi', o: staffOpts() }], { status: 'planned' }, { wide: true }); if (!v) return;
+    const { team, ...row } = v; const r = await run(sb.from('technical_visits').insert({ ...row, cycle_id: S.cid, created_by: S.me.id }).select('id').single()); if (!r) return;
+    vid = r.id; if (team?.length) await run(sb.from('visit_team').insert(team.map(s => ({ visit_id: vid, staff_id: s }))));
+  }
+  const x = await ask('بطاقة المؤشر في الزيارة', cardFields(), { followup: 'open' }, { wide: true });
+  if (x && await run(sb.from('visit_cards').insert({ ...x, visit_id: vid, indicator_id: iid }), 'أُضيفت الزيارة والبطاقة')) App.refresh();
+};
 Pages.visit = async ([id]) => {
   const ref = await App.ref();
   const [v, vt, cards] = await Promise.all([must(sb.from('technical_visits').select('*').eq('id', id).maybeSingle()), must(sb.from('visit_team').select('*').eq('visit_id', id)), must(sb.from('visit_cards').select('*').eq('visit_id', id))]);
