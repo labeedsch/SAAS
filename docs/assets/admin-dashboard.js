@@ -260,6 +260,15 @@ Act.calNav = ({ v }) => { let m = CAL.m + Number(v), y = CAL.y; if (m < 0) { m =
 Act.calSel = ({ d }) => { CAL.sel = CAL.sel === d ? null : d; if (CAL.sel) { const x = new Date(d + 'T00:00:00'); CAL.y = x.getFullYear(); CAL.m = x.getMonth(); } calRedraw(); };
 Act.calToday = () => { const n = new Date(); CAL.y = n.getFullYear(); CAL.m = n.getMonth(); CAL.sel = null; calRedraw(); };
 
+/* خدمات سريعة: أزرار إنشاء لكل ما في لوحة التحكم، بحسب صلاحية الدور */
+const svcBar = (co, rl) => {
+  const G = [
+    ['المؤشرات', [['qEvidence', 'clip', 'إضافة شاهد', co || rl === 'team_member']]],
+    ['الفريق', [['qTask', 'task', co ? 'إضافة مهمة' : 'اقتراح مهمة', co || rl === 'team_member'], ['qMeeting', 'cal', 'إضافة اجتماع', co], ['qVisit', 'visit', 'إضافة زيارة فنية', co], ['qDeadline', 'flag', 'موعد إغلاق', co]]],
+    ['المنصة', [['qStaff', 'users', 'إضافة عضو', co], ['qAnn', 'mega', 'إضافة إعلان', co]]],
+  ].map(([t, xs]) => [t, xs.filter(x => x[3])]).filter(([, xs]) => xs.length);
+  return G.length ? h`<section class="svc" aria-label="خدمات سريعة"><b class="svc-t">${ico('star')} خدمات سريعة</b>${G.map(([t, xs]) => h`<div class="svc-g"><small>${t}</small><div>${xs.map(([a, i, l]) => h`<button type="button" class="svc-b" data-a="${a}">${ico(i)}<span>${l}</span></button>`)}</div></div>`)}</section>` : '';
+};
 const win = (cls, icon, title, href, linkLabel, body) => h`<section class="win ${cls}"><header><span class="db-gi">${ico(icon)}</span><h2>${title}</h2><a class="btn sm" href="${href}">${linkLabel}</a></header>${body}</section>`;
 const ms = (label, v, tone = '', href = '') => href ? h`<a class="ms ${tone}" href="${href}"><b>${nf(v)}</b><small>${label}</small></a>` : h`<div class="ms ${tone}"><b>${nf(v)}</b><small>${label}</small></div>`;
 const mini = (xs, empty) => xs.length ? h`<ul class="wl">${xs}</ul>` : h`<p class="muted empty">${empty}</p>`;
@@ -314,6 +323,8 @@ Pages.dashboard = async () => {
       <p class="muted">${left == null ? 'لم يُحدَّد تاريخ نهاية الدورة.' : left >= 0 ? 'متبقٍ ' + nf(left) + ' يوماً على نهاية الدورة · ' + dt(c.end_date) : 'تجاوزت الدورة نهايتها بـ ' + nf(-left) + ' يوماً'}</p>
       <div class="chips"><a class="db-chip ${A.total ? 'warn' : 'ok'}" href="#alerts">${ico('bell')} ${A.total ? nf(A.total) + ' تحتاج إجراء' : 'لا إجراءات معلّقة'}</a><span class="db-chip">${ico('layers')} ${nf(stdDone)} معيار منجز من ${nf(stds.length)}</span><span class="db-chip">${ico('task')} ${nf(tkDone)} مهمة منجزة من ${nf(tk.length)}</span></div></div>
     <div class="db-rings">${ring(pct, 'إنجاز المؤشرات', nf(nOk) + ' من ' + nf(nInd) + ' معتمد', 'info')}${ring(doms.length ? domDone / doms.length * 100 : 0, 'المجالات المنجزة', nf(domDone) + ' من ' + nf(doms.length) + ' · متبقٍ ' + nf(doms.length - domDone), 'ok')}${ring(evid.length ? evOk / evid.length * 100 : 0, 'الشواهد المعتمدة', nf(evOk) + ' من ' + nf(evid.length), '')}</div></section>
+
+  ${svcBar(co, role())}
 
   <div class="kcs">${kc('teal', 'layers', 'كل المؤشرات', nf(nInd), pct, 'المعتمد منها ' + nf(nOk) + ' · افتح خريطة التقدم', '#inds/map', true)}${kc('ok', 'check', 'معتمد', nf(nOk), nInd ? nOk / nInd * 100 : 0, 'عرض المؤشرات المعتمدة', '#inds/list/approved')}${kc('info', 'clock', 'بانتظار الاعتماد', nf(nSub), nInd ? nSub / nInd * 100 : 0, nSub ? (co ? 'راجع واعتمد الآن' : 'أُرسلت للمراجعة') : 'لا شيء ينتظر', '#inds/list/submitted')}${kc('mute', 'note', 'مسودة', nf(nDr), nInd ? nDr / nInd * 100 : 0, nDr ? 'تقييمات تحتاج إكمالاً' : 'لا مسودات', '#inds/list/draft')}${kc('warn', 'alert', 'لم يُقيَّم', nf(nNo), nInd ? nNo / nInd * 100 : 0, nNo ? 'ابدأ التقييم' : 'اكتمل التقييم', '#inds/list/not_evaluated')}${kc('bad', 'users', 'بلا مقيّم', nf(noEv), nInd ? noEv / nInd * 100 : 0, noEv ? (co ? 'أسنِد مقيّماً الآن' : 'يحتاج إسناداً') : 'كل المؤشرات مسندة', '#platform/assign')}</div>
 

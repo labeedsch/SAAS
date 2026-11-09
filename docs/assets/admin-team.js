@@ -138,6 +138,7 @@ const shell = (title, sub, base, tabs, tab, bg, extra, body, after) => ({ html: 
 App.shell = shell;
 // إجراءات الإنشاء السريع: تفتح نموذج الإنشاء مباشرة من النظرة العامة بدل مجرد الانتقال إلى التبويب
 Act.qTask = () => App.taskForm(); Act.qMeeting = () => Act.mtNew(); Act.qVisit = () => Act.vsNew(); Act.qDeadline = () => App.dlForm({});
+Act.qEvidence = () => Act.evAddAny(); Act.qStaff = () => Act.stNew(); Act.qAnn = () => Act.anNew();
 async function badges() {
   try {
     const D = await App.data(), co = isCoord(), me = S.me.staff_id, out = {};

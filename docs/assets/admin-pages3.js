@@ -212,18 +212,18 @@ Pages.tasks = async () => {
 };
 
 // ===== الإعلانات =====
-Pages.ann = async () => {
-  const [as, rd, rc] = await Promise.all([must(sb.from('announcements').select('*').order('publish_at', { ascending: false })), must(sb.from('announcement_reads').select('*')), isCoord() ? must(sb.from('announcement_recipients').select('*')) : Promise.resolve([])]);
-  const co = isCoord();
-  const fields = [{ k: 'title', l: 'العنوان', req: 1 }, { k: 'body', l: 'النص', t: 'textarea', req: 1, rows: 6 }, { k: 'priority', l: 'الأهمية', t: 'select', req: 1, o: Object.entries(L.prio) }, { k: 'audience', l: 'المستلمون', t: 'select', req: 1, o: [['all_team', 'كل أعضاء الفريق'], ['selected', 'منسوبون محددون']] },
+const annFields = () => [{ k: 'title', l: 'العنوان', req: 1 }, { k: 'body', l: 'النص', t: 'textarea', req: 1, rows: 6 }, { k: 'priority', l: 'الأهمية', t: 'select', req: 1, o: Object.entries(L.prio) }, { k: 'audience', l: 'المستلمون', t: 'select', req: 1, o: [['all_team', 'كل أعضاء الفريق'], ['selected', 'منسوبون محددون']] },
     { k: 'recipients', l: 'المنسوبون المحددون', t: 'multi', o: staffOpts() }, { k: 'publish_at', l: 'يُنشر في', t: 'datetime-local' }, { k: 'expires_at', l: 'ينتهي في', t: 'datetime-local' }];
-  Act.anNew = async () => { const v = await ask('إعلان جديد', fields, { priority: 'normal', audience: 'all_team' }, { wide: true }); if (!v) return; const { recipients, ...row } = v;
+Act.anNew = async () => { const v = await ask('إعلان جديد', annFields(), { priority: 'normal', audience: 'all_team' }, { wide: true }); if (!v) return; const { recipients, ...row } = v;
     if (row.audience === 'selected' && !recipients.length) return toast('اختر المستلمين', true);
     const r = await run(sb.from('announcements').insert({ ...row, publish_at: row.publish_at ? new Date(row.publish_at).toISOString() : new Date().toISOString(), expires_at: row.expires_at ? new Date(row.expires_at).toISOString() : null, cycle_id: S.cid, created_by: S.me.id }).select('id').single(), 'نُشر الإعلان'); if (!r) return;
     if (row.audience === 'selected') await sb.from('announcement_recipients').insert(recipients.map(s => ({ announcement_id: r.id, staff_id: s })));
     const targets = row.audience === 'selected' ? recipients : S.staff.filter(s => s.is_active).map(s => s.id);
     if (await sure('إضافة رسائل واتساب بنص الإعلان إلى الطابور للمستلمين؟')) { const out = []; for (const s of targets) out.push(await queueWa('announcement_new', s, { عنوان: row.title, نص: row.body.slice(0, 300) }, null)); waReport(out); }
     App.refresh(); };
+Pages.ann = async () => {
+  const [as, rd, rc] = await Promise.all([must(sb.from('announcements').select('*').order('publish_at', { ascending: false })), must(sb.from('announcement_reads').select('*')), isCoord() ? must(sb.from('announcement_recipients').select('*')) : Promise.resolve([])]);
+  const co = isCoord();
   Act.anDel = async ({ i }) => { if (await sure('حذف الإعلان؟') && await run(sb.from('announcements').delete().eq('id', i))) App.refresh(); };
   Act.anRead = async ({ i }) => { if (await run(sb.from('announcement_reads').upsert({ announcement_id: i, profile_id: S.me.id }, { onConflict: 'announcement_id,profile_id', ignoreDuplicates: true }))) App.refresh(); };
   Act.anWho = async ({ i }) => { const r = rd.filter(x => x.announcement_id === i); const pr = (await sb.from('profiles').select('id,display_name')).data || []; const nm = Object.fromEntries(pr.map(p => [p.id, p.display_name])); App.modal('من اطّلع على الإعلان', r.length ? h`<ul>${r.map(x => h`<li>${nm[x.profile_id] || 'عضو'} — ${dtt(x.read_at)}</li>`)}</ul><p class="muted">${nf(r.length)} اطّلعوا</p>` : h`<p class="muted">لم يطّلع أحد بعد.</p>`); };

@@ -196,6 +196,7 @@ Act.evDel = async ({ id }) => {
 // ===== صفحة الشواهد =====
 const EF = { st: '' };
 App.evFilter = st => { EF.st = st || ''; };
+Act.evAddAny = () => evAdd(null);
 Pages.evidence = async () => {
   const nc = App.needCycle(); if (nc) return nc;
   const ref = await App.ref();

@@ -361,3 +361,12 @@ button.kc{font:inherit;text-align:start;cursor:pointer;width:100%} .kc.on{outlin
 .dico{display:inline-grid;place-items:center;vertical-align:-3px;margin-inline-end:6px;pointer-events:none;user-select:none;-webkit-user-select:none;cursor:inherit}
 .dico .ico{width:18px;height:18px;color:var(--brand)} .bdg .dico{margin-inline-end:4px} .bdg .dico .ico{width:13px;height:13px;color:currentColor}
 .tm-day h3 .dico .ico{color:currentColor} .tm-kcol h3 .dico .ico{color:currentColor}
+
+/* ===== خدمات سريعة ===== */
+.svc{display:flex;flex-wrap:wrap;align-items:flex-start;gap:12px 22px;margin-bottom:16px;padding:14px 18px;border:1px solid var(--line);border-radius:22px;background:var(--surface);box-shadow:var(--shadow)}
+.svc-t{display:inline-flex;align-items:center;gap:6px;align-self:center;color:var(--brand2);font-size:1rem} .svc-t .ico{width:18px;height:18px;color:var(--gold2)}
+.svc-g{display:grid;gap:6px} .svc-g>small{color:var(--muted);font-weight:700;font-size:.76rem} .svc-g>div{display:flex;flex-wrap:wrap;gap:8px}
+.svc-b{display:inline-flex;align-items:center;gap:7px;padding:8px 14px;border-radius:14px;border:1px solid color-mix(in srgb,var(--brand) 28%,var(--line));background:var(--brandsoft);color:var(--brand2);font:inherit;font-weight:700;font-size:.9rem;cursor:pointer;transition:transform .15s,box-shadow .15s,background .15s}
+.svc-b .ico{width:18px;height:18px} .svc-b:hover{background:var(--grad);color:#fff;border-color:transparent;transform:translateY(-2px);box-shadow:var(--shadow2)} .svc-b:disabled{opacity:.6}
+@media (max-width:640px){.svc{padding:12px}.svc-b{flex:1 1 calc(50% - 8px);justify-content:center}.svc-g{width:100%}}
+@media (prefers-reduced-motion:reduce){.svc-b{transition:none}.svc-b:hover{transform:none}}
