@@ -238,7 +238,7 @@ function home() {
     <div class="h2-panel"><div class="h2-ring" style="--p:${first ? pp : 0}" role="img" aria-label="نسبة النشر ${pp}%"><div><b>${first ? num(pp) + '%' : '—'}</b><small>نسبة النشر</small></div></div>
       <div class="h2-stats"><div><b>${num(first ? cnt('domain_id') : 4)}</b><span>مجالات</span></div><div><b>${num(first ? cnt('standard_id') : 11)}</b><span>معياراً</span></div>
         <div><b>${num(first ? rs.length : 49)}</b><span>مؤشراً</span></div><div><b>${first ? num(pub) : '—'}</b><span>${first ? 'منشورة' : 'لا دورة منشورة'}</span></div></div></div></section>` +
-    (first && rs.length ? `<div class="sec"><div><h2>مجالات التقويم</h2><p class="muted sub">اضغط على أي مجال لفرز المؤشرات به، أو انتقل إلى صفحته الكاملة.</p></div></div>` + domCards(first[0], rs) +
+    (first && rs.length ? ''+
       `<div class="sec" id="ihead"><div><h2>مؤشرات التقويم</h2><p class="muted sub">ابحث وافرز وجمّع المؤشرات كما تريد.</p></div><span class="chip" id="icount"></span></div>
       <div class="fbar" id="fbar" role="search"><label class="fsearch">${ic('search')}<input type="search" id="iq" placeholder="ابحث بالرمز أو النص أو المسؤول أو المقيم" value="${esc(hm.q)}" aria-label="بحث في المؤشرات"></label>
         <button type="button" class="fbtn" id="advbtn" aria-expanded="false"></button><div class="pills2" id="pills"></div><div class="vbtns" id="vbtns"></div></div>
