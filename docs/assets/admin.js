@@ -9,8 +9,8 @@ const CP = ['coordinator', 'principal'], CPR = ['coordinator', 'principal', 'rev
 const MENU = [
   ['desk', 'مكتبي الإلكتروني', ['team_member']],      // الصفحة الأساسية لعضو الفريق
   ['dashboard', 'لوحة متابعة شاملة', ['coordinator', 'principal', 'reviewer']],
-  ['alerts', 'التنبيهات', '*'],
   ['inds', 'إدارة المؤشرات', '*'],
+  ['alerts', 'التنبيهات', '*'],
   ['team', 'إدارة الفريق', ['coordinator', 'principal', 'reviewer']],
   ['platform', 'إدارة المنصة', ['coordinator', 'principal', 'reviewer']],
   ['reports', 'التقارير', '*', 1], ['log', 'سجل النشاط', CP, 1],
