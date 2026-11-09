@@ -180,10 +180,12 @@ function groupRows(rs) {
 
 function lrow(r) {
   const k = dColor(r), pub = r.publish_state === 'published', pct = pub ? Number(r.achievement_pct) || 0 : 0;
+  const li = Math.max(0, domIdx(r.cycle_id, r.domain_id));
   const team = isTeam();
   const st = pub ? `<div class="lr-st">${lvl(r.level_label)}<span class="lr-pct">${r.achievement_pct != null ? num(Math.round(r.achievement_pct)) + '%' : '—'}</span></div>`
     : `<div class="lr-st"><span class="lvl none">غير منشور</span></div>`;
   return `<a class="lrow2" style="--b:var(--c${k}b);--f:var(--c${k}f)" href="#ind/${r.cycle_id}/${r.indicator_id}">
+    <div class="lr-img" aria-hidden="true">${illus(li)}</div>
     <div class="lr-code"><small>المؤشر</small><b>${esc(r.indicator_code)}</b></div>
     <div class="lr-main"><div class="lr-tags"><span class="lr-tag dom">${ic('layers')} ${esc(r.domain_name)}</span><span class="lr-tag">${ic('doc')} المعيار ${esc(r.standard_code)}</span></div>
       <p>${esc(r.official_text)}</p>
