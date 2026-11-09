@@ -83,6 +83,11 @@ function agenda(D) {
   });
   return out.sort((a, b) => a.d.localeCompare(b.d) || a.time.localeCompare(b.time));
 }
+function agendaSections(items) {
+  return DAYS.map(([k, label, f]) => { const xs = items.filter(x => f(dayDiff(x.d))); return xs.length ? h`<section class="tm-day ${k}"><h3>${label}${k === 'today' || k === 'tomorrow' ? h` <small>${longDate(xs[0].d)}</small>` : ''}</h3>
+    <ul class="tm-ul">${xs.map(x => h`<li class="db-it ${x.tone}"><div class="db-itx"><b><span class="bdg ${x.tone === 'bad' ? 'bad' : x.kind === 'مهمة' || x.kind === 'إغلاق' || x.kind === 'متابعة زيارة' ? 'warn' : 'info'}">${x.kind}</span> ${x.title}</b><small>${k === 'late' || k === 'week' || k === 'month' ? dt(x.d) + ' · ' : ''}${x.time ? x.time + ' · ' : ''}${x.sub}</small></div><div class="chips">${x.acts.map(a => a.href ? h`<a class="btn sm ${a.cls || ''}" href="${a.href}">${a.label}</a>` : btn(a.label, a.a, a.data || {}, a.cls || ''))}</div></li>`)}</ul></section>` : ''; });
+}
+App.agendaHtml = (D, days) => { const xs = agenda(D).filter(x => dayDiff(x.d) <= days); return xs.length ? agendaSections(xs) : null; };
 const KCOL = [['new', 'جديدة'], ['in_progress', 'قيد التنفيذ'], ['awaiting_review', 'بانتظار المراجعة'], ['late', 'متأخرة']];
 
 async function overview() {
@@ -103,9 +108,7 @@ async function overview() {
   const quick = co ? h`<div class="tm-quick"><a class="btn sm pri" href="#team/tasks">+ مهمة</a><a class="btn sm pri" href="#team/meetings">+ اجتماع</a><a class="btn sm pri" href="#team/visits">+ زيارة فنية</a><a class="btn sm" href="#team/cal">+ موعد إغلاق</a></div>` : '';
   return h`${quick}
   ${gs.length ? panel(co ? 'ينتظر قرارك الآن' : 'يخصّك الآن', h`<div class="db-ac">${gs.map(g => App.groupCard(g, 4))}</div>`, h`<a class="btn sm" href="#alerts">كل التنبيهات</a>`) : ''}
-  ${panel('الأجندة: ما هو قادم', shown.length ? DAYS.map(([k, label, f]) => { const xs = shown.filter(x => f(dayDiff(x.d))); return xs.length ? h`<section class="tm-day ${k}"><h3>${label}${k === 'today' || k === 'tomorrow' ? h` <small>${longDate(xs[0].d)}</small>` : ''}</h3>
-      <ul class="tm-ul">${xs.map(x => h`<li class="db-it ${x.tone}"><div class="db-itx"><b><span class="bdg ${x.tone === 'bad' ? 'bad' : x.kind === 'مهمة' || x.kind === 'إغلاق' || x.kind === 'متابعة زيارة' ? 'warn' : 'info'}">${x.kind}</span> ${x.title}</b><small>${k === 'late' || k === 'week' || k === 'month' ? dt(x.d) + ' · ' : ''}${x.time ? x.time + ' · ' : ''}${x.sub}</small></div><div class="chips">${x.acts.map(a => a.href ? h`<a class="btn sm ${a.cls || ''}" href="${a.href}">${a.label}</a>` : btn(a.label, a.a, a.data || {}, a.cls || ''))}</div></li>`)}</ul></section>` : ''; })
-    : h`<p class="muted empty">لا اجتماعات ولا زيارات ولا مواعيد ولا مهام ذات موعد خلال الشهر القادم.</p>`)}
+  ${panel('الأجندة: ما هو قادم', shown.length ? agendaSections(shown) : h`<p class="muted empty">لا اجتماعات ولا زيارات ولا مواعيد ولا مهام ذات موعد خلال الشهر القادم.</p>`)}
   ${panel(co ? 'متابعة المهام' : 'مهامي', tk.length ? h`<div class="tm-kb">${KCOL.map(([k, l]) => { const xs = tk.filter(t => colOf(t) === k).sort((a, b) => (a.due_date || '9').localeCompare(b.due_date || '9'));
       return h`<div class="tm-kcol ${k}"><h3>${l}${xs.length ? h` <span class="bdg ${k === 'late' ? 'bad' : ''}">${nf(xs.length)}</span>` : ''}</h3>${xs.length ? xs.slice(0, 6).map(card) : h`<p class="muted">—</p>`}${xs.length > 6 ? h`<a class="db-more" href="#team/tasks">+ ${nf(xs.length - 6)} أخرى</a>` : ''}</div>`; })}</div>` : h`<p class="muted empty">لا مهام نشطة${co ? '. أنشئ مهمة أو راجع مقترحات الأعضاء من تبويب المهام' : ''}.</p>`, h`<a class="btn sm" href="#team/tasks">كل المهام</a>`)}
   ${panel('الزيارات الفنية القادمة', vplan.length ? h`<ul class="tm-ul">${vplan.slice(0, 6).map(v => { const cs = D.cards.filter(c => c.visit_id === v.id); return h`<li class="db-it ${dayDiff(v.visit_date) < 0 ? 'bad' : 'info'}"><div class="db-itx"><b>${v.target_party}</b><small>${dt(v.visit_date)} · ${dueTxt(v.visit_date)} · ${cs.length ? nf(cs.length) + ' بطاقة مؤشر' : 'لم تُجهَّز البطاقات بعد'}</small></div><a class="btn sm" href="#visit/${v.id}">فتح</a></li>`; })}</ul>` : h`<p class="muted empty">لا زيارات فنية مخططة.</p>`, h`<a class="btn sm" href="#team/visits">كل الزيارات</a>`)}

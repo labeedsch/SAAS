@@ -203,26 +203,6 @@ Act.dbAnnWho = async ({ i }) => {
 };
 
 /* ===== مكوّنات العرض ===== */
-const ring = (p, label, sub, tone) => {
-  const v = p == null ? 0 : Math.max(0, Math.min(100, p)), C = 2 * Math.PI * 34;
-  return h`<div class="db-ring ${tone}"><div class="db-rg"><svg viewBox="0 0 80 80" aria-hidden="true"><circle class="t" cx="40" cy="40" r="34"/><circle class="v" cx="40" cy="40" r="34" stroke-dasharray="${(v / 100 * C).toFixed(1)} ${C.toFixed(1)}" transform="rotate(-90 40 40)"/></svg><b>${p == null ? '—' : nf(Math.round(p)) + '٪'}</b></div><strong>${label}</strong><small>${sub}</small></div>`;
-};
-const donut = segs => {
-  const tot = segs.reduce((s, x) => s + x.n, 0), C = 2 * Math.PI * 42; let off = 0;
-  const arcs = tot ? segs.filter(x => x.n).map(x => { const len = x.n / tot * C, el = h`<circle class="${x.cls}" cx="60" cy="60" r="42" stroke-dasharray="${len.toFixed(1)} ${(C - len).toFixed(1)}" stroke-dashoffset="${(-off).toFixed(1)}" transform="rotate(-90 60 60)"/>`; off += len; return el; }) : [];
-  return h`<svg viewBox="0 0 120 120" class="db-donut" role="img" aria-label="توزيع حالة المؤشرات"><circle class="bg" cx="60" cy="60" r="42"/>${arcs}<text x="60" y="58" text-anchor="middle" class="n">${nf(tot)}</text><text x="60" y="76" text-anchor="middle" class="u">مؤشراً</text></svg>`;
-};
-function weekly(c, D) {
-  if (!c.start_date || !c.end_date) return null;
-  const s = midnight(c.start_date), e = midnight(c.end_date), W = 7 * MS, n = Math.min(52, Math.max(1, Math.ceil((e - s + MS) / W)));
-  const idx = d => { const k = Math.floor((new Date(d) - s) / W); return k < 0 ? 0 : k >= n ? n - 1 : k; };
-  const B = Array.from({ length: n }, () => ({ a: 0, b: 0, c: 0 }));
-  D.evals.filter(x => x.status === 'approved' && x.approved_at).forEach(x => B[idx(x.approved_at)].a++);
-  D.evid.filter(x => x.status === 'approved' && x.reviewed_at).forEach(x => B[idx(x.reviewed_at)].b++);
-  D.tasks.filter(x => x.approval === 'approved' && x.status === 'completed' && x.completed_at).forEach(x => B[idx(x.completed_at)].c++);
-  const now = new Date(), cur = now < s ? -1 : now > new Date(e.getTime() + MS) ? n - 1 : Math.min(n - 1, Math.floor((now - s) / W));
-  return { B, n, cur, max: Math.max(1, ...B.map(x => x.a + x.b + x.c)) };
-}
 const ENT = { evaluations: 'تقييم مؤشر', evidence: 'شاهد', evidence_files: 'ملف شاهد', indicator_assignments: 'إسناد مؤشر', domain_assignments: 'إسناد مجال', cycles: 'دورة', staff: 'منسوب', profiles: 'حساب' };
 const VERB = { insert: 'أُضيف', update: 'عُدّل', delete: 'حُذف' };
 const logLine = (l, D) => {
@@ -234,87 +214,47 @@ const logLine = (l, D) => {
   return { who, what, t: l.created_at };
 };
 
-/* ===== لوحة المتابعة ===== */
+/* ===== لوحة المتابعة: تشغيلية (ماذا أفعل الآن؟) لا إحصائية ===== */
 Pages.dashboard = async () => {
   const nc = App.needCycle(); if (nc) return nc;
   const [D, A] = await Promise.all([App.data(), App.alerts()]); App.drawMenu?.();
-  const { ref, ov, evals, evid, tasks, lvs, om } = D, c = App.cycle(), T = tod();
-  const cnt = k => ov.filter(o => o.eval_status === k).length;
-  const total = ov.length, apr = cnt('approved'), sub = cnt('submitted'), drf = cnt('draft'), nev = cnt('not_evaluated');
-  const evPend = evid.filter(e => ['new', 'under_review'].includes(e.status)).length;
-
-  // الحلقات: الإنجاز، الزمن المنقضي، الالتزام بالجدول
-  let tp = null, tsub = 'حدّد بداية الدورة ونهايتها';
-  if (c.start_date && c.end_date) { const dd = Math.max(1, Math.round((midnight(c.end_date) - midnight(c.start_date)) / MS) + 1), el = Math.round((midnight(T) - midnight(c.start_date)) / MS) + 1; tp = Math.max(0, Math.min(100, el / dd * 100)); tsub = `${nf(Math.max(0, Math.min(dd, el)))} من ${nf(dd)} يوماً`; }
-  const dueTasks = tasks.filter(t => t.approval === 'approved' && t.due_date && (t.status === 'completed' || dayDiff(t.due_date) <= 0));
-  const onTime = dueTasks.filter(t => t.status === 'completed' && t.completed_at && dayDiff(t.completed_at) <= dayDiff(t.due_date)).length;
-  const wk = weekly(c, D);
+  const { ref, evals, lvs, om } = D, c = App.cycle(), co = isCoord(), sid = S.me.staff_id, rl = role();
   const dateG = new Date().toLocaleDateString('ar-SA-u-ca-gregory', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-
-  // بطاقات الحالة
-  const kp = [
-    { l: 'كل المؤشرات', n: total, s: 'مؤشرات الدورة', t: 'brand', p: 100, i: 'layers' }, { l: 'معتمد', n: apr, s: 'تقييم معتمد نهائياً', t: 'ok', p: pctOf(apr, total), i: 'check' },
-    { l: 'بانتظار الاعتماد', n: sub, s: 'أُرسلت للمراجعة', t: 'info', p: pctOf(sub, total), i: 'clock' }, { l: 'قيد التقييم', n: drf, s: 'مسودات لم تُرسل', t: 'warn', p: pctOf(drf, total), i: 'note' },
-    { l: 'لم يُقيَّم', n: nev, s: 'لم يبدأ تقييمها', t: 'mute', p: pctOf(nev, total), i: 'flag' }, { l: 'شواهد تنتظر المراجعة', n: evPend, s: `من ${nf(evid.length)} شاهداً`, t: evPend ? 'bad' : 'ok', p: pctOf(evPend, evid.length), i: 'clip' },
-  ];
-  // المجالات
-  const doms = ref.domains.map((d, i) => {
-    const rs = ov.filter(o => o.domain_id === d.id), cn = k => rs.filter(o => o.eval_status === k).length, a = cn('approved');
-    const v = rs.filter(o => o.eval_status === 'approved' && o.achievement_pct != null).map(o => Number(o.achievement_pct)), avg = v.length ? v.reduce((x, y) => x + y, 0) / v.length : null;
-    return { d, i, n: rs.length, a, s: cn('submitted'), r: cn('draft'), z: cn('not_evaluated'), avg, lv: avg == null ? null : lvs.find(l => avg >= Number(l.min_pct)) || lvs[lvs.length - 1] };
-  });
-  // أحدث المنجزات
-  const recent = evals.filter(e => e.status === 'approved' && e.approved_at).sort((a, b) => new Date(b.approved_at) - new Date(a.approved_at)).slice(0, 6);
-  // فريق التنفيذ
-  const by = {}; const slot = s => (by[s] ||= { ev: new Set(), rs: new Set() });
-  D.resp.forEach(r => (r.kind === 'evaluator' ? slot(r.staff_id).ev : slot(r.staff_id).rs).add(r.indicator_id));
-  tasks.filter(t => t.approval === 'approved' && t.assignee_staff_id).forEach(t => slot(t.assignee_staff_id));
-  const team = Object.entries(by).map(([id, o]) => {
-    const st = S.staff.find(s => s.id === id); if (!st) return null; const ev = [...o.ev], tk = tasks.filter(t => t.approval === 'approved' && t.assignee_staff_id === id);
-    const cn = k => ev.filter(i => om[i]?.eval_status === k).length;
-    return { id, st, ne: ev.length, nr: o.rs.size, a: cn('approved'), s: cn('submitted'), td: tk.filter(t => t.status === 'completed').length, tl: tk.filter(t => !['completed', 'cancelled'].includes(t.status) && t.due_date && dayDiff(t.due_date) < 0).length, tn: tk.length };
-  }).filter(Boolean).sort((x, y) => y.tl - x.tl || y.s - x.s || x.st.full_name.localeCompare(y.st.full_name, 'ar'));
-  // الإعلانات
-  const co = isCoord(), readSet = new Set(D.reads.filter(r => r.profile_id === S.me.id).map(r => r.announcement_id)), isRead = a => readSet.has(a.id);
+  const readSet = new Set(D.reads.filter(r => r.profile_id === S.me.id).map(r => r.announcement_id)), isRead = a => readSet.has(a.id);
   const strip = D.anns.filter(a => a.priority !== 'normal' && (co || !isRead(a)));
   const accounts = D.profs.filter(p => p.is_active && p.role !== 'external_evaluator').length;
+  const agenda = App.agendaHtml ? App.agendaHtml(D, 7) : null;
+  // خريطة المؤشرات: كل مؤشر زر بلونه حسب حالته؛ مؤشراتي مؤطّرة
+  const mine = new Set(D.resp.filter(r => r.staff_id === sid).map(r => r.indicator_id)), evN = {};
+  D.resp.filter(r => r.kind === 'evaluator').forEach(r => (evN[r.indicator_id] ||= []).push(staffName(r.staff_id)));
+  const STL = { approved: 'معتمد', submitted: 'بانتظار الاعتماد', draft: 'مسودة', not_evaluated: 'لم يُقيَّم' }, STC = { approved: 'ok', submitted: 'info', draft: 'warn', not_evaluated: 'mute' };
+  const recent = evals.filter(e => e.status === 'approved' && e.approved_at).sort((a, b) => new Date(b.approved_at) - new Date(a.approved_at)).slice(0, 5);
+  const SC = co ? [['#evidence', 'مراجعة الشواهد', 'clip'], ['#inds', 'المؤشرات والتقييم', 'note'], ['#team/tasks', 'المهام', 'task'], ['#team/meetings', 'الاجتماعات', 'cal'], ['#team/visits', 'الزيارات الفنية', 'visit'], ['#reports', 'التقارير', 'doc']]
+    : rl === 'team_member' ? [['#evidence', 'رفع شاهد', 'clip'], ['#inds', 'مؤشراتي', 'note'], ['#team/tasks', 'مهامي', 'task'], ['#team/meetings', 'الاجتماعات', 'cal'], ['#ann', 'الإعلانات', 'mega']]
+    : [['#evidence', 'الشواهد', 'clip'], ['#inds', 'المؤشرات والتقييم', 'note'], ['#reports', 'التقارير', 'doc'], ['#team/tasks', 'المهام', 'task']];
 
   return h`
   ${strip.length ? h`<div class="db-strip" role="region" aria-label="إعلانات مهمة">${ico('mega')}<div>${strip.slice(0, 3).map(a => h`<a href="#ann" class="${a.priority}"><b>${L.prio[a.priority]}:</b> ${a.title}</a>`)}</div></div>` : ''}
-  <section class="db-hero"><div class="db-ht"><small>لوحة التحكم</small><h1>متابعة التقويم الذاتي</h1><p class="muted">${dateG}${wk ? ` · الأسبوع ${nf(Math.max(1, wk.cur + 1))} من ${nf(wk.n)}` : ''}</p>
-    <div class="chips"><span class="db-chip">${ico('layers')} ${c.name} ${sb_('cycle', c.status)}</span><span class="db-chip">${nf(total)} مؤشراً · ${nf(ref.domains.length)} مجالات</span>
-    <a class="db-chip ${A.total ? 'warn' : 'ok'}" href="#alerts">${ico('bell')} ${A.total ? nf(A.total) + ' تحتاج إجراء' : 'لا إجراءات معلّقة'}</a></div></div>
-    <div class="db-rings">${ring(pctOf(apr, total), 'نسبة الإنجاز', `${nf(apr)} من ${nf(total)} مؤشراً معتمداً`, 'ok')}${ring(tp, 'الزمن المنقضي', tsub, 'info')}${ring(dueTasks.length ? pctOf(onTime, dueTasks.length) : null, 'الالتزام بالجدول', dueTasks.length ? `${nf(onTime)} من ${nf(dueTasks.length)} مهمة في موعدها` : 'لا مهام مستحقة بعد', 'brand')}</div></section>
-  <div class="db-kpis">${kp.map(k => h`<a class="db-k ${k.t}" href="${k.i === 'clip' ? '#evidence' : '#inds'}"><span class="db-ki">${ico(k.i)}</span><small>${k.l}</small><b>${nf(k.n)}</b><div class="db-pb"><span style="width:${k.p}%"></span></div><em>${k.s}</em></a>`)}</div>
+  <section class="db-hero op"><div class="db-ht"><small>لوحة التحكم · ${c.name}</small><h1>${A.total ? (co ? 'ما ينتظرك اليوم' : 'مهامك اليوم') : 'لا شيء معلّقاً عليك الآن'}</h1><p class="muted">${dateG}</p>
+    <div class="chips"><a class="db-chip ${A.total ? 'warn' : 'ok'}" href="#alerts">${ico('bell')} ${A.total ? nf(A.total) + ' إجراء ينتظرك' : 'كل شيء منجز'}</a>${A.bySev.bad ? h`<span class="db-chip bad">${nf(A.bySev.bad)} عاجل</span>` : ''}${sb_('cycle', c.status)}</div></div>
+    <nav class="db-sc" aria-label="اختصارات">${SC.map(([href, l, i]) => h`<a href="${href}">${ico(i)}<span>${l}</span></a>`)}</nav></section>
 
-  <section class="pn"><div class="pnh"><h2>${ico('bell')} مركز المتابعة: ما ينتظر إجراءً</h2><div class="pa"><span class="bdg bad">${nf(A.bySev.bad)} عاجل</span><span class="bdg warn">${nf(A.bySev.warn)} يحتاج متابعة</span><span class="bdg">${nf(A.bySev.info)} للعلم</span><a class="btn sm" href="#alerts">كل التنبيهات</a></div></div>
+  <section class="pn"><div class="pnh"><h2>${ico('bell')} الإجراءات المطلوبة</h2><div class="pa"><a class="btn sm" href="#alerts">كل التنبيهات</a></div></div>
     ${A.groups.length ? h`<div class="db-ac">${A.groups.map(g => groupCard(g, 4))}</div>` : h`<p class="muted empty">لا توجد إجراءات معلّقة عليك في هذه الدورة.</p>`}</section>
+
+  ${panel('الأجندة: الأيام السبعة القادمة', agenda || h`<p class="muted empty">لا اجتماعات ولا زيارات ولا مواعيد ولا مهام خلال الأسبوع القادم.</p>`, h`<a class="btn sm" href="#team/overview">أجندة الفريق كاملة</a>`)}
 
   ${panel('الإعلانات', D.anns.length ? h`<div class="db-anns">${D.anns.slice(0, 4).map(a => h`<article class="db-an ${a.priority}"><header><b>${a.title}</b>${a.priority !== 'normal' ? badge(L.prio[a.priority], a.priority === 'urgent' ? 'bad' : 'warn') : ''}${!co && !isRead(a) ? h`<span class="db-dot" title="لم تطّلع عليه"></span>` : ''}</header>
       <p>${short(a.body, 170)}</p><footer><small class="muted">${dtt(a.publish_at)}</small>${co ? btn(`المطّلعون (${nf(D.reads.filter(r => r.announcement_id === a.id).length)}${accounts ? ' من ' + nf(accounts) : ''})`, 'dbAnnWho', { i: a.id }) : (isRead(a) ? badge('اطّلعت', 'ok') : btn('تعليم كمقروء', 'dbAnnRead', { i: a.id }, 'pri'))}</footer></article>`)}</div>` : h`<p class="muted empty">لا توجد إعلانات سارية.</p>`,
     h`<a class="btn sm" href="#ann">${co ? 'إدارة الإعلانات' : 'كل الإعلانات'}</a>`)}
 
-  ${recent.length ? panel('أحدث المنجزات', h`<div class="db-rec">${recent.map(e => { const r = ref.im[e.indicator_id], di = Math.max(0, ref.domains.findIndex(d => d.id === r?.dom?.id)) % 4; return h`<a class="db-rc" style="--b:var(--c${di}b);--f:var(--c${di}f)" href="#ind/${e.indicator_id}"><span class="db-rcc" dir="ltr">${r?.code}</span><b>${short(r?.official_text, 70)}</b><small>${e.achievement_pct != null ? nf(Math.round(e.achievement_pct)) + '٪ · ' : ''}${lvs.find(l => l.id === e.level_id)?.label_ar || ''}</small><small class="muted">${ago(e.approved_at)}</small></a>`; })}</div>`) : ''}
+  ${panel('خريطة المؤشرات: أين وصل كل مؤشر', h`<div class="db-leg"><span class="ok">معتمد</span><span class="info">بانتظار الاعتماد</span><span class="warn">مسودة</span><span class="mute">لم يُقيَّم</span>${sid ? h`<span class="mine">مؤشراتي</span>` : ''}</div>
+    <div class="db-map">${ref.domains.map((d, i) => h`<div class="db-md" style="--b:var(--c${i % 4}b);--f:var(--c${i % 4}f)"><h3>${d.name_ar}</h3><div>${ref.inds.filter(x => x.dom?.id === d.id).map(x => { const st = om[x.id]?.eval_status || 'not_evaluated';
+      return h`<a href="#ind/${x.id}" class="mi ${STC[st]} ${mine.has(x.id) ? 'me' : ''}" dir="ltr" title="${x.code} · ${STL[st]}${evN[x.id] ? ' · المقيّم: ' + evN[x.id].join('، ') : ' · بلا مقيّم'}">${x.code}</a>`; })}</div></div>`)}</div>`,
+    h`<a class="btn sm" href="#inds">المؤشرات والتقييم</a>`)}
 
-  <h2 class="db-sec">التحليل <small>صورة شاملة لسير التقويم</small></h2>
-  ${panel('مسار الإنجاز عبر أسابيع الدورة', wk ? h`<div class="db-leg"><span class="a">تقييمات معتمدة</span><span class="b">شواهد معتمدة</span><span class="c">مهام مكتملة</span></div>
-    <div class="db-wk" role="img" aria-label="الإنجاز الأسبوعي">${wk.B.map((x, i) => h`<div class="${i === wk.cur ? 'cur' : ''}"><div class="stk" title="الأسبوع ${nf(i + 1)}: ${nf(x.a)} تقييم، ${nf(x.b)} شاهد، ${nf(x.c)} مهمة">${x.a + x.b + x.c ? h`<i class="a" style="height:${x.a / wk.max * 100}%"></i><i class="b" style="height:${x.b / wk.max * 100}%"></i><i class="c" style="height:${x.c / wk.max * 100}%"></i>` : ''}</div><small>${nf(i + 1)}</small></div>`)}</div>` : h`<p class="muted empty">حدّد تاريخ بداية الدورة ونهايتها من «دورات التقويم» ليظهر المسار الأسبوعي.</p>`)}
-  <div class="two">
-    ${panel('توزيع الحالة', h`<div class="db-dn">${donut([{ n: apr, cls: 'ok' }, { n: sub, cls: 'info' }, { n: drf, cls: 'warn' }, { n: nev, cls: 'mute' }])}<ul class="db-lg">${[['ok', 'معتمد', apr], ['info', 'بانتظار الاعتماد', sub], ['warn', 'قيد التقييم', drf], ['mute', 'لم يُقيَّم', nev]].map(([k, l, n]) => h`<li><i class="${k}"></i>${l}<b>${nf(n)}</b><small>${nf(pctOf(n, total))}٪</small></li>`)}</ul></div>`)}
-    ${panel('تقدم المجالات', h`<div class="db-doms">${doms.map(x => h`<div class="db-dom" style="--b:var(--c${x.i % 4}b);--f:var(--c${x.i % 4}f)"><div class="db-dh"><b>${x.d.name_ar}</b>${x.avg == null ? h`<span class="muted">—</span>` : h`<span class="ires"><b>${nf(Math.round(x.avg))}٪</b><span class="lvl ${x.lv?.code || 'none'}">${x.lv?.label_ar || ''}</span></span>`}</div>
-      <div class="db-st" title="معتمد ${x.a} · بانتظار ${x.s} · مسودة ${x.r} · لم يُقيَّم ${x.z}"><i class="ok" style="flex:${x.a}"></i><i class="info" style="flex:${x.s}"></i><i class="warn" style="flex:${x.r}"></i><i class="mute" style="flex:${x.z}"></i></div>
-      <small class="muted">${nf(x.a)} معتمد من ${nf(x.n)} · ${nf(x.s)} بانتظار الاعتماد</small></div>`)}</div>`)}
-  </div>
-  ${D.log.length ? panel('آخر التعديلات', h`<ul class="db-log">${D.log.map(l => { const x = logLine(l, D); return h`<li><span><b>${x.who}</b> · ${x.what}</span><small class="muted">${ago(x.t)}</small></li>`; })}</ul>`, h`<a class="btn sm" href="#log">سجل النشاط</a>`) : ''}
-
-  <h2 class="db-sec">فريق التنفيذ</h2>
-  ${panel('أداء الفريق', table([
-    { h: 'المنسوب', f: r => h`<span class="db-av">${(r.st.full_name || '').trim().split(/\s+/).slice(0, 2).map(w => w[0]).join('')}</span> <b>${r.st.full_name}</b><br><small class="muted">${r.st.job_title || ''}</small>` },
-    { h: 'مقيّم', f: r => nf(r.ne) }, { h: 'مسؤول', f: r => nf(r.nr) }, { h: 'معتمد', f: r => nf(r.a) }, { h: 'بانتظار الاعتماد', f: r => r.s ? badge(nf(r.s), 'warn') : '0' },
-    { h: 'مهام مكتملة', f: r => `${nf(r.td)} / ${nf(r.tn)}` }, { h: 'متأخرة', f: r => r.tl ? badge(nf(r.tl), 'bad') : '0' },
-    { h: 'الإنجاز', f: r => r.ne ? h`<div class="db-pr"><div class="bar2"><span style="width:${pctOf(r.a, r.ne)}%"></span></div><span>${nf(pctOf(r.a, r.ne))}٪</span></div>` : h`<span class="muted">—</span>` },
-    { h: '', f: r => h`<a class="btn sm" href="#assign/${r.id}">المسؤوليات</a>` },
-  ], team, 'لم يُسنَد أي مؤشر أو مهمة بعد. ابدأ من «إدارة المسؤوليات».'), h`<small class="muted">${nf(team.length)} منسوباً</small>`)}`;
+  ${recent.length ? panel('آخر ما اعتُمد', h`<ul class="db-log">${recent.map(e => { const r = ref.im[e.indicator_id]; return h`<li><span><a href="#ind/${e.indicator_id}" dir="ltr"><b>${r?.code}</b></a> ${short(r?.official_text, 80)}${lvs.find(l => l.id === e.level_id) ? h` <span class="bdg ok">${lvs.find(l => l.id === e.level_id).label_ar}</span>` : ''}</span><small class="muted">${ago(e.approved_at)}</small></li>`; })}</ul>`) : ''}
+  ${D.log.length ? panel('آخر التعديلات', h`<ul class="db-log">${D.log.map(l => { const x = logLine(l, D); return h`<li><span><b>${x.who}</b> · ${x.what}</span><small class="muted">${ago(x.t)}</small></li>`; })}</ul>`, h`<a class="btn sm" href="#log">سجل النشاط</a>`) : ''}`;
 };
 
 /* ===== صفحة التنبيهات ===== */

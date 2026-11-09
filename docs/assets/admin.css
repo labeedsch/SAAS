@@ -204,3 +204,18 @@ a.db-chip.warn{background:var(--c3b);color:var(--c3f);border-color:color-mix(in 
 .tm-more>summary::before{content:"◂";color:var(--brand);transition:transform .15s} .tm-more[open]>summary::before{transform:rotate(-90deg)} .tm-more[open]>summary{border-bottom:1px solid var(--line)}
 .tm-more>ul,.tm-more>.tw{margin:14px 18px 18px}
 @media (max-width:900px){.tm-kb{grid-template-columns:repeat(2,1fr)}} @media (max-width:520px){.tm-kb{grid-template-columns:1fr}}
+
+/* لوحة تشغيلية: الاختصارات وخريطة المؤشرات */
+.db-hero.op{grid-template-columns:1fr 1.2fr}
+.db-chip.bad{background:var(--c5b);color:var(--c5f)}
+.db-sc{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px}
+.db-sc a{display:grid;justify-items:center;gap:6px;padding:14px 8px;border-radius:16px;background:var(--surface);border:1px solid var(--line);color:var(--ink);text-decoration:none;font-weight:600;font-size:.9rem;text-align:center;transition:transform .15s,box-shadow .15s}
+.db-sc a:hover{transform:translateY(-3px);box-shadow:var(--shadow2);color:var(--brand2)} .db-sc .ico{width:24px;height:24px;color:var(--brand)}
+.db-map{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:12px}
+.db-md{padding:12px 14px;border-radius:16px;border:1px solid color-mix(in srgb,var(--f) 22%,var(--line));background:linear-gradient(160deg,var(--b),var(--surface) 150%)} .db-md h3{font-size:.95rem;color:var(--f);margin-bottom:8px}
+.db-md>div{display:flex;flex-wrap:wrap;gap:6px}
+.mi{display:inline-block;min-width:58px;text-align:center;padding:3px 8px;border-radius:9px;font-size:.78rem;font-weight:700;text-decoration:none;border:2px solid transparent;font-variant-numeric:tabular-nums}
+.mi.ok{background:var(--c4b);color:var(--c4f)} .mi.info{background:var(--c1b);color:var(--c1f)} .mi.warn{background:var(--c3b);color:var(--c3f)} .mi.mute{background:var(--soft);color:var(--muted);border-color:var(--line)}
+.mi:hover{filter:brightness(.95);box-shadow:var(--shadow)} .mi.me{border-color:var(--brand);box-shadow:0 0 0 2px color-mix(in srgb,var(--brand) 25%,transparent)}
+.db-leg .mine::before{background:transparent;border:2px solid var(--brand)} .db-leg .info::before{background:var(--info)} .db-leg .warn::before{background:var(--gold2)} .db-leg .mute::before{background:color-mix(in srgb,var(--muted) 40%,var(--line))}
+@media (max-width:900px){.db-hero.op{grid-template-columns:1fr}} @media (max-width:520px){.db-sc{grid-template-columns:repeat(2,1fr)}}
