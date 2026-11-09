@@ -103,7 +103,21 @@ Act.refreshNow = async () => { await App.refresh(); toast('حُدِّثت الب
 /* ===== التوجيه: انتقال هادئ، لا وميض، وتجاهل الاستجابات المتأخرة ===== */
 let seq = 0, curKey = null;
 const SKEL = raw('<div class="skel" aria-busy="true" aria-label="جارٍ التحميل"><i class="s1"></i><i class="s2"></i><i class="s3"></i></div>');
+// سجل التنقل في لوحة التحكم: زر الرجوع في صفحة المؤشر يعود إلى الصفحة التي جاء منها المستخدم
+const hist = [];
+const noteHash = () => { const h = location.hash || '#dashboard'; if (hist[hist.length - 1] === h) return; const i = hist.lastIndexOf(h); if (i >= 0) hist.length = i + 1; else hist.push(h); if (hist.length > 60) hist.shift(); };
+App.indBack = () => {
+  for (let j = hist.length - 2; j >= 0; j--) {
+    const h = hist[j], n = h.slice(1).split('/')[0] || 'dashboard';
+    if (n === 'ind') continue;
+    const m = MENU.find(x => x[0] === n), L = m ? 'العودة إلى ' + m[1] : n === 'meeting' ? 'العودة إلى الاجتماع' : n === 'visit' ? 'العودة إلى الزيارة' : null;
+    if (L) return { href: h, label: L };
+    break;
+  }
+  return null;
+};
 async function route(opt = {}) {
+  noteHash();
   const parts = location.hash.slice(1).split('/'); let name = parts[0] || 'dashboard', args = parts.slice(1);
   if (role() === 'team_member' && (name === 'team' || name === 'platform')) name = 'desk';   // عضو الفريق: مكتبه الإلكتروني بدل إدارة الفريق والمنصة
   const m = MENU.find(x => x[0] === name);               // الصلاحية تُفحص على الاسم الأصلي قبل التحويل إلى تبويب

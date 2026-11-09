@@ -135,7 +135,7 @@ Pages.ind = async ([id]) => {
     }
   }
   const page = IndPage.render({
-    back: { href: '#inds', label: 'العودة للمؤشرات' }, dom: DOMC, domIdx, code: ind.code, text: ind.official_text, domName: ind.dom.name_ar, stdName: ind.std.name_ar, cycleName: cyc.name,
+    back: App.indBack?.() || { href: '#inds', label: 'العودة للمؤشرات' }, dom: DOMC, domIdx, code: ind.code, text: ind.official_text, domName: ind.dom.name_ar, stdName: ind.std.name_ar, cycleName: cyc.name,
     status: { label: L.eval[evStatus], cls: evStatus === 'approved' ? 'ok' : evStatus === 'submitted' ? 'info' : evStatus === 'draft' ? 'warn' : '' },
     level: lvLabel ? { label: lvLabel, cls: LVC[lvLabel] || '' } : null, pct: ev?.achievement_pct,
     owners: [{ label: 'مسؤول المؤشر', names: respNames }, { label: 'مقيّم المؤشر', names: evalNames }],

@@ -526,3 +526,4 @@ body.pub nav a[hidden]{display:none}
 
 /* خلفية بانر المجال: أيقونة المجال نفسها تتكرر */
 .dhero::before{background:var(--pat) 0 0/96px 96px repeat}
+.crumbs+.iback{margin:0 0 14px}
