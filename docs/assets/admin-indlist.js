@@ -149,13 +149,15 @@ Pages.inds = async () => {
         (open ? `<div class="fbody">${facetOpts(k).map(([v, t]) => { const c = rows.filter(r => pass(r, k) && fvals(r, k).includes(v)).length;
           return `<label class="fopt${c ? '' : ' zero'}"><input type="checkbox" data-f="${k}" data-v="${esc(v)}"${hm.f[k].includes(v) ? ' checked' : ''}><span>${esc(t)}</span><em>${nf(c)}</em></label>`; }).join('')}</div>` : '') + '</section>'; }).join('')}</div>`; };
 
+  /* شارات المسؤول/المقيّم: بالضغط عليها يُفرز بها (تُضاف إلى فلتر المسؤول أو المقيّم وتُلغى بضغطة ثانية) */
+  const chips = (names, key, none) => (names.length ? names : [NOP]).map(n => h`<span class="wchip${hm.f[key].includes(n) ? ' on' : ''}${n === NOP ? ' none' : ''}" role="button" tabindex="0" data-wk="${key}" data-wv="${n}" title="فرز حسب: ${n === NOP ? none : n}">${n === NOP ? none : n}</span>`);
   const tbl = xs => table([
     { h: 'الرمز', f: r => h`<a href="#ind/${r.i.id}" dir="ltr"><b>${r.i.code}</b></a>` }, { h: 'المؤشر', f: r => short(r.i.official_text, 80) },
-    { h: 'المسؤول', f: r => r.rs.join('، ') || '—' }, { h: 'المقيّم', f: r => r.ev.join('، ') || '—' },
+    { h: 'المسؤول', f: r => h`<div class="wc">${chips(r.rs, 'resp', 'بلا مسؤول')}</div>` }, { h: 'المقيّم', f: r => h`<div class="wc">${chips(r.ev, 'eval', 'بلا مقيّم')}</div>` },
     { h: 'الحالة', f: r => sb_('eval', r.st) }, { h: 'النسبة', f: r => r.pct != null ? nf(r.pct) + '%' : '—' }, { h: 'المستوى', f: r => r.lvl || '—' },
     { h: 'الشواهد', f: r => h`${nf(r.ea)} / ${nf(r.et)}${r.ep ? h` <span class="bdg info" title="بانتظار المراجعة">${nf(r.ep)}</span>` : ''}` },
   ], xs, 'لا توجد مؤشرات مطابقة');
-  const cards = xs => xs.length ? h`<div class="icards">${xs.map(r => h`<a class="icard ${r.st}" href="#ind/${r.i.id}"><header><b dir="ltr">${r.i.code}</b>${sb_('eval', r.st)}</header><p>${short(r.i.official_text, 110)}</p><small>${r.i.dom?.name_ar} · ${r.i.std?.name_ar}</small><small>المقيّم: ${r.ev.join('، ') || 'بلا مقيّم'} · المسؤول: ${r.rs.join('، ') || 'بلا مسؤول'}</small><footer>${r.pct != null ? h`<span class="bdg">${nf(r.pct)}%${r.lvl ? ' · ' + r.lvl : ''}</span>` : ''}<span class="muted">شواهد ${nf(r.ea)}/${nf(r.et)}</span>${r.ep ? h`<span class="bdg info">${nf(r.ep)} بانتظار المراجعة</span>` : ''}</footer></a>`)}</div>` : h`<div class="pn"><p class="muted empty">لا توجد مؤشرات مطابقة.</p></div>`;
+  const cards = xs => xs.length ? h`<div class="icards">${xs.map(r => h`<a class="icard ${r.st}" href="#ind/${r.i.id}"><header><b dir="ltr">${r.i.code}</b>${sb_('eval', r.st)}</header><p>${short(r.i.official_text, 110)}</p><small>${r.i.dom?.name_ar} · ${r.i.std?.name_ar}</small><div class="iwho"><div><small>مسؤول المؤشر</small><div class="wc">${chips(r.rs, 'resp', 'بلا مسؤول')}</div></div><div><small>المقيّم</small><div class="wc">${chips(r.ev, 'eval', 'بلا مقيّم')}</div></div></div><footer>${r.pct != null ? h`<span class="bdg">${nf(r.pct)}%${r.lvl ? ' · ' + r.lvl : ''}</span>` : ''}<span class="muted">شواهد ${nf(r.ea)}/${nf(r.et)}</span>${r.ep ? h`<span class="bdg info">${nf(r.ep)} بانتظار المراجعة</span>` : ''}</footer></a>`)}</div>` : h`<div class="pn"><p class="muted empty">لا توجد مؤشرات مطابقة.</p></div>`;
   const body = xs => { const v = hm.view === 'cards' ? cards : tbl;
     if (hm.group === 'none') return hm.view === 'cards' ? v(xs) : h`<div class="pn">${v(xs)}</div>`;
     const g = new Map(); xs.forEach(r => groupOf(r)[0].forEach(k => (g.get(k) || g.set(k, []).get(k)).push(r)));
@@ -179,8 +181,9 @@ Pages.inds = async () => {
     };
     paint();
     v.addEventListener('click', e => {
-      const t = e.target.closest('[data-fdom],[data-st],[data-mine],[data-view],[data-reset],[data-fh],#advbtn'); if (!t || !v.contains(t)) return;
-      if (t.dataset.fdom) { const a = hm.f.dom, i = a.indexOf(t.dataset.fdom); i < 0 ? a.push(t.dataset.fdom) : a.splice(i, 1); }
+      const t = e.target.closest('[data-wk],[data-fdom],[data-st],[data-mine],[data-view],[data-reset],[data-fh],#advbtn'); if (!t || !v.contains(t)) return;
+      if (t.dataset.wk) { e.preventDefault(); e.stopPropagation(); const a = hm.f[t.dataset.wk], i = a.indexOf(t.dataset.wv); i < 0 ? a.push(t.dataset.wv) : a.splice(i, 1); }
+      else if (t.dataset.fdom) { const a = hm.f.dom, i = a.indexOf(t.dataset.fdom); i < 0 ? a.push(t.dataset.fdom) : a.splice(i, 1); }
       else if (t.dataset.st !== undefined) hm.st = t.dataset.st;
       else if (t.dataset.mine) hm.mine = !hm.mine;
       else if (t.dataset.view) hm.view = t.dataset.view;
@@ -189,6 +192,7 @@ Pages.inds = async () => {
       else if (t.id === 'advbtn') hm.adv = !hm.adv;
       paint();
     });
+    v.addEventListener('keydown', e => { if ((e.key === 'Enter' || e.key === ' ') && e.target.matches?.('.wchip')) { e.preventDefault(); e.target.click(); } });
     v.addEventListener('change', e => {
       const t = e.target;
       if (t.dataset?.f) { const a = hm.f[t.dataset.f]; t.checked ? a.push(t.dataset.v) : a.splice(a.indexOf(t.dataset.v), 1); paint(); }

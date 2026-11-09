@@ -346,6 +346,14 @@ button.kc{font:inherit;text-align:start;cursor:pointer;width:100%} .kc.on{outlin
 .icard>header{display:flex;align-items:center;justify-content:space-between;gap:8px} .icard p{margin:0;line-height:1.6} .icard small{color:var(--muted)} .icard footer{display:flex;flex-wrap:wrap;gap:8px;align-items:center;font-size:.85rem}
 .igrp>h3{margin:16px 0 8px;font-size:1.02rem}
 .pills2 .spill{min-height:38px}
+/* شارات المسؤول والمقيّم القابلة للفرز في بطاقات المؤشرات وجدولها */
+.iwho{display:grid;grid-template-columns:1fr 1fr;gap:8px 12px;padding-top:6px;border-top:1px dashed var(--line)} .iwho>div{min-width:0} .iwho small{display:block;margin-bottom:3px;font-size:.74rem}
+.wc{display:flex;flex-wrap:wrap;gap:5px}
+.wchip{display:inline-flex;align-items:center;max-width:100%;padding:2px 10px;border-radius:99px;border:1px solid color-mix(in srgb,var(--brand) 28%,var(--line));background:var(--brandsoft);color:var(--brand2);font-size:.8rem;font-weight:600;line-height:1.6;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:background .15s,color .15s,transform .15s}
+.wchip:hover{background:color-mix(in srgb,var(--brand) 18%,var(--surface));transform:translateY(-1px)} .wchip.on{background:var(--brand);color:#fff;border-color:var(--brand)}
+.wchip.none{background:var(--soft);color:var(--muted);border-style:dashed;font-weight:500} .wchip.none.on{background:var(--muted);color:#fff}
+.wchip:focus-visible{outline:2px solid var(--brand);outline-offset:2px}
+@media (max-width:420px){.iwho{grid-template-columns:1fr}}
 @media (prefers-reduced-motion:reduce){.icard{transition:none}.icard:hover{transform:none}}
 
 /* أيقونات شريط لوحة التحكم */
