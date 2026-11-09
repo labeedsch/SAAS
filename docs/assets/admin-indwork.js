@@ -6,6 +6,37 @@ const ic = n => App.ico(n);
 const LVK = { excellence: 'ex', advancement: 'ad', launch: 'la', preparation: 'pr' };
 const pctTxt = p => p == null ? '—' : nf(Math.round(p)) + '%';
 
+
+/* عبارات جاهزة للاختيار المتعدد (مساعدة للكتابة، قابلة للتعديل؛ ليست نصاً رسمياً من الدليل) */
+const PH = {
+  just: [['الشواهد', ['تتوفر شواهد معتمدة تغطي متطلبات المؤشر', 'الشواهد المتوفرة تغطي المتطلبات جزئياً', 'لا توجد شواهد كافية بعد', 'الشواهد حديثة وتخص الدورة الحالية', 'الشواهد موثقة بالتواريخ والأسماء']],
+    ['الممارسة', ['الممارسة مطبقة ومستمرة', 'الممارسة مطبقة جزئياً', 'الممارسة غير مطبقة بعد', 'الممارسة موثقة بإجراءات مكتوبة', 'أثر الممارسة ظاهر في النتائج']],
+    ['المتابعة', ['تم التحقق ميدانياً عبر زيارة فنية', 'توجد مراجعة دورية للممارسة', 'توجد خطة تحسين قائمة']]],
+  str: [['', ['وضوح الإجراءات والمسؤوليات', 'توثيق منظم ومحدّث', 'مشاركة فاعلة من منسوبي المدرسة', 'متابعة دورية ومنتظمة', 'استمرارية الممارسة', 'أثر إيجابي على المتعلمين', 'تعاون المجتمع المدرسي']]],
+  gap: [['', ['نقص في الشواهد الموثقة', 'غياب التوثيق المنتظم', 'ضعف المتابعة الدورية', 'عدم وضوح المسؤوليات', 'الممارسة غير مستمرة', 'لا يوجد قياس لأثر الممارسة', 'تأخر في استكمال المتطلبات']]],
+  src: [['', ['الشواهد المرفوعة في النظام', 'سجلات ووثائق المدرسة', 'محاضر الاجتماعات', 'الزيارات الفنية', 'الملاحظات الصفية', 'الاستبانات', 'نظام نور', 'نتائج المتعلمين', 'مقابلات']]],
+};
+const PT = { just: 'اختر مبررات جاهزة', str: 'اختر جوانب القوة', gap: 'اختر الفجوات', src: 'اختر مصادر البيانات' };
+const flat = k => PH[k].flatMap(g => g[1]);
+const parts = (k, text) => { const all = new Set(flat(k)), sel = new Set(), free = []; String(text || '').split('\n').forEach(l => { const t = l.replace(/^•\s*/, '').trim(); if (/^•\s/.test(l) && all.has(t)) sel.add(t); else free.push(l); }); return { sel, free: free.join('\n').trim() }; };
+const ddf = (k, label, rows, value, req) => { const { sel } = parts(k, value);
+  return h`<div class="iw-fld" data-k="${k}"><label class="iw-f" for="iw-${k}">${label}${req ? h`<em>${req}</em>` : ''}</label>
+    <details class="iw-dd"><summary><span>${PT[k]}</span><b class="n">${nf(sel.size)}</b></summary><div class="iw-ddp" role="group" aria-label="${PT[k]}">
+      ${PH[k].map(([g, xs]) => h`${g ? h`<strong>${g}</strong>` : ''}${xs.map(x => h`<label><input type="checkbox" value="${x}" ${sel.has(x) ? raw('checked') : ''}><span>${x}</span></label>`)}`)}
+      <div class="iw-ddf"><button type="button" class="btn sm" data-ddclr="${k}">مسح الاختيار</button><button type="button" class="btn sm pri" data-ddok>تم</button></div></div></details>
+    <textarea id="iw-${k}" rows="${rows}" placeholder="اختر من القائمة أو اكتب بصياغتك">${value || ''}</textarea></div>`; };
+const syncDD = fld => { const k = fld.dataset.k, ta = fld.querySelector('textarea'), { free } = parts(k, ta.value), chk = [...fld.querySelectorAll('input:checked')].map(i => '• ' + i.value);
+  ta.value = [...chk, free].filter(Boolean).join('\n'); fld.querySelector('.n').textContent = nf(chk.length); };
+document.addEventListener('change', e => { const f = e.target.closest?.('.iw-fld'); if (f && e.target.matches('.iw-ddp input')) syncDD(f); });
+document.addEventListener('input', e => { const f = e.target.closest?.('.iw-fld'); if (!f || !e.target.matches('textarea')) return; const { sel } = parts(f.dataset.k, e.target.value);
+  f.querySelectorAll('.iw-ddp input').forEach(i => { i.checked = sel.has(i.value); }); f.querySelector('.n').textContent = nf(sel.size); });
+document.addEventListener('click', e => {
+  const c = e.target.closest('[data-ddclr]'); if (c) { const f = c.closest('.iw-fld'); f.querySelectorAll('.iw-ddp input').forEach(i => { i.checked = false; }); syncDD(f); return; }
+  if (e.target.closest('[data-ddok]')) { e.target.closest('details').open = false; return; }
+  document.querySelectorAll('.iw-dd[open]').forEach(d => { if (!d.contains(e.target)) d.open = false; });
+});
+document.addEventListener('keydown', e => { if (e.key === 'Escape') document.querySelectorAll('.iw-dd[open]').forEach(d => { d.open = false; d.querySelector('summary').focus(); }); });
+
 App.indWork = d => {
   const { id, ind, ev, evAll, se, vc, tk, levels, lvOf, active } = d, co = isCoord(), pr = role() === 'principal';
   const st = ev?.status || 'not_evaluated', cur = ev?.achievement_pct != null ? lvOf(Number(ev.achievement_pct)) : null;
@@ -61,9 +92,9 @@ App.indWork = d => {
   const f = k => ev?.[k] ?? '';
   const form = canEdit ? h`<div class="iw-form"><div class="iw-lvpick" role="radiogroup" aria-label="مستوى التقييم">${levels.map(l => h`<button type="button" class="iw-lv lv-${LVK[l.code] || 'x'}" role="radio" aria-checked="false" data-a="iwLevel" data-l="${l.id}" data-l-code="${l.code}"><b>${l.label}</b><small dir="ltr">${nf(l.min)} – ${nf(l.max)}%</small></button>`)}</div>
       <div class="iw-pr"><label for="iw-pct">نسبة التحقق (%)</label><input id="iw-pct" type="number" min="0" max="100" step="1" inputmode="numeric" value="${ev?.achievement_pct ?? ''}"><output id="iw-lvout" role="status"></output></div>
-      <label class="iw-f" for="iw-just">مبررات التقييم <em>مطلوبة قبل الإرسال</em></label><textarea id="iw-just" rows="4" placeholder="لماذا هذا المستوى؟ اربطه بالشواهد المرفوعة.">${f('justification')}</textarea>
-      <div class="iw-2"><div><label class="iw-f" for="iw-str">جوانب القوة</label><textarea id="iw-str" rows="3">${f('strengths')}</textarea></div><div><label class="iw-f" for="iw-gap">الفجوات والملاحظات</label><textarea id="iw-gap" rows="3">${f('gaps_notes')}</textarea></div></div>
-      <label class="iw-f" for="iw-src">مصادر البيانات</label><textarea id="iw-src" rows="2">${f('data_sources')}</textarea>
+      ${ddf('just', 'مبررات التقييم', 4, f('justification'), 'مطلوبة قبل الإرسال')}
+      <div class="iw-2">${ddf('str', 'جوانب القوة', 3, f('strengths'))}${ddf('gap', 'الفجوات والملاحظات', 3, f('gaps_notes'))}</div>
+      ${ddf('src', 'مصادر البيانات', 2, f('data_sources'))}
       ${!ap.length ? h`<p class="iw-hint">${ic('alert')} لا توجد شواهد معتمدة بعد؛ تأكد أن المبررات تستند إلى شواهد مرفوعة.</p>` : ''}
       <div class="iw-act">${btn('حفظ كمسودة', 'iwSave', { s: 'draft' })}${btn('إرسال للاعتماد', 'iwSave', { s: 'submitted' }, 'pri')}${co || pr ? btn('اعتماد التقييم', 'iwSave', { s: 'approved' }, 'gold') : ''}</div></div>`
     : ev ? h`<dl class="iw-kv wide"><dt>المستوى</dt><dd>${cur ? cur.label : '—'} · ${pctTxt(ev.achievement_pct)}</dd><dt>مبررات التقييم</dt><dd>${ev.justification || '—'}</dd><dt>جوانب القوة</dt><dd>${ev.strengths || '—'}</dd><dt>الفجوات والملاحظات</dt><dd>${ev.gaps_notes || '—'}</dd><dt>مصادر البيانات</dt><dd>${ev.data_sources || '—'}</dd><dt>الاعتماد</dt><dd>${ev.approved_at ? dtt(ev.approved_at) : '—'}</dd></dl><p class="muted sm">${!active ? 'الدورة غير نشطة.' : 'التقييم للمقيّم المسند، ويُعدَّل بعد إعادته للمسودة من المنسق.'}</p>`

@@ -175,7 +175,8 @@ $('#cycSel').onchange = e => { S.cid = e.target.value || null; try { localStorag
 $('#out').onclick = async () => { await sb.auth.signOut(); S.me = null; showLogin(); };
 window.addEventListener('hashchange', () => route());
 // الشريط العلوي (الشعار) يختفي عند التمرير ويبقى شريط الأقسام وترويسة الصفحة ثابتَين
-const setHH = () => document.documentElement.style.setProperty('--hh', ($('.astick header')?.offsetHeight || 0) + 'px');
+const setHH = () => { const hh = $('.astick header')?.offsetHeight || 0, st = document.documentElement.style; st.setProperty('--hh', hh + 'px'); st.setProperty('--sh', Math.max(0, ($('.astick')?.offsetHeight || 0) - hh) + 'px'); };
+if (window.ResizeObserver && $('.astick')) new ResizeObserver(setHH).observe($('.astick'));
 window.addEventListener('resize', setHH); setHH(); setTimeout(setHH, 600);
 Act.print = () => window.print();
 Act.back = () => history.back();
