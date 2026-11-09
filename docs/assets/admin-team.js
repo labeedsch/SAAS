@@ -7,9 +7,9 @@ const MS = 864e5, pad = n => String(n).padStart(2, '0');
 const tod = () => { const d = new Date(); return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`; };
 const dayDiff = s => Math.round((new Date(String(s).slice(0, 10) + 'T00:00:00') - new Date(tod() + 'T00:00:00')) / MS);
 const pctOf = (a, b) => b ? Math.round(a / b * 100) : 0;
-const CO = ['coordinator'], CP = ['coordinator', 'principal'];
-const TABS = [['overview', 'نظرة عامة', '*'], ['tasks', 'المهام والتكليفات', '*'], ['meetings', 'الاجتماعات', '*'], ['visits', 'الزيارات الفنية', '*'], ['cal', 'المواعيد والتقويم', '*']];
-const PLAT = [['staff', 'الأعضاء والحسابات', CO], ['assign', 'الإسناد والمسؤوليات', CP], ['ann', 'الإعلانات', '*']];
+const CO = ['coordinator'], CP = ['coordinator', 'principal'], CPR = ['coordinator', 'principal', 'reviewer'];
+const TABS = [['overview', 'نظرة عامة', '*', 'ما يتطلب قراراً أو تنفيذاً من الفريق الآن: الأجندة القادمة ولوحة المهام والزيارات.'], ['tasks', 'المهام والتكليفات', '*', 'اقتراح المهام واعتمادها وتكليف الأعضاء ومتابعة التنفيذ وإغلاقها.'], ['meetings', 'الاجتماعات', '*', 'جدولة الاجتماعات والدعوات وتأكيد الحضور والحضور الفعلي والمحاضر والقرارات.'], ['visits', 'الزيارات الفنية', '*', 'زيارات المؤشرات وبطاقاتها الفنية والتوصيات ومتابعة الإجراءات التحسينية.'], ['cal', 'المواعيد والتقويم', '*', 'تقويم موحّد للاجتماعات والمهام والمواعيد النهائية لإغلاق المجالات والمؤشرات.']];
+const PLAT = [['staff', 'الأعضاء والحسابات', CO, 'منسوبو المدرسة وحسابات الدخول والأدوار وبيانات التواصل.'], ['assign', 'الإسناد والمسؤوليات', CP, 'إسناد المجالات والمؤشرات للمسؤولين والمقيّمين وملف مسؤوليات كل شخص.'], ['ann', 'الإعلانات', '*', 'إعلانات الفريق ودرجة أهميتها والمستلمون ومن اطّلع عليها.'], ['cycles', 'دورات التقويم', CPR, 'إنشاء الدورات وإطلاقها وإيقافها وإغلاقها مع حفظ سجلّ الدورات السابقة.'], ['wa', 'واتساب', CO, 'إعدادات الإشعارات وقوالب الرسائل وسجل الإرسال ونجاحه أو فشله.']];
 const ok = r => r === '*' || r.includes(role());
 App.TEAM_TABS = TABS.map(t => t[0]).filter(t => t !== 'overview');
 App.PLATFORM_TABS = PLAT.map(t => t[0]);
@@ -129,7 +129,8 @@ function readinessPanel(D) {
 
 /* ===== التبويبات ===== */
 const shell = (title, sub, base, tabs, tab, bg, extra, body, after) => ({ html: h`<div class="ph"><h1>${title}</h1><div class="pa"><span class="muted">${sub}</span></div></div>
-  <nav class="tt" aria-label="أقسام ${title}">${tabs.map(t => h`<a href="#${base}/${t[0]}" class="${t[0] === tab ? 'on' : ''}" ${t[0] === tab ? raw('aria-current="page"') : ''}>${t[1]}${bg[t[0]] ? h` <span class="tb">${nf(bg[t[0]])}</span>` : ''}</a>`)}</nav>${extra}<div class="tbody">${body}</div>`, after });
+  <nav class="tt" aria-label="أقسام ${title}">${tabs.map(t => h`<a href="#${base}/${t[0]}" class="${t[0] === tab ? 'on' : ''}" ${t[0] === tab ? raw('aria-current="page"') : ''}>${t[1]}${bg[t[0]] ? h` <span class="tb">${nf(bg[t[0]])}</span>` : ''}</a>`)}</nav>${tabs.find(t => t[0] === tab)?.[3] ? h`<p class="tdesc">${tabs.find(t => t[0] === tab)[3]}</p>` : ''}${extra}<div class="tbody">${body}</div>`, after });
+App.shell = shell;
 async function badges() {
   try {
     const D = await App.data(), co = isCoord(), me = S.me.staff_id, out = {};
@@ -158,6 +159,6 @@ Pages.platform = async (parts) => {
   if (!tab) return h`<div class="pn"><p>هذه الصفحة غير متاحة لدورك.</p></div>`;
   const canSee = isCoord() || role() === 'principal';
   const [r, bg, D] = await Promise.all([Pages[tab](parts.slice(1)), S.cid ? platBadges() : {}, canSee && S.cid ? App.data().catch(() => null) : null]);
-  return shell('إدارة المنصة', 'الأعضاء والحسابات والإسناد والإعلانات', 'platform', tabs, tab, bg, D ? readinessPanel(D) : '', r?.html || r, r?.after);
+  return shell('إدارة المنصة', 'الأعضاء والحسابات والإسناد والإعلانات ودورات التقويم وواتساب', 'platform', tabs, tab, bg, D ? readinessPanel(D) : '', r?.html || r, r?.after);
 };
 })();

@@ -168,7 +168,7 @@ function buildAlerts(D) {
   G.forEach(g => g.items.forEach(i => { if (!seen.has(i.uid)) { seen.add(i.uid); bySev[i.tone]++; } }));
   return { groups: G, total: uids.size, bySev };
 }
-App.alerts = async () => { const D = await App.data(); const A = buildAlerts(D); App.alertCount = A.total; return A; };
+App.alerts = async () => { const D = await App.data(); const A = buildAlerts(D); App.alertCount = A.total; App.lastAlerts = A; return A; };
 
 /* ===== عرض المجموعات ===== */
 const actHtml = a => a.href ? h`<a class="btn sm ${a.cls || ''}" href="${a.href}">${a.label}</a>` : btn(a.label, a.a, a.data || {}, a.cls || '');
