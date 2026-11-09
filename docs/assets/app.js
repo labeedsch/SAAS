@@ -124,12 +124,11 @@ function pcard(r) {
     ? `<div class="pwho"><div><small>مسؤول المؤشر</small><span class="av">${rp.length ? esc(initials(rp[0])) : ic('users')}</span><b title="${esc(rp.join('، '))}">${firstPlus(rp)}</b></div><div><small>المقيم</small><b title="${esc(ev.join('، '))}">${firstPlus(ev)}</b></div></div>` : '';
   return `<a class="pcard" style="--b:var(--c${k}b);--f:var(--c${k}f)" href="#ind/${r.cycle_id}/${r.indicator_id}">
     <div class="phead sm" data-fdom="${r.domain_id}" title="فرز حسب هذا المجال"><span>${ic('layers')} المجال ${num(r.domain_code)}</span><b>${esc(r.domain_name)}</b><em class="pgo" data-go="#domain/${r.cycle_id}/${r.domain_id}" title="الانتقال إلى صفحة المجال">${ic('arrow')}</em></div>
-    <div class="pimg">${illus(i)}${badge}</div>
     <div class="pbody"><span class="pchip2" data-fstd="${r.standard_id}" title="فرز حسب هذا المعيار">${ic('doc')} المعيار ${esc(r.standard_code)} · ${esc(r.standard_name)}<em class="pgo" data-go="#standard/${r.cycle_id}/${r.standard_id}" title="الانتقال إلى صفحة المعيار">${ic('arrow')}</em></span>
       <h3>المؤشر ${esc(r.indicator_code)}</h3><p class="psub">${esc(r.official_text)}</p>
       ${who}${stat}
       <div class="bar"><span style="width:${pct}%"></span></div>
-      <div class="pfoot"><small>المعيار ${esc(r.standard_code)}</small><span class="pbtn">عرض التفاصيل ${ic('arrow')}</span></div></div></a>`;
+      <div class="pfoot"><span class="pbtn">عرض التفاصيل ${ic('arrow')}</span></div></div></a>`;
 }
 
 // ───────── الفرز المتقدم: نفس آلية الخطط الذكية ببيانات التقويم ─────────

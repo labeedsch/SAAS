@@ -527,3 +527,12 @@ body.pub nav a[hidden]{display:none}
 /* خلفية بانر المجال: أيقونة المجال نفسها تتكرر */
 .dhero::before{background:var(--pat) 0 0/96px 96px repeat}
 .crumbs+.iback{margin:0 0 14px}
+
+/* بطاقة المؤشر المضغوطة في الرئيسية */
+.pcard .pbody{gap:6px;padding:12px 16px 14px}
+.pcard h3{font-size:1.1rem;margin:0}
+.pcard .psub{-webkit-line-clamp:2;font-size:.9rem;line-height:1.7;margin:0}
+.pcard .pstat{margin:2px 0;padding:6px 10px}
+.pcard .pwho{margin:4px 0}
+.pcard .bar{height:8px}
+.pcard .pfoot{padding-top:4px;justify-content:flex-end}
