@@ -377,3 +377,9 @@ button.kc{font:inherit;text-align:start;cursor:pointer;width:100%} .kc.on{outlin
   .wins>.w-act{height:0;min-height:100%;overflow:auto;scrollbar-width:thin;align-self:stretch}
   .wins>.w-ind{align-self:stretch}
 }
+
+/* مكتبي: التقويم بعرض كامل تحت المربعات، ثم ثلاث بطاقات متساوية بلا فراغات */
+.wins.d3{grid-template-columns:repeat(3,minmax(0,1fr));align-items:stretch}
+.wins.d3>.w-cal{grid-column:1/-1}
+.wins.d3>.win{min-width:0;height:100%}
+@media (max-width:980px){.wins.d3{grid-template-columns:1fr}}
