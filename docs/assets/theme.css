@@ -637,7 +637,7 @@ nav .ng .ngm a.on::after{display:none}
 .lp-st .pav+.pav{margin-inline-start:-12px}
 .lp-st .pav.more{background:var(--soft);color:var(--ink2);font-size:.72rem}
 .lp-n{min-width:0;font-size:.88rem;font-weight:700;color:var(--ink);line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-.lp-none{font-size:.84rem;color:var(--muted);font-weight:500;padding-block:8px}
+.lp-none{font-size:.84rem;color:var(--muted);font-weight:500;padding-block:9px}
 @media (max-width:520px){.lr-people{grid-template-columns:1fr}}
 
 .pav.ini{background:linear-gradient(135deg,var(--f,#1c8d8c),color-mix(in srgb,var(--f,#1c8d8c) 62%,#0c3b4a));color:#fff}
@@ -718,19 +718,19 @@ nav .ng .ngm a.on::after{display:none}
 
 /* تذييل «أحد منتجات مختبر الأفكار» الموحّد (footer.js) */
 .lab-foot{border-top:1px solid var(--line);border-image:none;background:var(--surface);margin-top:20px}
-.lab-foot .lf{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;padding-block:8px}
+.lab-foot .lf{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;padding-block:9px}
 .lf-id{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
 body .lab-foot .moe,.astick~* .lab-foot .moe{display:flex;border-inline-start-color:#e0955a}
 .lf-id .mid{display:flex;flex-direction:column;font-size:.74rem;color:var(--ink2)} .lf-id .mid b{color:var(--ink);font-size:.82rem}
-.lf-card{display:flex;align-items:center;gap:10px;background:#1b2a3a;color:#fff;border-radius:12px;padding:5px 11px;box-shadow:0 4px 12px rgba(13,43,69,.18)}
-.lf-brand{display:flex;align-items:center;gap:7px}
-.lf-logo{width:34px;height:34px;flex:none;margin-block:-2px}
-.lf-brand small{display:block;font-size:.58rem;color:#9fb3c4;line-height:1.2} .lf-brand b{display:block;font-size:.72rem;font-weight:800;line-height:1.25}
-.lf-ai{font-style:normal;font-size:.58rem;font-weight:800;padding:0 5px;border-radius:5px;color:#fff;background:linear-gradient(135deg,#3f8f98,#d99a5e);vertical-align:middle;margin-inline-start:4px}
+.lf-card{display:flex;align-items:center;gap:11px;background:#1b2a3a;color:#fff;border-radius:14px;padding:7px 13px;box-shadow:0 5px 15px rgba(13,43,69,.19)}
+.lf-brand{display:flex;align-items:center;gap:8px}
+.lf-logo{width:40px;height:40px;flex:none;margin-block:-2px}
+.lf-brand small{display:block;font-size:.62rem;color:#9fb3c4;line-height:1.2} .lf-brand b{display:block;font-size:.79rem;font-weight:800;line-height:1.28}
+.lf-ai{font-style:normal;font-size:.63rem;font-weight:800;padding:0 6px;border-radius:6px;color:#fff;background:linear-gradient(135deg,#3f8f98,#d99a5e);vertical-align:middle;margin-inline-start:4px}
 .lf-sep{align-self:stretch;width:1px;background:rgba(255,255,255,.16)}
-.lf-links{display:flex;flex-direction:column;gap:3px}
-.lf-links a,.lf-soon{display:flex;align-items:center;gap:10px;color:#fff;text-decoration:none;font-weight:700;font-size:.7rem}
-.lf-links a:hover{color:#f0b34a} .lf-links .ico{width:12px;height:12px}
+.lf-links{display:flex;flex-direction:column;gap:4px}
+.lf-links a,.lf-soon{display:flex;align-items:center;gap:10px;color:#fff;text-decoration:none;font-weight:700;font-size:.75rem}
+.lf-links a:hover{color:#f0b34a} .lf-links .ico{width:14px;height:14px}
 .lf-soon{opacity:.7;cursor:default} .lf-soon em{font-style:normal;font-size:.68rem;background:rgba(255,255,255,.16);border-radius:6px;padding:0 6px}
 .lf-ring{transform-box:view-box;transform-origin:60px 60px;animation:lfspin 18s linear infinite}
 .lf-orb{transform-box:view-box;transform-origin:60px 60px;animation:lfspin 7s linear infinite}
