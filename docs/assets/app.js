@@ -172,10 +172,16 @@ function groupRows(rs) {
 }
 
 function lrow(r) {
-  const pub = r.publish_state === 'published';
-  return `<a class="ind lrow" href="#ind/${r.cycle_id}/${r.indicator_id}"><code>${esc(r.indicator_code)}</code>
-    <p>${esc(r.official_text)}<small class="lmeta">${esc(r.domain_name)} · المعيار ${esc(r.standard_code)}${isTeam() ? ` · المسؤول: ${names(ownersOf(r, 'resp'))} · المقيم: ${names(ownersOf(r, 'eval'))}` : ''}</small></p>
-    ${pub ? `${lvl(r.level_label)} <span class="pct">${num(r.achievement_pct)}%</span>` : '<span class="lvl none">غير منشور</span>'}</a>`;
+  const k = dColor(r), pub = r.publish_state === 'published', pct = pub ? Number(r.achievement_pct) || 0 : 0;
+  const team = isTeam();
+  const st = pub ? `<div class="lr-st">${lvl(r.level_label)}<span class="lr-pct">${r.achievement_pct != null ? num(Math.round(r.achievement_pct)) + '%' : '—'}</span></div>`
+    : `<div class="lr-st"><span class="lvl none">غير منشور</span></div>`;
+  return `<a class="lrow2" style="--b:var(--c${k}b);--f:var(--c${k}f)" href="#ind/${r.cycle_id}/${r.indicator_id}">
+    <div class="lr-code"><small>المؤشر</small><b>${esc(r.indicator_code)}</b></div>
+    <div class="lr-main"><div class="lr-tags"><span class="lr-tag dom">${ic('layers')} ${esc(r.domain_name)}</span><span class="lr-tag">${ic('doc')} المعيار ${esc(r.standard_code)}</span></div>
+      <p>${esc(r.official_text)}</p>
+      ${team ? `<div class="lr-people"><span>${ic('users')} المسؤول: ${names(ownersOf(r, 'resp'))}</span><span>${ic('users')} المقيم: ${names(ownersOf(r, 'eval'))}</span></div>` : ''}</div>
+    <div class="lr-side">${st}<div class="lr-bar"><span style="width:${pct}%"></span></div><span class="lr-go">عرض التفاصيل ${ic('arrow')}</span></div></a>`;
 }
 function pillsHtml(all) {
   const base = all.filter(r => pass(r, 'st'));
