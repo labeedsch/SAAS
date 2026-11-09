@@ -78,7 +78,7 @@ function agenda(D) {
   D.dls.forEach(d => {
     const rel = mgr || (d.kind === 'indicator_close' ? mine.has(d.indicator_id) : (domInds[d.domain_id] || []).some(i => mine.has(i)));
     const unfinished = d.kind === 'indicator_close' ? D.om[d.indicator_id]?.eval_status !== 'approved' : (domInds[d.domain_id] || []).some(i => D.om[i]?.eval_status !== 'approved');
-    if (rel && unfinished) put(d.due_date, null, 'إغلاق', dayDiff(d.due_date) < 0 ? 'bad' : 'warn', d.title, 'موعد إغلاق لم يكتمل ما يتعلق به', [d.indicator_id ? lnk('فتح المؤشر', '#ind/' + d.indicator_id) : lnk('المواعيد', '#team/cal')]);
+    if (rel && unfinished) put(d.due_date, null, 'إغلاق', dayDiff(d.due_date) < 0 ? 'bad' : 'warn', d.title, 'موعد إغلاق لم يكتمل ما يتعلق به', [lnk('المواعيد', '#team/cal')]);
   });
   return out.sort((a, b) => a.d.localeCompare(b.d) || a.time.localeCompare(b.time));
 }
@@ -89,8 +89,8 @@ async function overview() {
   const [D, A] = await Promise.all([App.data(), App.alerts()]);
   const co = isCoord(), pr = role() === 'principal', me = S.me.staff_id, mgr = co || pr || role() === 'reviewer';
   const ag = agenda(D), shown = ag.filter(x => dayDiff(x.d) <= 30);
-  // ما ينتظر قرارك (المنسق) أو ما يخصّك (العضو): من نفس مجموعات التنبيهات
-  const keys = co ? ['tprop', 'trev', 'min', 'evid', 'eval'] : ['mytask', 'rsvp', 'myfix'];
+  // ما ينتظر قرارك (المنسق) أو ما يخصّك (العضو): عمليات الفريق فقط (مهام واجتماعات ومحاضر)؛ مراجعة الشواهد واعتماد التقييم في صفحتيهما
+  const keys = co ? ['tprop', 'trev', 'min'] : ['mytask', 'rsvp'];
   const gs = A.groups.filter(g => keys.includes(g.key));
   // لوحة المهام: المهام النشطة المعتمدة
   const tk = D.tasks.filter(t => t.approval === 'approved' && !['completed', 'cancelled'].includes(t.status) && (mgr || t.assignee_staff_id === me));
