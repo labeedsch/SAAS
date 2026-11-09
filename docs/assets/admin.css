@@ -219,3 +219,4 @@ a.db-chip.warn{background:var(--c3b);color:var(--c3f);border-color:color-mix(in 
 .mi:hover{filter:brightness(.95);box-shadow:var(--shadow)} .mi.me{border-color:var(--brand);box-shadow:0 0 0 2px color-mix(in srgb,var(--brand) 25%,transparent)}
 .db-leg .mine::before{background:transparent;border:2px solid var(--brand)} .db-leg .info::before{background:var(--info)} .db-leg .warn::before{background:var(--gold2)} .db-leg .mute::before{background:color-mix(in srgb,var(--muted) 40%,var(--line))}
 @media (max-width:900px){.db-hero.op{grid-template-columns:1fr}} @media (max-width:520px){.db-sc{grid-template-columns:repeat(2,1fr)}}
+.db-top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:6px 0 14px} .db-top h1{margin:0;font-size:1.5rem}

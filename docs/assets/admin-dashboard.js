@@ -214,47 +214,22 @@ const logLine = (l, D) => {
   return { who, what, t: l.created_at };
 };
 
-/* ===== لوحة المتابعة: تشغيلية (ماذا أفعل الآن؟) لا إحصائية ===== */
+/* ===== لوحة المتابعة: شاشة واحدة واضحة (ما المطلوب مني الآن؟) ===== */
 Pages.dashboard = async () => {
   const nc = App.needCycle(); if (nc) return nc;
   const [D, A] = await Promise.all([App.data(), App.alerts()]); App.drawMenu?.();
-  const { ref, evals, lvs, om } = D, c = App.cycle(), co = isCoord(), sid = S.me.staff_id, rl = role();
-  const dateG = new Date().toLocaleDateString('ar-SA-u-ca-gregory', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-  const readSet = new Set(D.reads.filter(r => r.profile_id === S.me.id).map(r => r.announcement_id)), isRead = a => readSet.has(a.id);
-  const strip = D.anns.filter(a => a.priority !== 'normal' && (co || !isRead(a)));
-  const accounts = D.profs.filter(p => p.is_active && p.role !== 'external_evaluator').length;
+  const c = App.cycle(), co = isCoord();
+  const readSet = new Set(D.reads.filter(r => r.profile_id === S.me.id).map(r => r.announcement_id));
+  const strip = D.anns.filter(a => a.priority !== 'normal' && (co || !readSet.has(a.id)));
   const agenda = App.agendaHtml ? App.agendaHtml(D, 7) : null;
-  // خريطة المؤشرات: كل مؤشر زر بلونه حسب حالته؛ مؤشراتي مؤطّرة
-  const mine = new Set(D.resp.filter(r => r.staff_id === sid).map(r => r.indicator_id)), evN = {};
-  D.resp.filter(r => r.kind === 'evaluator').forEach(r => (evN[r.indicator_id] ||= []).push(staffName(r.staff_id)));
-  const STL = { approved: 'معتمد', submitted: 'بانتظار الاعتماد', draft: 'مسودة', not_evaluated: 'لم يُقيَّم' }, STC = { approved: 'ok', submitted: 'info', draft: 'warn', not_evaluated: 'mute' };
-  const recent = evals.filter(e => e.status === 'approved' && e.approved_at).sort((a, b) => new Date(b.approved_at) - new Date(a.approved_at)).slice(0, 5);
-  const SC = co ? [['#evidence', 'مراجعة الشواهد', 'clip'], ['#inds', 'المؤشرات والتقييم', 'note'], ['#team/tasks', 'المهام', 'task'], ['#team/meetings', 'الاجتماعات', 'cal'], ['#team/visits', 'الزيارات الفنية', 'visit'], ['#reports', 'التقارير', 'doc']]
-    : rl === 'team_member' ? [['#evidence', 'رفع شاهد', 'clip'], ['#inds', 'مؤشراتي', 'note'], ['#team/tasks', 'مهامي', 'task'], ['#team/meetings', 'الاجتماعات', 'cal'], ['#ann', 'الإعلانات', 'mega']]
-    : [['#evidence', 'الشواهد', 'clip'], ['#inds', 'المؤشرات والتقييم', 'note'], ['#reports', 'التقارير', 'doc'], ['#team/tasks', 'المهام', 'task']];
-
   return h`
-  ${strip.length ? h`<div class="db-strip" role="region" aria-label="إعلانات مهمة">${ico('mega')}<div>${strip.slice(0, 3).map(a => h`<a href="#ann" class="${a.priority}"><b>${L.prio[a.priority]}:</b> ${a.title}</a>`)}</div></div>` : ''}
-  <section class="db-hero op"><div class="db-ht"><small>لوحة التحكم · ${c.name}</small><h1>${A.total ? (co ? 'ما ينتظرك اليوم' : 'مهامك اليوم') : 'لا شيء معلّقاً عليك الآن'}</h1><p class="muted">${dateG}</p>
-    <div class="chips"><a class="db-chip ${A.total ? 'warn' : 'ok'}" href="#alerts">${ico('bell')} ${A.total ? nf(A.total) + ' إجراء ينتظرك' : 'كل شيء منجز'}</a>${A.bySev.bad ? h`<span class="db-chip bad">${nf(A.bySev.bad)} عاجل</span>` : ''}${sb_('cycle', c.status)}</div></div>
-    <nav class="db-sc" aria-label="اختصارات">${SC.map(([href, l, i]) => h`<a href="${href}">${ico(i)}<span>${l}</span></a>`)}</nav></section>
+  ${strip.length ? h`<div class="db-strip" role="region" aria-label="إعلانات مهمة">${ico('mega')}<div>${strip.slice(0, 2).map(a => h`<a href="#ann" class="${a.priority}"><b>${L.prio[a.priority]}:</b> ${a.title}</a>`)}</div></div>` : ''}
+  <header class="db-top"><div><h1>${co ? 'ما ينتظرك' : 'مهامك'}</h1><small class="muted">${c.name}</small></div>
+    <a class="db-chip ${A.total ? 'warn' : 'ok'}" href="#alerts">${A.total ? nf(A.total) + ' إجراء معلّق' : 'لا شيء معلّق'}</a></header>
 
-  <section class="pn"><div class="pnh"><h2>${ico('bell')} الإجراءات المطلوبة</h2><div class="pa"><a class="btn sm" href="#alerts">كل التنبيهات</a></div></div>
-    ${A.groups.length ? h`<div class="db-ac">${A.groups.map(g => groupCard(g, 4))}</div>` : h`<p class="muted empty">لا توجد إجراءات معلّقة عليك في هذه الدورة.</p>`}</section>
+  ${A.groups.length ? h`<section class="pn"><div class="pnh"><h2>إجراءات تحتاج قرارك</h2></div><div class="db-ac">${A.groups.map(g => groupCard(g, 3))}</div></section>` : h`<section class="pn"><p class="muted empty">لا توجد إجراءات معلّقة. كل شيء منجز.</p></section>`}
 
-  ${panel('الأجندة: الأيام السبعة القادمة', agenda || h`<p class="muted empty">لا اجتماعات ولا زيارات ولا مواعيد ولا مهام خلال الأسبوع القادم.</p>`, h`<a class="btn sm" href="#team/overview">أجندة الفريق كاملة</a>`)}
-
-  ${panel('الإعلانات', D.anns.length ? h`<div class="db-anns">${D.anns.slice(0, 4).map(a => h`<article class="db-an ${a.priority}"><header><b>${a.title}</b>${a.priority !== 'normal' ? badge(L.prio[a.priority], a.priority === 'urgent' ? 'bad' : 'warn') : ''}${!co && !isRead(a) ? h`<span class="db-dot" title="لم تطّلع عليه"></span>` : ''}</header>
-      <p>${short(a.body, 170)}</p><footer><small class="muted">${dtt(a.publish_at)}</small>${co ? btn(`المطّلعون (${nf(D.reads.filter(r => r.announcement_id === a.id).length)}${accounts ? ' من ' + nf(accounts) : ''})`, 'dbAnnWho', { i: a.id }) : (isRead(a) ? badge('اطّلعت', 'ok') : btn('تعليم كمقروء', 'dbAnnRead', { i: a.id }, 'pri'))}</footer></article>`)}</div>` : h`<p class="muted empty">لا توجد إعلانات سارية.</p>`,
-    h`<a class="btn sm" href="#ann">${co ? 'إدارة الإعلانات' : 'كل الإعلانات'}</a>`)}
-
-  ${panel('خريطة المؤشرات: أين وصل كل مؤشر', h`<div class="db-leg"><span class="ok">معتمد</span><span class="info">بانتظار الاعتماد</span><span class="warn">مسودة</span><span class="mute">لم يُقيَّم</span>${sid ? h`<span class="mine">مؤشراتي</span>` : ''}</div>
-    <div class="db-map">${ref.domains.map((d, i) => h`<div class="db-md" style="--b:var(--c${i % 4}b);--f:var(--c${i % 4}f)"><h3>${d.name_ar}</h3><div>${ref.inds.filter(x => x.dom?.id === d.id).map(x => { const st = om[x.id]?.eval_status || 'not_evaluated';
-      return h`<a href="#ind/${x.id}" class="mi ${STC[st]} ${mine.has(x.id) ? 'me' : ''}" dir="ltr" title="${x.code} · ${STL[st]}${evN[x.id] ? ' · المقيّم: ' + evN[x.id].join('، ') : ' · بلا مقيّم'}">${x.code}</a>`; })}</div></div>`)}</div>`,
-    h`<a class="btn sm" href="#inds">المؤشرات والتقييم</a>`)}
-
-  ${recent.length ? panel('آخر ما اعتُمد', h`<ul class="db-log">${recent.map(e => { const r = ref.im[e.indicator_id]; return h`<li><span><a href="#ind/${e.indicator_id}" dir="ltr"><b>${r?.code}</b></a> ${short(r?.official_text, 80)}${lvs.find(l => l.id === e.level_id) ? h` <span class="bdg ok">${lvs.find(l => l.id === e.level_id).label_ar}</span>` : ''}</span><small class="muted">${ago(e.approved_at)}</small></li>`; })}</ul>`) : ''}
-  ${D.log.length ? panel('آخر التعديلات', h`<ul class="db-log">${D.log.map(l => { const x = logLine(l, D); return h`<li><span><b>${x.who}</b> · ${x.what}</span><small class="muted">${ago(x.t)}</small></li>`; })}</ul>`, h`<a class="btn sm" href="#log">سجل النشاط</a>`) : ''}`;
+  ${panel('الأسبوع القادم', agenda || h`<p class="muted empty">لا مواعيد ولا اجتماعات ولا مهام خلال الأسبوع القادم.</p>`, h`<a class="btn sm" href="#team/overview">إدارة الفريق</a>`)}`;
 };
 
 /* ===== صفحة التنبيهات ===== */
