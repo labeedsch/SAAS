@@ -515,3 +515,11 @@ body.pub nav a[hidden]{display:none}
 /* زر «عرض التفاصيل» بنفس لون الشريط العلوي للبطاقة */
 .pcard .pbtn{background:color-mix(in srgb,var(--f) 11%,var(--surface));color:color-mix(in srgb,var(--f) 82%,var(--ink));border:1px solid color-mix(in srgb,var(--f) 20%,var(--line))}
 .pcard:hover .pbtn{background:color-mix(in srgb,var(--f) 20%,var(--surface));color:color-mix(in srgb,var(--f) 82%,var(--ink))}
+
+/* رسوم المجالات في بطاقات المؤشرات: ألوان هادئة من لون المجال */
+.pill-art .al{fill:none;stroke:var(--f);stroke-width:3.5;stroke-linecap:round;stroke-linejoin:round}
+.pill-art .af{fill:color-mix(in srgb,var(--f) 22%,var(--surface));stroke:var(--f);stroke-width:3.5;stroke-linejoin:round}
+.pill-art .aw{fill:var(--surface);stroke:var(--f);stroke-width:3.5;stroke-linejoin:round}
+.pill-art .ag{fill:#f6d68a;stroke:#d9a441;stroke-width:3;stroke-linejoin:round}
+.pill-art .ad{fill:color-mix(in srgb,var(--f) 14%,var(--surface))}
+.pill-art .ak{fill:color-mix(in srgb,var(--f) 50%,var(--surface))}

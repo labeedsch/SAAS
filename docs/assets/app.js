@@ -91,14 +91,18 @@ function domCards(id, rs) {
   }).join('')}</div>`;
 }
 
-// رسوم المجالات الأربعة (أصلية، بنمط مسطّح: خطوط كحلية وتعبئة تيل وذهبي)
-const SP = (x, y, c = '#4a9fa8') => `<path transform="translate(${x} ${y})" d="M0-8L2-2 8 0 2 2 0 8-2 2-8 0-2-2z" fill="${c}"/>`;
+// رسوم المجالات الأربعة (أصلية، خطوط وتعبئات بدرجات لون المجال الهادئة؛ التنسيق في theme.css)
+const SP = (x, y, c) => `<path transform="translate(${x} ${y})" d="M0-8L2-2 8 0 2 2 0 8-2 2-8 0-2-2z" ${c ? `fill="${c}"` : 'class="ak"'}/>`;
 const ILL = [
-  `<rect x="115" y="34" width="90" height="34" rx="8" fill="#4a9fa8" stroke="#1d3b63" stroke-width="5"/><path d="M160 68v22M92 90h136M92 90v18M160 90v18M228 90v18" stroke="#1d3b63" stroke-width="5" fill="none" stroke-linecap="round"/><rect x="58" y="108" width="68" height="30" rx="7" fill="#fff" stroke="#1d3b63" stroke-width="5"/><rect x="126" y="108" width="68" height="30" rx="7" fill="#fff" stroke="#1d3b63" stroke-width="5"/><rect x="194" y="108" width="68" height="30" rx="7" fill="#fff" stroke="#1d3b63" stroke-width="5"/><circle cx="160" cy="51" r="9" fill="#f0b34a"/>`,
-  `<path d="M160 58c-20-14-48-14-70-6v86c22-8 50-8 70 6 20-14 48-14 70-6V52c-22-8-50-8-70 6z" fill="#fff" stroke="#1d3b63" stroke-width="5" stroke-linejoin="round"/><path d="M160 58v86" stroke="#1d3b63" stroke-width="5"/><path d="M105 78c12-3 25-2 38 3M105 98c12-3 25-2 38 3M177 81c13-5 26-6 38-3M177 101c13-5 26-6 38-3" stroke="#4a9fa8" stroke-width="5" fill="none" stroke-linecap="round"/><circle cx="236" cy="138" r="14" fill="#f0b34a" stroke="#1d3b63" stroke-width="4"/>`,
-  `<rect x="82" y="104" width="40" height="40" rx="6" fill="#4a9fa8" stroke="#1d3b63" stroke-width="5"/><rect x="140" y="80" width="40" height="64" rx="6" fill="#fff" stroke="#1d3b63" stroke-width="5"/><rect x="198" y="56" width="40" height="88" rx="6" fill="#4a9fa8" stroke="#1d3b63" stroke-width="5"/><path d="M92 82l48-26 36 12 50-30" stroke="#4fa66b" stroke-width="6" fill="none" stroke-linecap="round" stroke-linejoin="round"/><circle cx="226" cy="38" r="9" fill="#f0b34a"/>`,
-  `<path d="M160 36l62 22v40c0 32-26 50-62 62-36-12-62-30-62-62V58z" fill="#4a9fa8" stroke="#1d3b63" stroke-width="5" stroke-linejoin="round"/><path d="M130 98l22 22 40-44" stroke="#fff" stroke-width="9" fill="none" stroke-linecap="round" stroke-linejoin="round"/><circle cx="222" cy="150" r="13" fill="#f0b34a" stroke="#1d3b63" stroke-width="4"/>`];
-const illus = i => `<svg class="pill-art" viewBox="0 0 320 190" aria-hidden="true"><ellipse cx="160" cy="160" rx="92" ry="9" fill="#cfe3e8"/>${ILL[i % 4]}${SP(52, 56)}${SP(272, 112)}${SP(272, 36, '#f0b34a')}</svg>`;
+  // الإدارة المدرسية: مبنى المدرسة وعلم
+  `<path class="al" d="M160 52V28"/><path class="ag" d="M160 28l24 8-24 8z"/><path class="af" d="M78 98L160 54l82 44z"/><rect class="aw" x="92" y="98" width="136" height="54" rx="4"/><rect class="af" x="147" y="116" width="26" height="36" rx="4"/><rect class="af" x="106" y="112" width="26" height="18" rx="3"/><rect class="af" x="188" y="112" width="26" height="18" rx="3"/><circle class="ag" cx="160" cy="80" r="6"/>`,
+  // التعليم والتعلم: سبّورة بدروس ومصباح فكرة
+  `<rect class="aw" x="78" y="40" width="164" height="92" rx="10"/><path class="al" d="M98 64h64M98 82h96M98 100h52"/><rect class="af" x="176" y="92" width="48" height="26" rx="6"/><path class="al" d="M120 132l-14 28M200 132l14 28M160 132v28"/><circle class="ag" cx="236" cy="48" r="13"/><path class="al" d="M230 66h12"/>`,
+  // نواتج التعلم: درجات صاعدة ونجمة تفوّق
+  `<rect class="af" x="84" y="108" width="42" height="42" rx="6"/><rect class="aw" x="139" y="84" width="42" height="66" rx="6"/><rect class="af" x="194" y="60" width="42" height="90" rx="6"/><path class="al" d="M92 90l50-20 36 8 44-26"/><path class="ag" d="M215 28l5 10 11 2-8 8 2 11-10-5-10 5 2-11-8-8 11-2z"/>`,
+  // البيئة المدرسية: درع الأمن والسلامة وشجرة
+  `<path class="af" d="M160 38l56 20v38c0 30-24 46-56 56-32-10-56-26-56-56V58z"/><path class="al" d="M134 96l20 20 36-40"/><path class="al" d="M232 150v-34"/><circle class="ag" cx="232" cy="104" r="17" style="fill:#bfe3c9;stroke:#7fbf93"/><path class="al" d="M66 150v-20"/><circle class="aw" cx="66" cy="122" r="11"/>`];
+const illus = i => `<svg class="pill-art" viewBox="0 0 320 190" aria-hidden="true"><ellipse class="ad" cx="160" cy="164" rx="112" ry="9"/>${ILL[i % 4]}${SP(48, 54)}${SP(276, 120)}${SP(282, 40, '#f3c969')}</svg>`;
 const initials = n => String(n).trim().split(/\s+/).slice(0, 2).map(w => (w.replace(/^ال/, '') || w)[0]).join('');
 const firstPlus = a => a.length ? esc(a[0]) + (a.length > 1 ? ` <small>(+${num(a.length - 1)})</small>` : '') : NONE;
 const dColor = r => DOM[Math.max(0, domIdx(r.cycle_id, r.domain_id)) % 4];
