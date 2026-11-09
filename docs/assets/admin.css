@@ -311,3 +311,4 @@ a.kc:hover{transform:translateY(-3px);box-shadow:var(--shadow2)}
 .kc>header,.win>header{background:none;border:0;box-shadow:none;padding:0;margin:0;position:static;backdrop-filter:none;min-height:0}
 a.ms{display:block;text-decoration:none;transition:transform .15s,box-shadow .15s} a.ms:hover{transform:translateY(-2px);box-shadow:var(--shadow)} a.ms small{color:var(--ink2)}
 @media (prefers-reduced-motion:reduce){a.ms{transition:none}a.ms:hover{transform:none}}
+.wh{margin:2px 0 -4px;font-size:.92rem;color:var(--ink2)} .wnote{margin:0;font-size:.86rem}

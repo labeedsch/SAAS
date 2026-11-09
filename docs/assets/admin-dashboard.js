@@ -286,9 +286,8 @@ Pages.dashboard = async () => {
   ${win('w-week', 'cal', 'الأسبوع القادم', '#team/overview', 'أجندة الفريق', (App.agendaHtml && App.agendaHtml(D, 7, 6)) || h`<p class="muted empty">لا اجتماعات ولا زيارات ولا مواعيد ولا مهام خلال الأسبوع القادم.</p>`)}
 
   ${win('w-ind', 'note', 'إدارة المؤشرات', '#inds/list', 'فتح المؤشرات',
-    h`<div class="ms-row">${ms('معتمد', nOk, 'ok', '#inds/list/approved')}${ms('بانتظار الاعتماد', nSub, nSub ? 'info' : '', '#inds/list/submitted')}${ms('مسودة', nDr, '', '#inds/list/draft')}${ms('لم يُقيَّم', nNo, nNo ? 'warn' : '', '#inds/list/not_evaluated')}</div>
-    <div class="ms-row">${ms('شواهد بانتظار المراجعة', evPend, evPend ? 'info' : '', '#inds/evidence/new')}${ms('شواهد تحتاج استكمالاً', evFix, evFix ? 'warn' : '', '#inds/evidence/needs_completion')}${ms('بلا مقيّم', noEv, noEv ? 'warn' : '', '#platform/assign')}${ms('بلا مسؤول', noRs, noRs ? 'warn' : '', '#platform/assign')}</div>
-    ${mini(moves.slice(0, 4).map(itemHtml), 'كل المؤشرات مسندة وبدأ تقييمها.')}
+    h`<div class="ms-row">${ms('شواهد بانتظار المراجعة', evPend, evPend ? 'info' : '', '#inds/evidence/new')}${ms('شواهد تحتاج استكمالاً', evFix, evFix ? 'warn' : '', '#inds/evidence/needs_completion')}</div>
+    ${moves.length ? h`<h3 class="wh">مؤشرات تحتاج تحرّكاً</h3>` : ''}${mini(moves.slice(0, 4).map(itemHtml), 'كل المؤشرات مسندة وبدأ تقييمها.')}${moves.length > 4 ? h`<a class="db-more" href="#inds/list/not_evaluated">وعرض ${nf(moves.length - 4)} آخر</a>` : ''}
     <div class="wb"><a class="btn sm" href="#inds/evidence">مراجعة الشواهد</a><a class="btn sm" href="#inds/map">خريطة التقدم</a></div>`)}
 
   ${win('w-team', 'task', 'إدارة الفريق', '#team/overview', 'فتح إدارة الفريق',
@@ -299,9 +298,8 @@ Pages.dashboard = async () => {
     <div class="wb"><a class="btn sm" href="#team/tasks">المهام</a><a class="btn sm" href="#team/meetings">الاجتماعات</a><a class="btn sm" href="#team/visits">الزيارات</a></div>`)}
 
   ${win('w-plat', 'users', 'إدارة المنصة', '#platform/staff', 'فتح إدارة المنصة',
-    h`<div class="ms-row">${ms('منسوبون', staffAct)}${App.teamTabAllowed('staff') || role() === 'principal' ? h`${ms('حسابات فعّالة', accounts)}${ms('مقيّمون بلا حساب', evNoAcc, evNoAcc ? 'warn' : '')}` : ''}${ms('إعلانات سارية', D.anns.length)}</div>
-    <ul class="wl"><li><span>${ico('note')} الدورة الحالية</span><b>${c.name} <small class="muted">${L.cycle[c.status] || ''}</small></b></li><li><span>${ico('cal')} عدد الدورات</span><b>${nf(S.cycles.length)}</b></li></ul>
-    ${setup.length ? h`<ul class="wl">${setup.map(itemHtml)}</ul>` : h`<p class="muted empty">إعدادات المنصة مكتملة: كل المقيّمين لهم حسابات وكل المؤشرات مسندة.</p>`}
+    h`${setup.length ? h`<h3 class="wh">يحتاج إعداداً</h3><ul class="wl">${setup.map(itemHtml)}</ul>` : h`<p class="muted empty">إعدادات المنصة مكتملة: كل المقيّمين لهم حسابات وكل المؤشرات مسندة.</p>`}
+    <p class="wnote muted">${nf(staffAct)} منسوباً${App.teamTabAllowed('staff') || role() === 'principal' ? ' · ' + nf(accounts) + ' حساباً فعّالاً' : ''} · ${nf(D.anns.length)} إعلاناً ساريّاً</p>
     <div class="wb">${[['assign', 'الإسناد'], ['cycles', 'الدورات'], ['ann', 'الإعلانات'], ['wa', 'واتساب']].filter(([t]) => App.teamTabAllowed(t)).map(([t, l]) => h`<a class="btn sm" href="#platform/${t}">${l}</a>`)}</div>`)}
 
   ${win('w-rep', 'doc', 'التقارير وسجل النشاط', '#dashboard/reports', 'التقارير',
