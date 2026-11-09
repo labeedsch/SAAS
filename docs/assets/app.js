@@ -75,7 +75,7 @@ const names = a => a.length ? esc(a.join('، ')) : NONE;
 const personBlk = (label, a) => `<div class="lp"><span class="lp-l">${label}</span>${a.length
   ? `<div class="lp-v"><span class="lp-st">${a.slice(0, 3).map(n => pav(n, 38)).join('')}${a.length > 3 ? `<span class="pav more" style="--s:38px"><i>+${num(a.length - 3)}</i></span>` : ''}</span><b class="lp-n" title="${esc(a.join('، '))}">${esc(a.join('، '))}</b></div>`
   : `<div class="lp-v"><span class="lp-none">${NONE}</span></div>`}</div>`;
-const namesAv = a => a.length ? a.map(n => `<span class="pn">${pav(n, 22)}${esc(n)}</span>`).join('') : NONE;
+const namesAv = a => a.length ? a.map(n => `<span class="pnm">${pav(n, 22)}${esc(n)}</span>`).join('') : NONE;
 const cycles = () => [...new Map(rows.map(r => [r.cycle_id, r.cycle_name]))];
 const byCycle = id => rows.filter(r => r.cycle_id === id);
 const pubCount = rs => rs.filter(r => r.publish_state === 'published').length;
