@@ -45,14 +45,14 @@ App.indWork = d => {
   const canEdit = d.iEvaluate && active && st !== 'approved' || (co || pr) && active;
   // الخطوات وحالتها
   const steps = [
-    ['s-guide', 'افهم المطلوب', 'book', 'done'],
+    ['s-guide', 'الاسترشاد', 'book', 'done'],
     ['s-evid', 'أرفق الشواهد', 'clip', fix.length ? 'need' : ap.length ? 'done' : evAll.length ? 'wait' : 'todo'],
     ['s-eval', 'قيّم', 'note', st === 'approved' ? 'done' : st === 'submitted' ? 'wait' : st === 'draft' ? 'need' : 'todo'],
     ['s-follow', 'زيارات ومهام', 'visit', vc.length || tk.length ? 'done' : 'todo']];
   // الخطوة التالية
   let nx;
   if (fix.length) nx = { tone: 'warn', t: `شاهد يحتاج استكمالاً: ${fix[0].title}`, s: fix[0].review_note || 'راجع ملاحظة المراجعة وأعد رفع الشاهد.', go: 's-evid', l: 'إلى الشواهد' };
-  else if (!evAll.length) nx = { tone: 'info', t: 'ابدأ برفع أول شاهد', s: 'اقرأ الشواهد المقترحة ثم أرفق ما يثبت تحقق المؤشر.', go: 's-evid', l: 'أرفق شاهداً' };
+  else if (!evAll.length) nx = { tone: 'info', t: 'ابدأ برفع أول شاهد', s: 'اقرأ الاسترشاد ثم أرفق ما يثبت تحقق المؤشر.', go: 's-evid', l: 'أرفق شاهداً' };
   else if (st === 'not_evaluated' || st === 'draft') nx = { tone: 'info', t: st === 'draft' ? 'أكمل التقييم وأرسله للاعتماد' : 'سجّل تقييم المؤشر', s: 'اختر المستوى واكتب مبررات التقييم.', go: 's-eval', l: 'إلى التقييم' };
   else if (st === 'submitted') nx = { tone: 'info', t: co || pr ? 'تقييم بانتظار اعتمادك' : 'التقييم بانتظار اعتماد المنسق', s: pend.length ? `وبقي ${nf(pend.length)} شاهد قيد المراجعة.` : 'لا إجراء مطلوب منك الآن.', go: 's-eval', l: 'عرض التقييم' };
   else nx = { tone: 'ok', t: 'اكتمل المؤشر', s: `التقييم معتمد${cur ? ' بمستوى ' + cur.label : ''}.`, go: 's-eval', l: 'عرض التقييم' };
@@ -68,23 +68,14 @@ App.indWork = d => {
     <div class="iw-next ${nx.tone}" role="status"><span class="iw-ni">${ic(nx.tone === 'ok' ? 'check' : nx.tone === 'warn' ? 'alert' : 'flag')}</span><div><b>${nx.t}</b><small>${nx.s}</small></div><a href="#" class="btn sm ${nx.tone === 'ok' ? '' : 'pri'}" data-jump="${nx.go}">${nx.l}</a></div>`;
 
   // 1) الاسترشاد
-  const guide = h`<section class="iw-sec" id="s-guide" aria-labelledby="h-guide"><h2 id="h-guide">${ic('book')} ١ · افهم المطلوب</h2>
-    <div class="iw-g3">
-      <div class="iw-c"><h3>طبيعة المؤشر</h3><dl class="iw-kv"><dt>المجال</dt><dd>${ind.dom.name_ar}</dd><dt>المعيار</dt><dd>${ind.std.name_ar}</dd><dt>الرمز</dt><dd dir="ltr">${ind.code}</dd>
-        <dt>مدارس التعليم الحكومي</dt><dd>${ind.is_government_applicable === false ? 'لا ينطبق' : 'ينطبق'}</dd></dl></div>
-      <div class="iw-c"><h3>المطلوب</h3>${ind.requirements_text ? h`<p class="iw-req">${ind.requirements_text}</p>` : h`<p class="muted">لا شرح متطلبات لهذا المؤشر في الدليل المرجعي؛ يُقرأ النص الرسمي أعلاه كما ورد.</p>`}</div>
-      <div class="iw-c"><h3>مستويات التقييم</h3><ol class="iw-lvs">${levels.map(l => h`<li class="lv-${LVK[l.code] || 'x'}"><b>${l.label}</b><span dir="ltr">${nf(l.min)} – ${nf(l.max)}%</span></li>`)}</ol><small class="muted">يُشتق المستوى من نسبة التحقق وفق الدليل، والحد الأعلى غير شامل (عدا 100).</small></div>
-    </div>
-    ${gd ? h`<details class="iw-gd" open><summary>${ic('book')} الاسترشاد <small>للقراءة فقط</small></summary>
+  const guide = h`<section class="iw-sec iw-guide" id="s-guide" aria-labelledby="h-guide"><h2 id="h-guide">${ic('book')} الاسترشاد <small>اقرأه أولاً قبل رفع الشواهد والتقييم</small></h2>
+    ${gd ? h`<details class="iw-gd" open><summary>${ic('book')} عرض الاسترشاد أو طيّه <small>للقراءة فقط</small></summary>
       ${ind.is_government_applicable === false ? h`<p class="iw-gnote" role="note">${ic('alert')} تنبيه: هذا المؤشر يستهدف المدارس الأهلية والعالمية ولا ينطبق على المدارس الحكومية.</p>` : ''}
       <div class="iw-gg"><section><h4>${ic('note')} تفسير المؤشر</h4><p>${gd.interpretation}</p></section>
         <section><h4>${ic('flag')} ماذا يدل عليه؟</h4><p>${gd.significance}</p></section></div>
       <section class="iw-gev"><h4>${ic('clip')} الشواهد المقترحة <small>استرشادية، وليست شواهد مرفوعة</small></h4>
-        ${gde.length ? h`<ol>${gde.map(x => h`<li>${x.title}</li>`)}</ol>` : h`<p class="muted">لا شواهد مقترحة.</p>`}</section></details>` : ''}
-    <div class="iw-c wide"><div class="iw-ch"><h3>الشواهد المقترحة (نوع الشواهد المطلوبة)</h3>${co ? btn('+ شاهد مقترح', 'seAdd', {}, 'sm') : ''}</div>
-      <p class="muted sm">استرشادية: لا تُحسب إنجازاً ولا تدخل في اكتمال الشواهد، وتُستبدل بالشواهد الفعلية.</p>
-      ${se.length ? h`<ul class="iw-se">${se.map(s => { const up = upTitles.has((s.title || '').trim()); return h`<li class="${up ? 'up' : ''}"><span class="iw-si">${ic(up ? 'check' : 'clip')}</span><div><b>${s.title}</b>${s.description ? h`<small>${s.description}</small>` : ''}</div>
-        ${d.canUpload && active && !up ? btn('أرفق لهذا', 'iwUp', { i: s.id }, 'sm') : up ? h`<span class="bdg ok">مرفوع</span>` : ''}${co ? btn('✕', 'seDel', { i: s.id }, 'sm bad') : ''}</li>`; })}</ul>` : h`<p class="muted empty">لم تُضَف شواهد مقترحة لهذا المؤشر بعد.</p>`}</div></section>`;
+        ${gde.length ? h`<ol>${gde.map(x => h`<li>${x.title}</li>`)}</ol>` : h`<p class="muted">لا شواهد مقترحة.</p>`}</section></details>`
+      : h`<p class="muted empty">لا يوجد محتوى استرشادي لهذا المؤشر.</p>`}</section>`;
 
   // 2) الشواهد
   const row = e => h`<li class="iw-ev ${e.status}"><span class="iw-ei">${ic(e.status === 'approved' ? 'check' : fix.includes(e) ? 'edit' : 'clip')}</span><div class="iw-eb"><b>${e.title}</b>${e.indicator_id !== id ? h`<a class="iw-sh" href="#ind/${e.indicator_id}">مشترك من ${d.ref.im[e.indicator_id]?.code || ''}</a>` : ''}
