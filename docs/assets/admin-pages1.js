@@ -41,17 +41,10 @@ Pages.cycles = async () => {
     <div class="chips">${demo?.exists ? h`${btn('عرض الدورة التجريبية', 'demoView', { id: demo.cycle_id }, 'pri')}${btn('حذف البيانات التجريبية', 'demoClear', {}, 'bad')}` : btn('تعبئة بيانات تجريبية', 'demoSeed', {}, 'pri')}</div>
     <small class="muted">الحذف يزيل الدورة التجريبية وكل ما فيها، والموظفين التجريبيين، والشواهد المقترحة التجريبية فقط. الدورة الحقيقية لا تُمسّ. يبقى أثر العملية في سجل النشاط.</small>`);
   return h`${pageHead('دورات التقويم الذاتي', coord ? btn('+ دورة جديدة', 'cycNew', {}, 'pri') : '')}
-  <div class="pn">${table([
-    { h: 'الدورة', f: c => h`<b>${c.name}</b><br><small class="muted">${c.school_year}</small>` },
-    { h: 'الحالة', f: c => sb_('cycle', c.status) }, { h: 'الفترة', f: c => `${dt(c.start_date)} ← ${dt(c.end_date)}` },
-    { h: 'المنسق', f: c => staffName(c.coordinator_id) },
-    { h: 'الدليل', f: c => { const g = gv.find(x => x.id === c.guide_version_id); return g ? `${g.edition} ${g.hijri_year}هـ` : '—'; } },
-    { h: 'النتائج', f: c => c.results_published ? badge('منشورة', 'ok') : badge('غير منشورة') },
-    { h: '', f: c => !coord ? '' : h`<div class="chips">${btn('تعديل', 'cycEdit', { id: c.id })}
-      ${c.status !== 'active' ? btn(c.status === 'closed' ? 'إعادة فتح' : c.status === 'paused' ? 'استئناف' : 'إطلاق', 'cycSet', { id: c.id, st: 'active' }, 'pri') : btn('إيقاف مؤقت', 'cycSet', { id: c.id, st: 'paused' })}
-      ${c.status !== 'closed' ? btn('إغلاق', 'cycSet', { id: c.id, st: 'closed' }) : ''}
-      ${btn(c.results_published ? 'إلغاء النشر' : 'نشر النتائج', 'cycPub', { id: c.id, v: c.results_published ? '' : '1' })}</div>` },
-  ], S.cycles, 'لا توجد دورات. ابدأ بإنشاء الدورة الأولى.')}</div>
+  ${App.tlSum([[S.cycles.length, 'دورة'], [S.cycles.filter(c => c.status === 'active').length, 'نشطة', 'ok'], [S.cycles.filter(c => c.status === 'paused').length, 'متوقفة مؤقتاً', 'warn'], [S.cycles.filter(c => c.results_published).length, 'نتائج منشورة', 'info']])}
+  ${App.tlist(S.cycles.map(c => { const g = gv.find(x => x.id === c.guide_version_id), tn = c.status === 'active' ? 'ok' : c.status === 'paused' ? 'warn' : 'mute'; return App.tile({ tone: tn, ico: 'layers', title: h`${c.name} <small class="muted">${c.school_year || ''}</small>`,
+    meta: h`${sb_('cycle', c.status)}<span>${App.ico('cal')} ${dt(c.start_date)} ← ${dt(c.end_date)}</span>${c.coordinator_id ? h`<span>${App.ico('user')} ${staffName(c.coordinator_id)}</span>` : ''}${g ? h`<span>${App.ico('doc')} ${g.edition} ${g.hijri_year}هـ</span>` : ''}${c.results_published ? badge('النتائج منشورة', 'ok') : badge('النتائج غير منشورة')}`,
+    acts: !coord ? '' : h`${btn('تعديل', 'cycEdit', { id: c.id })}${c.status !== 'active' ? btn(c.status === 'closed' ? 'إعادة فتح' : c.status === 'paused' ? 'استئناف' : 'إطلاق', 'cycSet', { id: c.id, st: 'active' }, 'pri') : btn('إيقاف مؤقت', 'cycSet', { id: c.id, st: 'paused' })}${c.status !== 'closed' ? btn('إغلاق', 'cycSet', { id: c.id, st: 'closed' }) : ''}${btn(c.results_published ? 'إلغاء النشر' : 'نشر النتائج', 'cycPub', { id: c.id, v: c.results_published ? '' : '1' })}` }); }), 'لا توجد دورات. ابدأ بإنشاء الدورة الأولى.')}
   <p class="muted">كل دورة لها تقييماتها وشواهدها ومهامها المستقلة، ولا تُنقل تلقائياً بين الدورات. المجالات والمعايير والمؤشرات مرجع مشترك مثبّت بإصدار الدليل.</p>
   ${demoPanel}`;
 };
@@ -104,14 +97,11 @@ Pages.staff = async () => {
   const pm = Object.fromEntries(prof.filter(p => p.staff_id).map(p => [p.staff_id, p]));
   const ext = prof.filter(p => p.role === 'external_evaluator');
   return h`${pageHead('المنسوبون والحسابات', btn('+ منسوب', 'stNew', {}, 'pri'))}
-  ${panel('منسوبو المدرسة', table([
-    { h: 'الاسم', f: s => h`<div class="nm">${App.avatarHtml(s, 40)}<div><b>${s.full_name}</b><br><small class="muted">${s.job_title || ''}</small></div></div>` }, { h: 'الجوال', f: s => h`<span dir="ltr">${s.phone || '—'}</span>` },
-    { h: 'واتساب', f: s => s.whatsapp_opt_in ? badge('موافق', 'ok') : badge('—') },
-    { h: 'الحالة', f: s => s.is_active ? badge('على رأس العمل', 'ok') : badge('غير نشط') },
-    { h: 'الحساب', f: s => { const p = pm[s.id]; return p ? h`${badge(L.role[p.role], 'info')} ${p.is_active ? '' : badge('موقوف', 'bad')}${p.username ? h`<br><small class="muted">اسم المستخدم: <span dir="ltr">${p.username}</span></small>` : ''}` : h`<span class="muted">بلا حساب</span>`; } },
-    { h: '', f: s => { const p = pm[s.id]; return h`<div class="chips">${btn('تعديل', 'stEdit', { id: s.id })}
-      ${p ? h`${btn('كلمة مرور', 'acPw', { id: p.id })} ${btn(p.is_active ? 'إيقاف الحساب' : 'تفعيل الحساب', 'acToggle', { id: p.id, v: p.is_active ? '' : '1' })}` : btn('إنشاء حساب', 'acNew', { sid: s.id }, 'pri')}</div>`; } },
-  ], S.staff, 'أضف منسوبي المدرسة (المسؤولون عن المؤشرات لا يحتاجون حساباً).'))}
+  ${App.tlSum([[S.staff.length, 'منسوباً'], [S.staff.filter(x => x.is_active).length, 'على رأس العمل', 'ok'], [Object.keys(pm).length, 'لديهم حسابات', 'info'], [S.staff.filter(x => x.is_active && !pm[x.id]).length, 'بلا حساب', 'warn']])}
+  <section class="tl-sec"><h2>${App.ico('users')} منسوبو المدرسة</h2>${App.tlist(S.staff.map(s => { const p = pm[s.id]; return App.tile({ tone: !s.is_active ? 'mute' : p ? 'ok' : 'warn', lead: h`<span class="tl-av">${App.avatarHtml(s, 54)}</span>`, title: s.full_name,
+    meta: h`${s.job_title ? h`<span>${s.job_title}</span>` : ''}<span dir="ltr">${s.phone || '—'}</span>${s.whatsapp_opt_in ? badge('واتساب: موافق', 'ok') : badge('بلا واتساب')}${s.is_active ? badge('على رأس العمل', 'ok') : badge('غير نشط')}`,
+    extra: p ? h`<div class="tl-ps"><span class="tl-p">${badge(L.role[p.role], 'info')}${p.is_active ? '' : badge('موقوف', 'bad')}${p.username ? h`<small dir="ltr">${p.username}</small>` : ''}</span></div>` : h`<small class="muted">بلا حساب دخول</small>`,
+    acts: h`${btn('تعديل', 'stEdit', { id: s.id })}${p ? h`${btn('كلمة مرور', 'acPw', { id: p.id })}${btn(p.is_active ? 'إيقاف الحساب' : 'تفعيل الحساب', 'acToggle', { id: p.id, v: p.is_active ? '' : '1' })}` : btn('إنشاء حساب', 'acNew', { sid: s.id }, 'pri')}` }); }), 'أضف منسوبي المدرسة (المسؤولون عن المؤشرات لا يحتاجون حساباً).')}</section>
   ${panel('حسابات المقيمين الخارجيين', table([
     { h: 'الاسم', f: p => p.display_name || '—' }, { h: 'اسم المستخدم', f: p => h`<span dir="ltr">${p.username || '—'}</span>` }, { h: 'الحالة', f: p => p.is_active ? badge('مفعّل', 'ok') : badge('موقوف', 'bad') },
     { h: '', f: p => h`<div class="chips">${btn('كلمة مرور', 'acPw', { id: p.id })} ${btn(p.is_active ? 'إيقاف' : 'تفعيل', 'acToggle', { id: p.id, v: p.is_active ? '' : '1' })}</div>` },
@@ -194,13 +184,12 @@ Pages.assign = async (a) => {
       { h: 'عبر', f: r => r.via === 'domain' ? 'المجال' : 'المؤشر' }, { h: '', f: r => r.kind === 'responsible' ? btn('رابط وصول', 'asLink', { iid: r.indicator_id, sid }) : '' },
     ], mine, 'لا توجد مسؤوليات في هذه الدورة')}
     <div class="pa noprint" style="margin-top:10px">${btn('طباعة', 'print')} ${btn('تصدير CSV', 'asCsv', { sid })}</div>` : h`<p class="muted">اختر منسوباً لعرض ما أُسند إليه عبر المجالات الأربعة.</p>`}`)}
-  ${panel('إسناد المجالات', h`${table([
-    { h: 'المجال', f: r => ref.dm[r.domain_id]?.name_ar }, { h: 'المنسوب', f: r => staffName(r.staff_id) }, { h: 'الدور', f: r => L.kind[r.kind] },
-    { h: '', f: r => btn('إزالة', 'asDel', { t: 'domain_assignments', id: r.id }, 'bad') }], da, 'لا توجد إسنادات مجالات')}`, btn('+ إسناد مجال', 'asDom', {}, 'pri'))}
-  ${panel('إسناد المؤشرات', table([
-    { h: 'الرمز', f: i => h`<a href="#ind/${i.id}" dir="ltr">${i.code}</a>` }, { h: 'المؤشر', f: i => App.short(i.official_text, 70) },
-    { h: 'المسؤولون', f: i => chips(ia.filter(x => x.indicator_id === i.id), 'responsible', i.id) }, { h: 'المقيّمون', f: i => chips(ia.filter(x => x.indicator_id === i.id), 'evaluator', i.id) },
-  ], ref.inds), h`<small class="muted">المسؤول يوفّر المعلومات والشواهد ولا يقيّم؛ المقيّم عضو في فريق التقويم.</small>`)}`;
+  <section class="tl-sec"><div class="tl-hd"><h2>${App.ico('layers')} إسناد المجالات</h2>${btn('+ إسناد مجال', 'asDom', {}, 'pri')}</div>${App.tlist(da.map(r => { const di = ref.domains.findIndex(d => d.id === r.domain_id), k = [0, 3, 2, 1][Math.max(0, di) % 4];
+    return App.tile({ tone: 'info', ico: 'flag', title: ref.dm[r.domain_id]?.name_ar, meta: h`<span class="bdg">${L.kind[r.kind]}</span>`, extra: h`<div class="tl-ps"><span class="tl-p">${App.avatarHtml(S.staff.find(x => x.id === r.staff_id) || { full_name: staffName(r.staff_id) }, 20)}${staffName(r.staff_id)}</span></div>`, acts: btn('إزالة', 'asDel', { t: 'domain_assignments', id: r.id }, 'bad') }); }), 'لا توجد إسنادات مجالات')}</section>
+  <section class="tl-sec"><div class="tl-hd"><h2>${App.ico('user')} إسناد المؤشرات</h2><small class="muted">المسؤول يوفّر المعلومات والشواهد ولا يقيّم؛ المقيّم عضو في فريق التقويم.</small></div>
+  ${ref.domains.map((d, di) => { const k = [0, 3, 2, 1][di % 4], xs = ref.inds.filter(i => i.dom?.id === d.id);
+    return h`<div class="as-dom" style="--b:var(--c${k}b);--f:var(--c${k}f)"><h3>${d.name_ar} <span class="bdg">${nf(xs.length)}</span></h3><div class="as-list">${xs.map(i => h`<div class="as-row"><a class="as-c" href="#ind/${i.id}" dir="ltr">${i.code}</a><div class="as-t">${App.short(i.official_text, 110)}</div>
+      <div class="as-w"><small>المسؤولون</small>${chips(ia.filter(x => x.indicator_id === i.id), 'responsible', i.id)}</div><div class="as-w"><small>المقيّمون</small>${chips(ia.filter(x => x.indicator_id === i.id), 'evaluator', i.id)}</div></div>`)}</div></div>`; })}</section>`;
   // (الربط بعد الرسم أدناه)
 };
 const origAssign = Pages.assign;

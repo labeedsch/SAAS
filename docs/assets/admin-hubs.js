@@ -49,25 +49,25 @@ Pages.inds = async (parts = []) => {
   return App.shell('إدارة المؤشرات', 'المؤشرات والتقييم والشواهد وخريطة التقدم', 'inds', tabs, tab, { list: cnt(A, ['eval', 'myeval']), evidence: cnt(A, ['evid', 'myfix']) }, '', r?.html || r, r?.after);
 };
 
-/* ===== خريطة التقدم: معيار فمؤشر، بالتفصيل ===== */
-const STC = { approved: 'ok', submitted: 'info', draft: 'warn', not_evaluated: 'mute' };
+/* ===== خريطة التقدم: كل المشروع في نظرة واحدة. مجال فمعيار فمؤشرات كمربعات ملوّنة بحالتها ===== */
+const DOMK = [0, 3, 2, 1];
 Pages.indmap = async ([onlyDom] = []) => {
   const nc = App.needCycle(); if (nc) return nc;
   const D = await App.data(), { ref, om, resp } = D, sid = S.me.staff_id;
   const mine = new Set(resp.filter(r => r.staff_id === sid).map(r => r.indicator_id)), who = {};
   resp.filter(r => r.kind === 'evaluator').forEach(r => (who[r.indicator_id] ||= []).push(staffName(r.staff_id)));
-  const stOf = i => om[i.id]?.eval_status || 'not_evaluated';
-  const summ = xs => ({ n: xs.length, ok: xs.filter(i => stOf(i) === 'approved').length, sub: xs.filter(i => stOf(i) === 'submitted').length, nev: xs.filter(i => stOf(i) === 'not_evaluated').length, ev: xs.filter(i => !who[i.id]).length });
-  const bar = (a, b) => h`<span class="mp-bar" role="img" aria-label="${nf(a)} من ${nf(b)}"><i style="width:${b ? Math.round(a / b * 100) : 0}%"></i></span>`;
+  const stOf = i => om[i.id]?.eval_status || 'not_evaluated', SL = { approved: 'معتمد', submitted: 'بانتظار الاعتماد', draft: 'مسودة', not_evaluated: 'لم يُقيَّم' };
+  const summ = xs => ({ n: xs.length, ok: xs.filter(i => stOf(i) === 'approved').length, sub: xs.filter(i => stOf(i) === 'submitted').length, dr: xs.filter(i => stOf(i) === 'draft').length, nev: xs.filter(i => stOf(i) === 'not_evaluated').length, ne: xs.filter(i => !who[i.id]).length });
+  const seg = x => h`<span class="hm-bar" role="img" aria-label="${nf(x.ok)} معتمد من ${nf(x.n)}"><i class="ok" style="width:${x.n ? x.ok / x.n * 100 : 0}%"></i><i class="info" style="width:${x.n ? x.sub / x.n * 100 : 0}%"></i><i class="warn" style="width:${x.n ? x.dr / x.n * 100 : 0}%"></i></span>`;
+  const chip = i => { const o = om[i.id] || {}, st = stOf(i), ev = who[i.id];
+    return h`<a class="hm-c ${st} ${mine.has(i.id) ? 'me' : ''} ${ev ? '' : 'noev'}" href="#ind/${i.id}" dir="ltr" title="${i.code} — ${SL[st]} — ${ev ? ev.join('، ') : 'بلا مقيّم'} — شواهد ${o.approved_evidence || 0}/${o.total_evidence || 0}"><b>${i.code}</b>${ev ? '' : h`<em aria-label="بلا مقيّم"></em>`}</a>`; };
   const all = summ(ref.inds);
-  return h`<div class="mp-sum"><div><b>${nf(all.ok)}</b><small>معتمد من ${nf(all.n)}</small></div><div><b>${nf(all.sub)}</b><small>بانتظار الاعتماد</small></div><div><b>${nf(all.nev)}</b><small>لم يُقيَّم بعد</small></div><div class="${all.ev ? 'warnc' : ''}"><b>${nf(all.ev)}</b><small>بلا مقيّم</small></div></div>
-  <div class="db-leg"><span class="ok">معتمد</span><span class="info">بانتظار الاعتماد</span><span class="warn">مسودة</span><span class="mute">لم يُقيَّم</span>${sid ? h`<span class="mine">مؤشراتي</span>` : ''}</div>
+  return h`${App.tlSum([[all.ok, 'معتمد من ' + nf(all.n), 'ok'], [all.sub, 'بانتظار الاعتماد', 'info'], [all.dr, 'مسودة', 'warn'], [all.nev, 'لم يُقيَّم بعد'], [all.ne, 'بلا مقيّم', all.ne ? 'bad' : '']])}
+  <div class="hm-leg"><span class="approved">معتمد</span><span class="submitted">بانتظار الاعتماد</span><span class="draft">مسودة</span><span class="not_evaluated">لم يُقيَّم</span>${sid ? h`<span class="me">مؤشراتي</span>` : ''}<span class="noev"><em></em>بلا مقيّم</span></div>
   ${onlyDom ? h`<p><a class="btn sm" href="#inds/map">عرض كل المجالات</a></p>` : ''}
-  ${ref.domains.map((d, di) => { if (onlyDom && d.id !== onlyDom) return ''; const dx = ref.inds.filter(i => i.dom?.id === d.id), ds = summ(dx);
-    return h`<section class="pn mp-d" style="--b:var(--c${di % 4}b);--f:var(--c${di % 4}f)"><div class="pnh"><h2>${d.name_ar}</h2><div class="pa"><span class="muted">${nf(ds.ok)} / ${nf(ds.n)} معتمد</span>${bar(ds.ok, ds.n)}</div></div>
-    ${ref.standards.filter(s => s.domain_id === d.id).map(s => { const xs = dx.filter(i => i.std?.id === s.id).sort((a, b) => App.codeCmp(a.code, b.code)), ss = summ(xs), pend = ss.sub + ss.nev + ss.ev;
-      return h`<details class="mp-s" ${pend ? raw('open') : ''}><summary><b>${s.name_ar}</b><span class="muted">${nf(ss.ok)} / ${nf(ss.n)} معتمد</span>${bar(ss.ok, ss.n)}${ss.sub ? h`<span class="bdg info">${nf(ss.sub)} بانتظار الاعتماد</span>` : ''}${ss.ev ? h`<span class="bdg warn">${nf(ss.ev)} بلا مقيّم</span>` : ''}</summary>
-      <ul class="mp-ul">${xs.map(i => { const o = om[i.id] || {}, st = stOf(i);
-        return h`<li class="${STC[st]} ${mine.has(i.id) ? 'me' : ''}"><a href="#ind/${i.id}" dir="ltr"><b>${i.code}</b></a><span class="mp-t">${short(i.official_text, 90)}</span><small class="muted">${(who[i.id] || []).join('، ') || 'بلا مقيّم'}</small><small class="muted">شواهد ${nf(o.approved_evidence || 0)}/${nf(o.total_evidence || 0)}</small>${sb_('eval', st)}</li>`; })}</ul></details>`; })}</section>`; })}`;
+  <div class="hm-grid">${ref.domains.map((d, di) => { if (onlyDom && d.id !== onlyDom) return ''; const dx = ref.inds.filter(i => i.dom?.id === d.id), ds = summ(dx), k = DOMK[di % 4];
+    return h`<section class="hm-d" style="--b:var(--c${k}b);--f:var(--c${k}f)"><header><div><h2>${d.name_ar}</h2><small>${nf(ds.n)} مؤشراً</small></div><div class="hm-pc"><b>${nf(ds.n ? Math.round(ds.ok / ds.n * 100) : 0)}%</b><small>${nf(ds.ok)} / ${nf(ds.n)} معتمد</small></div></header>${seg(ds)}
+    ${ref.standards.filter(s => s.domain_id === d.id).map(s => { const xs = dx.filter(i => i.std?.id === s.id).sort((a, b) => App.codeCmp(a.code, b.code)), ss = summ(xs);
+      return h`<div class="hm-s"><div class="hm-sh"><b>${s.name_ar}</b><span>${nf(ss.ok)} من ${nf(ss.n)}</span></div><div class="hm-cs">${xs.map(chip)}</div></div>`; })}</section>`; })}</div>`;
 };
 })();

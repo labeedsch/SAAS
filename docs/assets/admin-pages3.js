@@ -1,6 +1,15 @@
 /* صفحات: الاجتماعات، الزيارات الفنية، المهام، الإعلانات، المواعيد، واتساب، التقارير، سجل النشاط */
 (() => {
 const { sb, h, raw, $, put, S, L, lab, opts, nf, dt, dtt, today, codeCmp, staffName, staffOpts, toast, run, must, ask, sure, badge, sb_, table, btn, pageHead, panel, isCoord, role, canReview, csv } = App;
+/* ===== مكوّنات العرض الموحّدة لصفحات الفريق والمنصة: شريط أرقام + بطاقات صفوف ===== */
+const MON = d => new Date(String(d).slice(0, 10) + 'T00:00:00').toLocaleDateString('ar-SA-u-ca-gregory-nu-latn', { month: 'short' });
+const DAYN = d => new Date(String(d).slice(0, 10) + 'T00:00:00').getDate();
+const sum = xs => h`<div class="tl-sum">${xs.map(([n, l, t]) => h`<div class="${t || ''}"><b>${nf(n)}</b><small>${l}</small></div>`)}</div>`;
+const tile = o => h`<div class="tl ${o.tone || 'info'}">${o.lead ? o.lead : o.date ? h`<span class="tl-d"><b>${nf(DAYN(o.date))}</b><small>${MON(o.date)}</small></span>` : h`<span class="tl-i">${App.ico(o.ico || 'note')}</span>`}
+  <div class="tl-b"><div class="tl-t">${o.title}</div><div class="tl-m">${o.meta || ''}</div>${o.extra || ''}</div>${o.side ? h`<div class="tl-s">${o.side}</div>` : ''}${o.acts ? h`<div class="tl-a">${o.acts}</div>` : ''}</div>`;
+const tlist = (xs, empty) => xs.length ? h`<div class="tl-list">${xs}</div>` : h`<div class="pn"><p class="muted empty">${empty}</p></div>`;
+const who = id => id ? h`<span class="tl-p">${App.avatarHtml(S.staff.find(x => x.id === id) || { full_name: staffName(id) }, 20)}${staffName(id)}</span>` : h`<span class="tl-p none">بلا مكلّف</span>`;
+App.tile = tile; App.tlist = tlist; App.tlSum = sum;
 const BASE = () => location.href.replace(/admin\.html.*$/, '').replace(/#.*$/, '');
 const MIME_OK = ['application/pdf', 'image/png', 'image/jpeg', 'image/webp', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'];
 
@@ -60,10 +69,12 @@ const meetFields = async () => { const ref = await App.ref(); return [{ k: 'titl
 Pages.meetings = async () => {
   const nc = App.needCycle(); if (nc) return nc;
   const [ms, inv] = await Promise.all([must(sb.from('meetings').select('*').eq('cycle_id', S.cid).order('meeting_date', { ascending: false })), must(sb.from('meeting_invitees').select('meeting_id,rsvp,attended'))]);
-  return h`${pageHead('الاجتماعات', isCoord() ? btn('+ اجتماع', 'mtNew', {}, 'pri') : '')}<div class="pn">${table([
-    { h: 'الاجتماع', f: m => h`<a href="#meeting/${m.id}"><b>${m.title}</b></a>` }, { h: 'التاريخ', f: m => dt(m.meeting_date) + (m.start_time ? ' · ' + m.start_time.slice(0, 5) : '') }, { h: 'المكان', f: m => m.location || '—' },
-    { h: 'الحالة', f: m => sb_('meet', m.status) }, { h: 'المدعوون', f: m => { const x = inv.filter(i => i.meeting_id === m.id); return `${nf(x.length)} (أكّد ${nf(x.filter(i => i.rsvp === 'confirmed').length)} · حضر ${nf(x.filter(i => i.attended).length)})`; } },
-  ], ms, 'لا اجتماعات في هذه الدورة')}</div>`;
+  const T0 = today(), up = ms.filter(m => m.status === 'scheduled'), cx = m => { const x = inv.filter(i => i.meeting_id === m.id); return { n: x.length, c: x.filter(i => i.rsvp === 'confirmed').length, a: x.filter(i => i.attended).length }; };
+  const TN = { scheduled: 'info', held: 'ok', cancelled: 'mute', draft: 'warn' };
+  return h`${pageHead('الاجتماعات', isCoord() ? btn('+ اجتماع', 'mtNew', {}, 'pri') : '')}${sum([[ms.length, 'كل الاجتماعات'], [up.length, 'مجدولة', 'info'], [ms.filter(m => m.status === 'held').length, 'عُقدت', 'ok'], [ms.filter(m => m.status === 'cancelled').length, 'ملغاة']])}
+  ${tlist(ms.map(m => { const c = cx(m); return tile({ tone: TN[m.status], date: m.meeting_date, title: h`<a href="#meeting/${m.id}">${m.title}</a>`,
+    meta: h`<span class="bdg ${TN[m.status] === 'mute' ? '' : TN[m.status]}">${L.meet[m.status]}</span>${m.start_time ? h`<span>${App.ico('clock')} ${m.start_time.slice(0, 5)}</span>` : ''}${m.location ? h`<span>${App.ico('visit')} ${m.location}</span>` : ''}`,
+    side: h`<span class="tl-k"><b>${nf(c.n)}</b><small>مدعو</small></span><span class="tl-k"><b>${nf(c.c)}</b><small>أكّد</small></span><span class="tl-k"><b>${nf(c.a)}</b><small>حضر</small></span>`, acts: h`<a class="btn sm" href="#meeting/${m.id}">فتح</a>` }); }), 'لا اجتماعات في هذه الدورة')}`;
 };
 Act.mtNew = async () => { const v = await ask('اجتماع جديد', await meetFields(), { status: 'scheduled' }); if (!v) return; const r = await run(sb.from('meetings').insert({ ...v, cycle_id: S.cid, created_by: S.me.id }).select('id').single(), 'أُنشئ الاجتماع'); if (r) location.hash = '#meeting/' + r.id; };
 Pages.meeting = async ([id]) => {
@@ -124,9 +135,12 @@ const vf = () => visitFields.map(f => typeof f.o === 'function' ? { ...f, o: f.o
 Pages.visits = async () => {
   const nc = App.needCycle(); if (nc) return nc;
   const [vs, vt, vc] = await Promise.all([must(sb.from('technical_visits').select('*').eq('cycle_id', S.cid).order('visit_date', { ascending: false })), must(sb.from('visit_team').select('*')), must(sb.from('visit_cards').select('visit_id'))]);
-  return h`${pageHead('الزيارات الفنية للمؤشرات', isCoord() ? btn('+ زيارة', 'vsNew', {}, 'pri') : '')}<p class="muted">الزيارة الفنية منفصلة عن الاجتماعات، ولا تغيّر تقييم المؤشر ولا تعتمد الشواهد.</p><div class="pn">${table([
-    { h: 'الزيارة', f: v => h`<a href="#visit/${v.id}"><b>${v.target_party}</b></a>` }, { h: 'التاريخ', f: v => dt(v.visit_date) }, { h: 'الفريق', f: v => vt.filter(t => t.visit_id === v.id).map(t => staffName(t.staff_id)).join('، ') || '—' },
-    { h: 'البطاقات', f: v => nf(vc.filter(c => c.visit_id === v.id).length) }, { h: 'الحالة', f: v => sb_('visit', v.status) }], vs, 'لا زيارات')}</div>`;
+  const VT = { planned: 'info', done: 'ok', cancelled: 'mute' };
+  return h`${pageHead('الزيارات الفنية للمؤشرات', isCoord() ? btn('+ زيارة', 'vsNew', {}, 'pri') : '')}<p class="muted">الزيارة الفنية منفصلة عن الاجتماعات، ولا تغيّر تقييم المؤشر ولا تعتمد الشواهد.</p>
+  ${sum([[vs.length, 'كل الزيارات'], [vs.filter(v => v.status === 'planned').length, 'مخططة', 'info'], [vs.filter(v => v.status === 'done').length, 'تمت', 'ok'], [vc.length, 'بطاقات مؤشرات']])}
+  ${tlist(vs.map(v => { const tm = vt.filter(t => t.visit_id === v.id), n = vc.filter(c => c.visit_id === v.id).length; return tile({ tone: VT[v.status], date: v.visit_date, title: h`<a href="#visit/${v.id}">${v.target_party}</a>`,
+    meta: h`<span class="bdg ${VT[v.status] === 'mute' ? '' : VT[v.status]}">${L.visit[v.status]}</span><span>${App.ico('clip')} ${nf(n)} بطاقة مؤشر</span>`,
+    extra: tm.length ? h`<div class="tl-ps">${tm.map(t => who(t.staff_id))}</div>` : '', acts: h`<a class="btn sm" href="#visit/${v.id}">فتح</a>` }); }), 'لا زيارات')}`;
 };
 Act.vsNew = async () => {
   const v = await ask('زيارة فنية جديدة', [...vf(), { k: 'team', l: 'فريق الزيارة', t: 'multi', o: staffOpts() }], { status: 'planned' }, { wide: true }); if (!v) return;
@@ -214,20 +228,20 @@ Pages.tasks = async () => {
   Act.tkReject = async ({ i }) => { if (await run(sb.from('tasks').update({ approval: 'rejected', status: 'cancelled' }).eq('id', i), 'رُفض الاقتراح')) App.refresh(); };
   Act.tkSt = async ({ i, s }) => { let note; if (s === 'awaiting_review') { const v = await ask('إرسال للمراجعة', [{ k: 'completion_note', l: 'ملاحظة الإنجاز والمخرج', t: 'textarea' }]); if (!v) return; note = v.completion_note; } if (await run(sb.from('tasks').update({ status: s, ...(note ? { completion_note: note } : {}) }).eq('id', i), 'حُدّثت الحالة')) App.refresh(); };
   Act.tkDel = async ({ i }) => { if (await sure('حذف المهمة؟') && await run(sb.from('tasks').delete().eq('id', i))) App.refresh(); };
-  const html = h`${pageHead('المهام والتكليفات', btn(co ? '+ مهمة' : '+ اقتراح مهمة', 'tkNew', {}, 'pri'))}
+  const html = h`${pageHead('المهام والتكليفات', btn(co ? '+ مهمة' : '+ اقتراح مهمة', 'tkNew', {}, 'pri'))}${sum([[all.filter(t => t.approval === 'proposed').length, 'مقترحات', 'warn'], [all.filter(t => t.approval === 'approved' && ['new', 'in_progress'].includes(t.status)).length, 'قيد العمل', 'info'], [all.filter(t => t.status === 'awaiting_review').length, 'بانتظار المراجعة', 'warn'], [all.filter(t => t.status === 'completed').length, 'مكتملة', 'ok']])}
   <div class="flt"><select id="tfW"><option value="">كل المهام</option><option value="mine" ${TF.who ? raw('selected') : ''}>مهامي</option></select>
   <select id="tfS"><option value="">كل الحالات</option>${Object.entries(L.task).map(([k, v]) => h`<option value="${k}" ${TF.st === k ? raw('selected') : ''}>${v}</option>`)}</select>
   <select id="tfA"><option value="">كل الاعتمادات</option>${Object.entries(L.appr).map(([k, v]) => h`<option value="${k}" ${TF.ap === k ? raw('selected') : ''}>${v}</option>`)}</select></div>
-  <div class="pn">${table([
-    { h: 'المهمة', f: t => h`<b>${t.title}</b><br><small class="muted">${L.ttype[t.task_type]}${t.indicator_id ? '' : ''}${t.required_output ? ' · المخرج: ' + t.required_output : ''}</small>` },
-    { h: 'المكلّف', f: t => staffName(t.assignee_staff_id) }, { h: 'الفترة', f: t => `${dt(t.start_date)} ← ${dt(t.due_date)}` },
-    { h: 'الحالة', f: t => h`${sb_('task', t.status)}${t.approval !== 'approved' ? ' ' : ''}${t.approval !== 'approved' ? sb_('appr', t.approval) : ''}${t.completion_note ? h`<br><small class="muted">${t.completion_note}</small>` : ''}` },
-    { h: '', f: t => { const mineT = t.assignee_staff_id === me && t.approval === 'approved'; return h`<div class="chips">
+  ${tlist(ts.map(t => { const mineT = t.assignee_staff_id === me && t.approval === 'approved', late = t.status === 'overdue' || (!['completed', 'cancelled'].includes(t.status) && t.due_date && t.due_date < today());
+    const tone = t.approval === 'proposed' ? 'warn' : late ? 'bad' : t.status === 'completed' ? 'ok' : t.status === 'awaiting_review' ? 'warn' : t.status === 'cancelled' ? 'mute' : 'info';
+    return tile({ tone, ico: t.status === 'completed' ? 'check' : t.approval === 'proposed' ? 'note' : 'task', title: t.title,
+      meta: h`<span class="bdg ${tone === 'mute' ? '' : tone}">${late && t.status !== 'overdue' ? 'متأخرة' : L.task[t.status]}</span>${t.approval !== 'approved' ? sb_('appr', t.approval) : ''}<span>${L.ttype[t.task_type] || ''}</span>${t.due_date ? h`<span class="${late ? 'lt' : ''}">${App.ico('clock')} ${dt(t.start_date)} ← ${dt(t.due_date)}</span>` : ''}`,
+      extra: h`<div class="tl-ps">${who(t.assignee_staff_id)}</div>${t.required_output ? h`<small class="muted">المخرج: ${t.required_output}</small>` : ''}${t.completion_note ? h`<small class="muted">${t.completion_note}</small>` : ''}`,
+      acts: h`
       ${co && t.approval === 'proposed' ? h`${btn('اعتماد', 'tkApprove', { i: t.id }, 'pri')}${btn('رفض', 'tkReject', { i: t.id }, 'bad')}` : ''}
       ${mineT && ['new', 'overdue'].includes(t.status) ? btn('بدء', 'tkSt', { i: t.id, s: 'in_progress' }) : ''}${mineT && ['in_progress', 'overdue'].includes(t.status) ? btn('إرسال للمراجعة', 'tkSt', { i: t.id, s: 'awaiting_review' }, 'pri') : ''}
       ${co && t.status === 'awaiting_review' ? btn('اعتماد الإغلاق', 'tkSt', { i: t.id, s: 'completed' }, 'pri') : ''}${co && !['completed', 'cancelled'].includes(t.status) && t.approval === 'approved' ? btn('إلغاء', 'tkSt', { i: t.id, s: 'cancelled' }) : ''}
-      ${co ? h`${btn('تعديل', 'tkEdit', { i: t.id })}${btn('✕', 'tkDel', { i: t.id }, 'bad')}` : ''}${btn('مرفقات', 'tfOpen', { t: 'task', id: t.id })}</div>`; } },
-  ], ts, 'لا مهام')}</div><p class="muted">المسؤولية عن المؤشر مستمرة، أما المهمة فعمل محدد له بداية ونهاية ومخرج. اقتراحات الأعضاء لا تصبح تكليفاً إلا باعتماد المنسق.</p>`;
+      ${co ? h`${btn('تعديل', 'tkEdit', { i: t.id })}${btn('✕', 'tkDel', { i: t.id }, 'bad')}` : ''}${btn('مرفقات', 'tfOpen', { t: 'task', id: t.id })}` }); }), 'لا مهام')}<p class="muted">المسؤولية عن المؤشر مستمرة، أما المهمة فعمل محدد له بداية ونهاية ومخرج. اقتراحات الأعضاء لا تصبح تكليفاً إلا باعتماد المنسق.</p>`;
   return { html, after: v => { $('#tfW', v).onchange = e => { TF.who = e.target.value; App.refresh(); }; $('#tfS', v).onchange = e => { TF.st = e.target.value; App.refresh(); }; $('#tfA', v).onchange = e => { TF.ap = e.target.value; App.refresh(); }; } };
 };
 
@@ -247,10 +261,11 @@ Pages.ann = async () => {
   Act.anDel = async ({ i }) => { if (await sure('حذف الإعلان؟') && await run(sb.from('announcements').delete().eq('id', i))) App.refresh(); };
   Act.anRead = async ({ i }) => { if (await run(sb.from('announcement_reads').upsert({ announcement_id: i, profile_id: S.me.id }, { onConflict: 'announcement_id,profile_id', ignoreDuplicates: true }))) App.refresh(); };
   Act.anWho = async ({ i }) => { const r = rd.filter(x => x.announcement_id === i); const pr = (await sb.from('profiles').select('id,display_name')).data || []; const nm = Object.fromEntries(pr.map(p => [p.id, p.display_name])); App.modal('من اطّلع على الإعلان', r.length ? h`<ul>${r.map(x => h`<li>${nm[x.profile_id] || 'عضو'} — ${dtt(x.read_at)}</li>`)}</ul><p class="muted">${nf(r.length)} اطّلعوا</p>` : h`<p class="muted">لم يطّلع أحد بعد.</p>`); };
-  return h`${pageHead('إعلانات الفريق', co ? btn('+ إعلان', 'anNew', {}, 'pri') : '')}${as.length ? as.map(a => { const read = rd.some(r => r.announcement_id === a.id && r.profile_id === S.me.id);
-    return h`<div class="pn"><div class="pnh"><h2>${a.title} ${a.priority !== 'normal' ? badge(L.prio[a.priority], a.priority === 'urgent' ? 'bad' : 'warn') : ''}</h2><div class="pa"><small class="muted">${dtt(a.publish_at)}</small>
-      ${co ? h`${btn('المطّلعون (' + nf(rd.filter(r => r.announcement_id === a.id).length) + ')', 'anWho', { i: a.id })}${btn('مرفقات', 'tfOpen', { t: 'announcement', id: a.id })}${btn('✕', 'anDel', { i: a.id }, 'bad')}` : (read ? badge('اطّلعت', 'ok') : btn('تعليم كمقروء', 'anRead', { i: a.id }))}</div></div>
-      <div class="txt">${a.body}</div>${a.expires_at ? h`<small class="muted">ينتهي ${dtt(a.expires_at)}</small>` : ''}${co && a.audience === 'selected' ? h`<br><small class="muted">إلى: ${rc.filter(r => r.announcement_id === a.id).map(r => staffName(r.staff_id)).join('، ')}</small>` : ''}</div>`; }) : h`<div class="pn"><p class="muted">لا توجد إعلانات.</p></div>`}`;
+  const PT = { normal: 'info', important: 'warn', urgent: 'bad' };
+  return h`${pageHead('إعلانات الفريق', co ? btn('+ إعلان', 'anNew', {}, 'pri') : '')}${as.length ? h`<div class="tl-list">${as.map(a => { const read = rd.some(r => r.announcement_id === a.id && r.profile_id === S.me.id);
+    return tile({ tone: PT[a.priority] || 'info', ico: 'mega', title: a.title, meta: h`${a.priority !== 'normal' ? badge(L.prio[a.priority], a.priority === 'urgent' ? 'bad' : 'warn') : ''}<span>${App.ico('clock')} ${dtt(a.publish_at)}</span>${a.expires_at ? h`<span>ينتهي ${dtt(a.expires_at)}</span>` : ''}${!co && read ? badge('اطّلعت', 'ok') : ''}`,
+      extra: h`<div class="tl-body">${a.body}</div>${co && a.audience === 'selected' ? h`<small class="muted">إلى: ${rc.filter(r => r.announcement_id === a.id).map(r => staffName(r.staff_id)).join('، ')}</small>` : ''}`,
+      acts: co ? h`${btn('المطّلعون (' + nf(rd.filter(r => r.announcement_id === a.id).length) + ')', 'anWho', { i: a.id })}${btn('مرفقات', 'tfOpen', { t: 'announcement', id: a.id })}${btn('✕', 'anDel', { i: a.id }, 'bad')}` : (read ? '' : btn('تعليم كمقروء', 'anRead', { i: a.id })) }); })}</div>` : h`<div class="pn"><p class="muted">لا توجد إعلانات.</p></div>`}`;
 };
 
 // ===== المواعيد والتقويم الموحد =====
@@ -274,10 +289,15 @@ Pages.cal = async () => {
   const months = {}; cal.forEach(e => { const k = e.event_date.slice(0, 7); (months[k] = months[k] || []).push(e); });
   Act.dlNew = () => App.dlForm({}); Act.dlExt = ({ i }) => App.dlForm({}, dl.find(d => d.id === i)); Act.dlDel = async ({ i }) => { if (await sure('حذف الموعد؟') && await run(sb.from('deadlines').delete().eq('id', i))) App.refresh(); };
   const link = e => ({ meeting: '#meeting/' + e.ref_id, visit: '#visit/' + e.ref_id }[e.kind] || null);
+  const KT = { meeting: 'info', task: 'warn', deadline: 'bad', visit: 'info' }, KI = { meeting: 'cal', task: 'task', deadline: 'flag', visit: 'visit' };
+  const T0 = today(), nextN = cal.filter(e => e.event_date >= T0).length;
   return h`${pageHead('التقويم والمواعيد', isCoord() ? btn('+ موعد إغلاق', 'dlNew', {}, 'pri') : '')}
-  ${panel('التقويم الموحد', Object.keys(months).length ? Object.entries(months).map(([m, es]) => h`<h3 style="margin:10px 0 6px">${new Date(m + '-01').toLocaleDateString('ar-SA-u-ca-gregory-nu-latn', { month: 'long', year: 'numeric' })}</h3>${table([{ h: 'التاريخ', f: e => dt(e.event_date) + (e.event_time ? ' · ' + e.event_time.slice(0, 5) : '') }, { h: 'النوع', f: e => badge(KL[e.kind], e.kind === 'deadline' ? 'warn' : 'info') }, { h: 'العنوان', f: e => link(e) ? h`<a href="${link(e)}">${e.title}</a>` : e.title }], es)}`) : h`<p class="muted">لا أحداث.</p>`)}
-  ${panel('مواعيد الإغلاق', table([{ h: 'الموعد', f: d => d.title }, { h: 'التاريخ', f: d => dt(d.due_date) }, { h: 'الأصلي', f: d => d.original_due_date !== d.due_date ? dt(d.original_due_date) : '—' }, { h: 'سبب التمديد', f: d => d.extension_reason || '—' },
-    { h: '', f: d => isCoord() ? h`<div class="chips">${btn('تمديد', 'dlExt', { i: d.id })}${btn('✕', 'dlDel', { i: d.id }, 'bad')}</div>` : '' }], dl, 'لا مواعيد إغلاق'))}`;
+  ${sum([[nextN, 'أحداث قادمة', 'info'], [cal.filter(e => e.kind === 'meeting').length, 'اجتماعات'], [cal.filter(e => e.kind === 'visit').length, 'زيارات فنية'], [dl.filter(d => d.due_date >= T0).length, 'مواعيد إغلاق قادمة', 'warn']])}
+  <section class="tl-sec"><h2>${App.ico('cal')} التقويم الموحد</h2>${Object.keys(months).length ? Object.entries(months).map(([m, es]) => h`<h3 class="tl-mh">${new Date(m + '-01').toLocaleDateString('ar-SA-u-ca-gregory-nu-latn', { month: 'long', year: 'numeric' })}<span class="bdg">${nf(es.length)}</span></h3>
+    <div class="tl-list">${es.map(e => tile({ tone: e.event_date < T0 ? 'mute' : KT[e.kind], date: e.event_date, title: link(e) ? h`<a href="${link(e)}">${e.title}</a>` : e.title, meta: h`<span class="bdg ${e.kind === 'deadline' ? 'warn' : 'info'}">${KL[e.kind]}</span>${e.event_time ? h`<span>${App.ico('clock')} ${e.event_time.slice(0, 5)}</span>` : ''}` }))}</div>`) : h`<div class="pn"><p class="muted empty">لا أحداث.</p></div>`}</section>
+  <section class="tl-sec"><h2>${App.ico('flag')} مواعيد الإغلاق</h2>${tlist(dl.map(d => tile({ tone: d.due_date < T0 ? 'mute' : 'bad', date: d.due_date, title: d.title,
+    meta: h`${d.original_due_date && d.original_due_date !== d.due_date ? h`<span class="bdg warn">مُدِّد من ${dt(d.original_due_date)}</span>` : ''}${d.extension_reason ? h`<span>${d.extension_reason}</span>` : ''}`,
+    acts: isCoord() ? h`${btn('تمديد', 'dlExt', { i: d.id })}${btn('✕', 'dlDel', { i: d.id }, 'bad')}` : '' })), 'لا مواعيد إغلاق')}</section>`;
 };
 
 // ===== واتساب =====

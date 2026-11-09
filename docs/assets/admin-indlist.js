@@ -3,6 +3,8 @@
 (() => {
 const { h, raw, $, S, L, nf, short, esc, staffName, sb_, table, btn, isCoord, role, csv, codeCmp } = App;
 const NOP = '__none';
+const DOMK = [0, 3, 2, 1];   // نفس ألوان المجالات في الموقع العام وصفحة المؤشر
+const dk = (ref, d) => DOMK[Math.max(0, ref.domains.findIndex(x => x.id === d?.id)) % 4];
 const ST = [['approved', 'معتمد'], ['submitted', 'بانتظار الاعتماد'], ['draft', 'مسودة'], ['not_evaluated', 'لم يُقيَّم']];
 const SORTS = [['code', 'ترتيب: الرمز'], ['attention', 'ترتيب: الأحوج للإجراء أولاً'], ['pct_desc', 'ترتيب: نسبة التحقق (الأعلى)'], ['pct_asc', 'ترتيب: نسبة التحقق (الأدنى)'], ['evid', 'ترتيب: الشواهد المعتمدة']];
 const GROUPS = [['none', 'بدون تجميع'], ['dom', 'تجميع: المجال'], ['std', 'تجميع: المعيار'], ['st', 'تجميع: الحالة'], ['eval', 'تجميع: المقيّم'], ['resp', 'تجميع: المسؤول']];
@@ -140,7 +142,7 @@ Pages.inds = async () => {
 
   /* ---- بطاقات المجالات: أزرار فرز آنية ---- */
   const domCards = () => h`<div class="kcs d4" id="idoms">${ref.domains.map((d, i) => { const dx = rows.filter(r => r.i.dom?.id === d.id), n = dx.length, ok = dx.filter(r => r.st === 'approved').length, sb2 = dx.filter(r => r.st === 'submitted').length, nv = dx.filter(r => r.st === 'not_evaluated').length, on = hm.f.dom.includes(d.id);
-    return App.kc('d' + (i % 4), 'flag', d.name_ar, h`${nf(ok)}<span class="of"> / ${nf(n)}</span>`, n ? ok / n * 100 : 0, on ? 'مُطبَّق: اضغط لإلغاء الفرز' : (n && ok === n ? 'منجز بالكامل · اضغط للفرز' : [sb2 ? nf(sb2) + ' بانتظار الاعتماد' : '', nv ? nf(nv) + ' لم يبدأ' : ''].filter(Boolean).join(' · ') || 'اضغط لفرز المؤشرات'), { fdom: d.id }, false, on); })}</div>`;
+    return App.kc('d' + DOMK[i % 4], 'flag', d.name_ar, h`${nf(ok)}<span class="of"> / ${nf(n)}</span>`, n ? ok / n * 100 : 0, on ? 'مُطبَّق: اضغط لإلغاء الفرز' : (n && ok === n ? 'منجز بالكامل · اضغط للفرز' : [sb2 ? nf(sb2) + ' بانتظار الاعتماد' : '', nv ? nf(nv) + ' لم يبدأ' : ''].filter(Boolean).join(' · ') || 'اضغط لفرز المؤشرات'), { fdom: d.id }, false, on); })}</div>`;
 
   const advLabel = () => { const n = Object.values(hm.f).reduce((a, x) => a + x.length, 0); return `${App.ico('layers').s} الفرز المتقدم${n ? ` <em class="fn">${nf(n)}</em>` : ''}`; };
   const vbtnsHtml = () => [['table', 'جدول', 'list'], ['cards', 'بطاقات', 'grid']].map(([k, t, i]) => `<button type="button" class="vbtn${hm.view === k ? ' on' : ''}" data-view="${k}" aria-pressed="${hm.view === k}">${App.ico(i).s} <span>${t}</span></button>`).join('');
@@ -169,7 +171,7 @@ Pages.inds = async () => {
   const kOf = st => st === 'approved' ? 'done' : st === 'submitted' ? 'wait' : 'need';
   const whyOf = r => kOf(r.st) !== 'need' ? '' : r.st === 'draft' ? 'التقييم مسودة لم تُرسل' : !r.ev.length ? 'لا مقيّم للمؤشر' : !r.et ? 'لم تُرفع شواهد بعد' : 'ينتظر التقييم';
   const rowC = r => { const k = kOf(r.st), [ic, lb, tn] = { done: ['check', 'مكتمل', 'ok'], wait: ['clock', 'بانتظار الاعتماد', 'info'], need: ['edit', 'بحاجة إلى عمل', 'warn'] }[k], why = whyOf(r);
-    return h`<a class="mi ${k}" href="#ind/${r.i.id}"><span class="mi-s ${tn}" title="${lb}">${App.ico(ic)}</span>
+    return h`<a class="mi ${k} dc" style="--dc:var(--c${dk(ref, r.i.dom)}f);--db:var(--c${dk(ref, r.i.dom)}b)" href="#ind/${r.i.id}"><span class="mi-s ${tn}" title="${lb}">${App.ico(ic)}</span>
     <div class="mi-b"><div class="mi-t"><b dir="ltr">${r.i.code}</b><span>${short(r.i.official_text, 130)}</span></div>
       <div class="mi-m"><small>${r.i.dom?.name_ar || ''} · ${r.i.std?.name_ar || ''}</small><span class="bdg ${tn}">${lb}</span>${r.lvl ? h`<span class="bdg">${r.lvl}</span>` : ''}${why ? h`<span class="mi-w">${why}</span>` : ''}${r.ep ? h`<span class="bdg info" title="بانتظار المراجعة">${nf(r.ep)} شواهد للمراجعة</span>` : ''}</div>
       <div class="iwho"><div><small>مسؤول المؤشر</small><div class="wc">${chips(r.rs, 'resp', 'بلا مسؤول')}</div></div><div><small>مقيّم المؤشر</small><div class="wc">${chips(r.ev, 'eval', 'بلا مقيّم')}</div></div></div></div>
