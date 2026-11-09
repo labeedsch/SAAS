@@ -140,7 +140,7 @@ const stOf = r => r.publish_state !== 'published' ? 'unpub' : (LV[r.level_label]
 const FACETS = [['dom', 'المجال', 'layers', false], ['std', 'المعيار', 'doc', false], ['eval', 'المقيم (المنفذ)', 'users', true], ['resp', 'المسؤول', 'users', true]];
 const SORTS = [['code', 'ترتيب: الرمز'], ['pct_desc', 'ترتيب: نسبة التحقق (الأعلى)'], ['pct_asc', 'ترتيب: نسبة التحقق (الأدنى)'], ['level', 'ترتيب: المستوى']];
 const GROUPS = [['none', 'بدون تجميع', false], ['dom', 'تجميع: المجال', false], ['std', 'تجميع: المعيار', false], ['level', 'تجميع: المستوى', false], ['resp', 'تجميع: المسؤول', true], ['eval', 'تجميع: المقيم (المنفذ)', true]];
-const freshHm = () => ({ q: '', st: '', sort: 'code', group: 'none', view: 'cards', adv: false, f: { dom: [], std: [], eval: [], resp: [] }, open: { dom: true, eval: true, std: false, resp: false } });
+const freshHm = () => ({ q: '', st: '', sort: 'code', group: 'none', view: 'list', adv: false, f: { dom: [], std: [], eval: [], resp: [] }, open: { dom: true, eval: true, std: false, resp: false } });
 let hm = freshHm();
 
 const fvals = (r, k) => { if (k === 'dom') return [r.domain_id]; if (k === 'std') return [r.standard_id]; const o = ownersOf(r, k); return o.length ? o : [NOP]; };
