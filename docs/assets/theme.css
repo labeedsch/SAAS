@@ -698,3 +698,15 @@ nav .ng .ngm a.on::after{display:none}
 .pcard .pwho>.pw{background:none;border:0;padding:4px 0;border-radius:0}
 .pcard .pwho>.pw+.pw{border-top:1px dashed var(--line);padding-top:6px}
 .pcard .pfoot{padding-top:2px}
+
+/* الاسترشاد: ذهبي بتدرجاته في الموقع ولوحة التحكم */
+.iw.dc .iw-guide,.iw .iw-guide{--ga:#9a7000;--gb:#fff9e0;--gc:#ecce63;background:linear-gradient(180deg,#fff9e0,var(--surface) 140px);border:2px solid #ecce63}
+.iw.dc .iw-guide>h2,.iw .iw-guide>h2{color:#7a5a00}.iw.dc .iw-guide>h2 .ico{color:#a67c00}
+.iw.dc .iw-gd>summary,.iw .iw-gd>summary{background:linear-gradient(135deg,#d9a82b,#b8860b);color:#fff}
+.iw.dc .iw-gd>summary small,.iw.dc .iw-gd>summary .ico{color:#fff;opacity:.95}
+.iw.dc .iw-gd{border-color:#e6c869}
+.iw.dc .iw-gg>section,.iw.dc .iw-gev{background:#fff6d6;border-color:#ecd27a;color:var(--ink)}
+.iw.dc .iw-gg h4,.iw.dc .iw-gev h4{color:#7a5a00}.iw.dc .iw-gg h4 .ico,.iw.dc .iw-gev h4 .ico{color:#a67c00}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .iw .iw-guide{background:linear-gradient(180deg,#2c2410,var(--surface) 140px);border-color:#8a6d1a}
+:root:not([data-theme="light"]) .iw .iw-gg>section,:root:not([data-theme="light"]) .iw .iw-gev{background:#2a230f;border-color:#6b5517}
+:root:not([data-theme="light"]) .iw .iw-guide>h2,:root:not([data-theme="light"]) .iw .iw-gg h4,:root:not([data-theme="light"]) .iw .iw-gev h4{color:#f0d36a}}

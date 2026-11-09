@@ -61,7 +61,7 @@ App.indWork = d => {
   const owners = [['مسؤول المؤشر', d.respNames, 'يوفّر الشواهد والمعلومات'], ['مقيّم المؤشر', d.evalNames, 'يدرس ويقيّم ويكتب المبررات']];
   const head = h`<header class="iw-h"><div class="iw-hc"><div class="iw-chips"><span class="iw-chip dom">${ic('layers')} ${ind.dom.name_ar}</span><span class="iw-chip">${ic('doc')} ${ind.std.name_ar}</span><span class="iw-chip code" dir="ltr">${ind.code}</span>${sb_('eval', st)}</div>
       <h1>${ind.official_text}</h1>
-      <div class="iw-own">${owners.map(([l, ns, t]) => h`<div><span class="iw-ov">${ns.length ? ns.slice(0, 3).map(n => App.avatarHtml(S.staff.find(s => s.full_name === n) || { full_name: n }, 46)) : ic('users')}</span><div><small>${l}</small><b>${ns.length ? ns.map(n => App.ncell(n, 22)) : 'لم يُسنَد بعد'}</b><em>${t}</em></div></div>`)}</div></div>
+      <div class="iw-own">${owners.map(([l, ns, t]) => h`<div><span class="iw-ov">${ns.length ? ns.slice(0, 3).map(n => App.avatarHtml(S.staff.find(s => s.full_name === n) || { full_name: n }, 46)) : ic('users')}</span><div><small>${l}</small><b>${ns.length ? ns.join("، ") : 'لم يُسنَد بعد'}</b><em>${t}</em></div></div>`)}</div></div>
     <div class="iw-lvbox lv-${cur ? LVK[cur.code] || 'x' : 'none'}"><div class="iw-ring" style="--p:${ev?.achievement_pct ?? 0}"><b>${pctTxt(ev?.achievement_pct)}</b></div><strong>${cur ? cur.label : 'لم يُقيَّم'}</strong><small>${d.cyc.name}</small></div></header>`;
 
   const nav = h`<nav class="iw-steps" aria-label="مسار العمل على المؤشر">${steps.map(([k, l, i, s], n) => h`<a href="#" class="iw-st ${s}" data-jump="${k}"><span class="iw-sn">${s === 'done' ? ic('check') : s === 'need' ? ic('edit') : s === 'wait' ? ic('clock') : nf(n + 1)}</span><span>${l}</span></a>`)}</nav>
