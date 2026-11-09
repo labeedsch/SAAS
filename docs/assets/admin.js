@@ -23,10 +23,11 @@ const HUB_OF = { reports: 'dashboard', log: 'dashboard', evidence: 'inds', indma
 const allowed = (r) => r === '*' || r.includes(role());
 
 // القائمة العلوية: عناصر قبل أول مجموعة تظهر مباشرة، وكل مجموعة تُفتح كقائمة منسدلة
+const MICON = { dashboard: 'bars', alerts: 'bell', inds: 'note', team: 'users', platform: 'layers' };
 function drawMenu() {
   const cur0 = location.hash.slice(1).split('/')[0] || 'dashboard', cur = HUB_OF[cur0] || cur0;
   const nb = App.hubBadges ? App.hubBadges(App.lastAlerts) : {};
-  put($('#menu'), h`${MENU.filter(m => !m[3] && allowed(m[2])).map(m => h`<a href="#${m[0]}" class="${m[0] === cur ? 'on' : ''}" ${m[0] === cur ? raw('aria-current="page"') : ''}>${m[1]}${nb[m[0]] ? h` <span class="nb" aria-label="${nb[m[0]]} إجراء">${nb[m[0]] > 99 ? '99+' : App.nf(nb[m[0]])}</span>` : ''}</a>`)}`);
+  put($('#menu'), h`${MENU.filter(m => !m[3] && allowed(m[2])).map(m => h`<a href="#${m[0]}" class="${m[0] === cur ? 'on' : ''}" ${m[0] === cur ? raw('aria-current="page"') : ''}>${MICON[m[0]] ? App.ico(MICON[m[0]]) : ''}<span class="ml">${m[1]}</span>${nb[m[0]] ? h` <span class="nb" aria-label="${nb[m[0]]} إجراء">${nb[m[0]] > 99 ? '99+' : App.nf(nb[m[0]])}</span>` : ''}</a>`)}`);
 }
 App.drawMenu = drawMenu;
 

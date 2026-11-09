@@ -347,3 +347,13 @@ button.kc{font:inherit;text-align:start;cursor:pointer;width:100%} .kc.on{outlin
 .igrp>h3{margin:16px 0 8px;font-size:1.02rem}
 .pills2 .spill{min-height:38px}
 @media (prefers-reduced-motion:reduce){.icard{transition:none}.icard:hover{transform:none}}
+
+/* أيقونات شريط لوحة التحكم */
+#menu>a .ico{width:19px;height:19px;flex:none;opacity:.9} #menu>a.on .ico{color:var(--gold);opacity:1}
+.tt a .ico{width:17px;height:17px;flex:none}
+@media (max-width:700px){
+  #menu{grid-template-columns:repeat(5,1fr)}
+  #menu>a{flex-direction:column;gap:2px;padding:8px 2px 6px;font-size:.7rem;min-height:54px}
+  #menu>a .ico{width:20px;height:20px}
+  #menu>a .nb{top:1px}
+}

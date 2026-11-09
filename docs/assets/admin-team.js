@@ -131,7 +131,8 @@ function readinessPanel(D) {
 }
 
 /* ===== التبويبات ===== */
-const shell = (title, sub, base, tabs, tab, bg, extra, body, after) => ({ html: h`<nav class="tt" aria-label="أقسام ${title}">${tabs.map(t => h`<a href="#${base}/${t[0]}" class="${t[0] === tab ? 'on' : ''}" ${t[0] === tab ? raw('aria-current="page"') : ''}>${t[1]}${bg[t[0]] ? h` <span class="tb">${nf(bg[t[0]])}</span>` : ''}</a>`)}</nav>${extra}<div class="tbody">${body}</div>`, after });
+const TICO = { overview: 'bars', reports: 'doc', log: 'history', list: 'note', evidence: 'clip', map: 'flag', tasks: 'task', meetings: 'cal', visits: 'visit', cal: 'cal', staff: 'users', assign: 'user', ann: 'mega', cycles: 'layers', wa: 'bell' };
+const shell = (title, sub, base, tabs, tab, bg, extra, body, after) => ({ html: h`<nav class="tt" aria-label="أقسام ${title}">${tabs.map(t => h`<a href="#${base}/${t[0]}" class="${t[0] === tab ? 'on' : ''}" ${t[0] === tab ? raw('aria-current="page"') : ''}>${TICO[t[0]] ? App.ico(TICO[t[0]]) : ''}${t[1]}${bg[t[0]] ? h` <span class="tb">${nf(bg[t[0]])}</span>` : ''}</a>`)}</nav>${extra}<div class="tbody">${body}</div>`, after });
 App.shell = shell;
 async function badges() {
   try {
