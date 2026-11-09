@@ -764,3 +764,21 @@ button.kc{font:inherit;text-align:start;cursor:pointer;width:100%} .kc.on{outlin
 .hm-dc .approved::before,.hm-leg .approved::before{background:color-mix(in srgb,var(--c4f) 60%,var(--surface))}
 .hm-dc .submitted::before,.hm-leg .submitted::before{background:color-mix(in srgb,var(--c1f) 50%,var(--surface))}
 .hm-dc .draft::before,.hm-leg .draft::before{background:color-mix(in srgb,var(--c3f) 55%,var(--surface))}
+
+/* متابعة المهام: لوحة أعمدة هادئة */
+.tm-pb{display:flex;height:10px;border-radius:99px;overflow:hidden;gap:2px;margin-bottom:14px;background:var(--soft)}
+.tm-pb i{display:block;min-width:8px}
+.tm-pb .new,.tm-kcol.new{--k:var(--c1f)}.tm-pb .in_progress,.tm-kcol.in_progress{--k:var(--c0f)}.tm-pb .awaiting_review,.tm-kcol.awaiting_review{--k:var(--c3f)}.tm-pb .late,.tm-kcol.late{--k:var(--c5f)}
+.tm-pb i{background:color-mix(in srgb,var(--k,var(--c1f)) 55%,var(--surface))}
+.tm-kb{gap:14px!important;align-items:start}
+.tm-kcol{background:color-mix(in srgb,var(--k) 7%,var(--surface))!important;border:1px solid color-mix(in srgb,var(--k) 20%,var(--line));padding:12px!important;border-radius:18px!important;gap:10px!important}
+.tm-kcol h3{color:color-mix(in srgb,var(--k) 80%,var(--ink))!important;padding-bottom:8px;border-bottom:2px solid color-mix(in srgb,var(--k) 30%,transparent)}
+.tm-kcol h3 .bdg{margin-inline-start:auto}
+.tm-kc{border-inline-start:0!important;border-top:3px solid color-mix(in srgb,var(--k) 60%,var(--surface));gap:8px!important;padding:12px!important;border-radius:14px!important;box-shadow:0 1px 0 rgba(0,0,0,.03)}
+.tm-kc.bad{border-top-color:var(--c5f)}
+.tm-kc b{overflow-wrap:anywhere}
+.tm-kf{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;min-width:0}
+.tm-kw{display:inline-flex;align-items:center;gap:6px;min-width:0}.tm-kw small{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:110px}
+.tm-due{display:inline-flex;align-items:center;gap:4px;font-size:.76rem;padding:2px 9px;border-radius:99px;background:var(--soft);color:var(--ink2);white-space:nowrap}
+.tm-due svg{width:12px;height:12px}.tm-due.warn{background:color-mix(in srgb,var(--c3f) 14%,var(--surface));color:color-mix(in srgb,var(--c3f) 70%,var(--ink))}.tm-due.bad{background:color-mix(in srgb,var(--c5f) 14%,var(--surface));color:color-mix(in srgb,var(--c5f) 75%,var(--ink))}
+.tm-ty{font-style:normal;font-size:.72rem;color:var(--muted);justify-self:start}
