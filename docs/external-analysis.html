@@ -11,11 +11,139 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap">
 <link rel="stylesheet" href="assets/theme.css?v=20261110m">
 <style>
-/* صفحة ثابتة: المحتوى يُضاف داخل <section id="content"> */
+/* صفحة ثابتة تفاعلية: لا اتصال بقاعدة بيانات. رسوم SVG/CSS بلا مكتبات خارجية */
+html{scroll-behavior:smooth}
+.bd1{--lc:var(--c4f);--lb:var(--c4b)} .bd2{--lc:var(--c1f);--lb:var(--c1b)}
+.bd3{--lc:var(--c3f);--lb:var(--c3b)} .bd4{--lc:var(--c5f);--lb:var(--c5b)}
 #app{padding-block:22px 48px;display:grid;gap:18px}
-.ph{margin:0 0 6px;font-size:1.5rem}
-.empty{text-align:center;padding:36px 20px}
-.empty h2{font-size:1.1rem;margin:0 0 8px}
+.blk{background:var(--surface);border:1px solid var(--line);border-radius:24px;padding:20px;box-shadow:var(--shadow);scroll-margin-top:110px}
+.blk>h2{font-size:1.15rem;margin:0 0 14px;display:flex;align-items:center;gap:10px}
+.blk>h2::before{content:"";width:8px;height:22px;border-radius:5px;background:linear-gradient(var(--brand),var(--gold2))}
+.sh{font-size:1rem;margin:0 0 8px} .sm{font-size:.84rem} .muted{color:var(--muted)}
+/* التنقل السريع */
+.qn{display:flex;gap:8px;overflow-x:auto;padding:8px 2px;position:sticky;top:var(--hh,0px);z-index:20;background:color-mix(in srgb,var(--bg,#fff) 88%,transparent);backdrop-filter:blur(8px);scrollbar-width:none}
+.qn::-webkit-scrollbar{display:none}
+.qn a{flex:none;padding:7px 14px;border-radius:99px;background:var(--surface);border:1px solid var(--line);color:var(--ink2);font-size:.88rem;font-weight:700;text-decoration:none;transition:.15s}
+.qn a:hover{border-color:var(--brand)} .qn a.on{background:var(--brand);color:#fff;border-color:var(--brand)}
+/* الغلاف */
+.lhero{position:relative;display:grid;grid-template-columns:1fr auto;gap:24px;align-items:center;overflow:hidden;padding:30px 34px;border-radius:28px;background:var(--herobg);color:#fff;box-shadow:var(--shadow2)}
+.lhero::before{content:"";position:absolute;inset:-35% auto auto -10%;width:55%;aspect-ratio:1;background:radial-gradient(closest-side,rgba(255,255,255,.16),transparent);pointer-events:none}
+.lhero>*{position:relative} .lhero .chip{background:rgba(255,255,255,.14);border-color:rgba(255,255,255,.3);color:#fff}
+.lhero h1{font-size:clamp(1.7rem,4vw,2.6rem);font-weight:800;line-height:1.25;margin:12px 0 6px;color:#fff}
+.lhero p{margin:0;color:rgba(255,255,255,.9);font-size:1.05rem}
+.hgau{position:relative;width:170px;height:170px}
+.hgau .rt{stroke:rgba(255,255,255,.22)} .hgau .rf{stroke:#f6d98b}
+.hgau .mid{position:absolute;inset:0;display:grid;place-content:center;text-align:center}
+.hgau .mid b{font-size:2rem;font-weight:800;line-height:1.1;font-variant-numeric:tabular-nums} .hgau .mid small{font-size:.74rem;color:rgba(255,255,255,.85);max-width:100px}
+/* الحلقات */
+.gau{display:block;width:100%;height:100%}
+.rt{fill:none;stroke:var(--soft);stroke-width:10}
+.rf{fill:none;stroke:var(--lc);stroke-width:10;stroke-linecap:round;stroke-dasharray:0 100;transform:rotate(-90deg);transform-origin:50px 50px;transition:stroke-dasharray 1.3s cubic-bezier(.2,.8,.2,1)}
+.in .rf{stroke-dasharray:var(--v) 100}
+.meta{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px 20px;margin:0}
+.meta div{padding:10px 14px;border-radius:14px;background:var(--soft)} .meta dt{color:var(--muted);font-size:.8rem} .meta dd{margin:2px 0 0;font-weight:700}
+/* المؤشرات الرئيسية */
+.kpis2{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px}
+.k{position:relative;overflow:hidden;padding:16px;border-radius:20px;border:1px solid color-mix(in srgb,var(--f) 24%,var(--line));background:linear-gradient(160deg,var(--b),var(--surface) 130%);box-shadow:var(--shadow);display:grid;gap:4px;align-content:start;transition:transform .15s}
+.k:hover{transform:translateY(-3px)}
+.k:nth-child(1){--b:var(--c1b);--f:var(--c1f)} .k:nth-child(2){--b:var(--c0b);--f:var(--c0f)} .k:nth-child(3){--b:var(--c2b);--f:var(--c2f)} .k:nth-child(4){--b:var(--c4b);--f:var(--c4f)} .k:nth-child(5){--b:var(--c3b);--f:var(--c3f)}
+.k b{display:block;font-size:1.9rem;font-weight:800;color:var(--f);line-height:1.35;font-variant-numeric:tabular-nums} .k b.t{font-size:1.4rem} .k span{font-size:.86rem;color:var(--ink2)}
+.dots{display:flex;gap:6px;margin-top:4px} .dots i{flex:1;height:8px;border-radius:99px;background:var(--lc);transform:scaleX(0);transform-origin:right;transition:transform .6s calc(var(--i)*.12s)} .in .dots i{transform:none}
+.bdg{display:inline-flex;padding:2px 10px;border-radius:99px;font-size:.78rem;font-weight:700;white-space:nowrap}
+.lvb{background:var(--lb);color:var(--lc);border:1px solid color-mix(in srgb,var(--lc) 35%,transparent)}
+/* الرادار والأعمدة */
+.two{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:22px;align-items:center}
+.radar{direction:ltr;width:100%;max-width:520px;margin-inline:auto;display:block;overflow:visible}
+.radar .band{stroke:var(--surface);stroke-width:1.5}
+.radar .ax{stroke:color-mix(in srgb,var(--ink) 18%,transparent);stroke-width:1}
+.radar .rd{fill:color-mix(in srgb,var(--brand) 26%,transparent);stroke:var(--brand);stroke-width:2.5;stroke-linejoin:round;transform:scale(.01);transform-origin:160px 160px;transition:transform 1.1s cubic-bezier(.2,.8,.2,1)}
+.in .radar .rd{transform:scale(1)}
+.radar .pt{fill:var(--lc);stroke:#fff;stroke-width:2.5;cursor:pointer;opacity:0;transition:opacity .4s .9s,r .15s} .in .radar .pt{opacity:1} .radar .pt:hover,.radar .pt:focus{r:10;outline:none}
+.radar text{font:700 12px Tajawal,sans-serif;fill:var(--ink);text-anchor:middle} .radar .sc2{font-weight:800;fill:var(--lc);font-size:13px} .radar .rl{font-size:9px;fill:var(--ink2);font-weight:500;text-anchor:start}
+.dchart{display:grid;gap:10px}
+.dbar{display:grid;grid-template-columns:54px 1fr auto;align-items:center;gap:12px;width:100%;text-align:start;padding:9px 12px;border:1px solid var(--line);border-radius:16px;background:var(--surface);color:var(--ink);font:inherit;cursor:pointer;transition:transform .12s,box-shadow .12s}
+.dbar:hover{box-shadow:var(--shadow);transform:translateY(-2px)} .dbar:focus-visible{outline:2px solid var(--lc);outline-offset:2px}
+.dbar .rng{display:block;position:relative;width:54px;height:54px} .dbar .rng>span{position:absolute;inset:0;display:grid;place-items:center;font-size:.7rem;font-weight:800;color:var(--lc);font-variant-numeric:tabular-nums}
+.dbar .dn{font-weight:700;display:block} .dbar small{color:var(--muted);font-size:.78rem}
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;margin:12px 0 4px}
+.lg{display:inline-flex;align-items:center;gap:6px;font-size:.85rem} .lg i{width:12px;height:12px;border-radius:4px;background:var(--lb);border:2px solid var(--lc)} .lg small{color:var(--muted)}
+/* المقياس الأفقي (bullet) */
+.bl{display:flex;align-items:center;gap:10px;min-width:0}
+.bt{position:relative;flex:1;height:20px;border-radius:10px;overflow:hidden;min-width:90px;background:linear-gradient(to left,var(--c5b) 0 50%,var(--c3b) 50% 75%,var(--c1b) 75% 90%,var(--c4b) 90% 100%)}
+.bt::after{content:"";position:absolute;inset:0;background:linear-gradient(to left,transparent calc(50% - 1px),rgba(255,255,255,.9) 0 calc(50% + 1px),transparent 0 calc(75% - 1px),rgba(255,255,255,.9) 0 calc(75% + 1px),transparent 0 calc(90% - 1px),rgba(255,255,255,.9) 0 calc(90% + 1px),transparent 0)}
+.bv{position:absolute;inset-block:5px;inset-inline-start:0;width:0;border-radius:99px;background:var(--lc);box-shadow:0 0 0 2px #fff;z-index:1;transition:width 1.2s cubic-bezier(.2,.8,.2,1)}
+.in .bv{width:var(--w)}
+.bn{font-weight:800;color:var(--lc);font-variant-numeric:tabular-nums;min-width:62px;font-size:.88rem}
+/* الفجوة */
+.gapw{margin-top:18px;padding:14px 16px;border-radius:16px;background:var(--acc2soft);border:1px solid color-mix(in srgb,var(--gold2) 40%,var(--line))}
+.gapw .top2{display:flex;align-items:baseline;gap:10px;margin-bottom:12px} .gapw b{font-size:1.7rem;color:var(--goldink);font-variant-numeric:tabular-nums} .gapw span{font-size:.9rem;color:var(--ink2)}
+.db{position:relative;height:26px;margin-inline:10px}
+.db .rail{position:absolute;inset-inline:0;top:11px;height:4px;border-radius:4px;background:color-mix(in srgb,var(--ink) 15%,transparent)}
+.db .span{position:absolute;top:10px;height:6px;border-radius:6px;background:var(--goldink);opacity:.8;width:0;transition:width 1.2s .3s} .in .db .span{width:var(--w)}
+.db .dot{position:absolute;top:2px;width:22px;height:22px;margin-inline-start:-11px;border-radius:50%;background:var(--lc);border:3px solid #fff;box-shadow:var(--shadow);cursor:pointer}
+.dbl{display:flex;flex-wrap:wrap;gap:4px 16px;font-size:.82rem;color:var(--ink2);margin-top:8px} .dbl i{display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--lc);margin-inline-end:6px}
+/* المعايير */
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+.fc{border:1px solid var(--line);background:var(--surface);color:var(--ink2);padding:6px 14px;border-radius:99px;font:inherit;font-size:.86rem;font-weight:700;cursor:pointer;transition:.15s}
+.fc:hover{border-color:var(--brand)} .fc.on{background:var(--brand);color:#fff;border-color:var(--brand)}
+.fc.sw{margin-inline-start:auto;border-style:dashed}
+.srow{display:grid;grid-template-columns:minmax(150px,230px) 1fr auto;align-items:center;gap:12px;padding:9px 6px;border-bottom:1px solid var(--line)}
+.srow:last-child{border-bottom:0} .srow small{display:block;color:var(--muted);font-size:.76rem}
+.srow .nm{font-weight:700}
+/* التفاصيل */
+.dsecs{display:grid;gap:10px}
+.dsec{border:1px solid var(--line);border-inline-start:5px solid var(--lc);border-radius:16px;background:var(--surface);overflow:hidden;scroll-margin-top:120px}
+.dsec>summary{display:flex;align-items:center;gap:12px;padding:13px 16px;cursor:pointer;list-style:none;font-size:1.03rem;background:linear-gradient(90deg,var(--lb),transparent 70%)}
+.dsec>summary::-webkit-details-marker{display:none}
+.dsec>summary::before{content:"◂";color:var(--lc);transition:transform .15s} .dsec[open]>summary::before{transform:rotate(-90deg)}
+.dsec .sp{flex:1} .dsec .pv{font-weight:800;color:var(--lc);font-variant-numeric:tabular-nums}
+.dsec.flash{box-shadow:0 0 0 3px color-mix(in srgb,var(--lc) 45%,transparent)}
+.dbody{padding:4px 16px 18px;display:grid;gap:12px} .dbody h4{margin:6px 0 0;font-size:.93rem;color:var(--brand2)} .dbody p{margin:0;line-height:1.9}
+.rows{display:grid;gap:2px}
+.box{padding:12px 14px;border-radius:14px;background:var(--acc2soft);border:1px solid color-mix(in srgb,var(--gold2) 35%,var(--line))} .box b{display:block;margin-bottom:4px}
+.blt b{display:block;margin-bottom:4px} .blt ul{margin:0;padding-inline-start:20px;display:grid;gap:4px;line-height:1.8}
+.pcts{font-weight:700;color:var(--lc);font-variant-numeric:tabular-nums}
+/* نقاط القوة */
+.sgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px}
+.sc{display:grid;grid-template-columns:62px 1fr;align-items:center;gap:12px;padding:12px 14px;border-radius:18px;border:1px solid color-mix(in srgb,var(--c4f) 25%,var(--line));background:linear-gradient(160deg,var(--c4b),var(--surface) 130%);transition:transform .15s,box-shadow .15s}
+.sc:hover{transform:translateY(-3px);box-shadow:var(--shadow)}
+.sc .rng{display:block;position:relative;width:62px;height:62px} .sc .rng b{position:absolute;inset:0;display:grid;place-items:center;font-size:.8rem;color:var(--c4f);font-variant-numeric:tabular-nums} .sc span{font-size:.92rem;line-height:1.6}
+/* الأولويات */
+.prios{display:grid;gap:12px}
+.prio{display:grid;grid-template-columns:auto 1fr;gap:14px;padding:15px 16px;border-radius:18px;border:1px solid color-mix(in srgb,var(--lc) 30%,var(--line));background:linear-gradient(160deg,var(--lb),var(--surface) 120%)}
+.pn{display:grid;place-items:center;width:42px;height:42px;border-radius:12px;background:var(--lc);color:#fff;font-weight:800;font-size:1.1rem}
+.prio h3{font-size:1.03rem;margin:0 0 6px} .prio p{margin:7px 0 0;line-height:1.85}
+.gp{position:absolute;inset-block:0;inset-inline-start:var(--s);width:0;background:repeating-linear-gradient(135deg,rgba(0,0,0,.28) 0 3px,transparent 3px 7px);z-index:0;transition:width 1.2s .4s} .in .gp{width:var(--g)}
+.dist{font-size:.82rem;color:var(--ink2);margin-top:5px}
+.acts{display:flex;gap:8px;flex-wrap:wrap}
+/* التلميح */
+#tip{position:fixed;z-index:99;pointer-events:none;padding:7px 11px;border-radius:10px;background:#142b3a;color:#fff;font-size:.82rem;line-height:1.6;max-width:260px;box-shadow:var(--shadow2);opacity:0;transform:translateY(4px);transition:opacity .12s,transform .12s}
+#tip.on{opacity:1;transform:none}
+@media (max-width:900px){
+  .two{grid-template-columns:1fr} .lhero{grid-template-columns:1fr;padding:22px 18px;justify-items:start}
+  .hgau{width:140px;height:140px} nav{display:none}
+  .srow{grid-template-columns:1fr auto;grid-template-areas:"n b" "t t"} .srow>:nth-child(1){grid-area:n} .srow>:nth-child(2){grid-area:t} .srow>:nth-child(3){grid-area:b}
+  .dsec>summary{flex-wrap:wrap;padding:12px} .bn{min-width:54px}
+}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto} *{transition-duration:.01s!important;transition-delay:0s!important}}
+@media print{
+  header,.noprint,footer,.qn,#tip{display:none!important} body{background:#fff}
+  .blk,.prio,.sc,.dsec{break-inside:avoid;box-shadow:none}
+  .rf{stroke-dasharray:var(--v) 100!important} .bv{width:var(--w)!important} .gp{width:var(--g)!important} .rd{transform:none!important} .pt{opacity:1!important} .dots i{transform:none!important} .span{width:var(--w)!important}
+  *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}
+/* إضافات خاصة بصفحة التقويم الخارجي */
+.srow.two{grid-template-columns:104px 1fr}
+.stkg{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px}
+.stkc{border:1px solid var(--line);border-inline-start:5px solid var(--lc);border-radius:18px;padding:14px 16px;background:linear-gradient(90deg,var(--lb),transparent 60%),var(--surface)}
+.stkc h3{margin:0 0 6px;font-size:1rem} .stkc .ref{font-size:.8rem;color:var(--muted);margin-top:6px}
+.notes{margin:0;padding-inline-start:22px;display:grid;gap:8px;line-height:1.9}
+.lvt{display:grid;gap:8px;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));margin:8px 0}
+.lvt div{padding:10px 14px;border-radius:14px;border:1px solid color-mix(in srgb,var(--lc) 35%,var(--line));background:var(--lb)} .lvt b{display:block;color:var(--lc)} .lvt span{font-size:.88rem;color:var(--ink2)}
+.txt{margin:0;line-height:1.95}
+.cardnote{margin-top:6px;font-size:.86rem;color:rgba(255,255,255,.92)}
+.sc small{display:block;color:var(--muted);font-size:.76rem}
+@media (max-width:900px){.hgau .mid b{font-size:1.55rem}.hgau .mid small{max-width:90px}}
 </style>
 </head>
 <body class="pub">
@@ -26,21 +154,316 @@
   <span class="moe"><b>وزارة التعليم</b><small>Ministry of Education</small></span>
 </div></header>
 
-<main class="wrap" id="app">
-  <div class="panel">
-    <h1 class="ph">تحليل نتائج التقويم الخارجي</h1>
-    <p class="muted">مدرسة لبيد بن ربيعة المتوسطة</p>
-  </div>
-  <section id="content" aria-label="محتوى التحليل">
-    <div class="panel empty">
-      <h2>المحتوى قيد الإعداد</h2>
-      <p class="muted">سيُضاف تحليل نتائج التقويم الخارجي في هذه الصفحة قريباً.</p>
-    </div>
-  </section>
-</main>
+<main class="wrap" id="app"><p class="muted">جارٍ التحميل…</p></main>
 
 <footer class="credit"><div class="wrap cr"><span class="moe"><b>وزارة التعليم</b><small>Ministry of Education</small></span><div class="mid"><b>مدرسة لبيد بن ربيعة المتوسطة</b><span>مدير المدرسة: خالد بن عبدالرحمن الباش</span><span>التقويم الذاتي – 1448هـ</span></div><div class="mid" style="margin-inline-start:auto"><small>أحد منتجات</small><b>مختبر الأفكار — عبدالعزيز المديني AI</b></div></div></footer>
 
+<div id="tip" role="tooltip"></div>
+<script>
+/* ===== بيانات التقرير كما وردت في وثيقة التحليل (لا تُعدَّل القيم ولا يُعاد احتسابها) ===== */
+const REPORT = { school: 'متوسطة لبيد بن ربيعة', year: '2025م', overall: 70, cardLevel: 'الانطلاق',
+  cardDesc: 'أداء مقبول يحتاج إلى تحسين في بعض المجالات' };
+
+const DOMAINS = [
+  { id: 'admin', name: 'الإدارة المدرسية', p: 83.25,
+    intro: 'يعكس هذا المجال أعلى نتائج الأداء بين المجالات الأربعة، وتظهر بياناته قوة في الالتزام المهني والقيم والسلوك المدرسي والشراكة المجتمعية، إلى جانب فرص للتحسين في التنمية المهنية ومتابعة تنفيذ الخطط.',
+    ind: [['خطة تشغيلية مكتملة العناصر', 90.25], ['متابعة تنفيذ الخطة وتطويرها', 70.25], ['تعزيز القيم الإسلامية والهوية الوطنية', 90.5],
+      ['الالتزام بقيم مهنة التعليم وأخلاقياتها', 96], ['المناخ الآمن للتعلم والنمو', 88], ['نشر قواعد السلوك والمواظبة', 93.75],
+      ['البرامج والأنشطة التربوية الداعمة للسلوك الإيجابي', 91.75], ['البرامج الإثرائية غير الصفية للمواهب', 82.5], ['العلاقات الإيجابية والتعاون', 88.25],
+      ['مشاركة الأسرة', 87.5], ['الشراكة المجتمعية', 92.5], ['تشجيع الحصول على الرخصة المهنية', 59.75], ['التطوير المهني للمنسوبين', 66],
+      ['تطبيق التقويم الذاتي', 84.5], ['تنفيذ خطة التحسين', 84.75]],
+    hl: ['سجل مؤشر الالتزام بقيم مهنة التعليم وأخلاقياتها أعلى نتيجة في المجال بنسبة 96.00%، يليه نشر قواعد السلوك والمواظبة بنسبة 93.75%، ثم الشراكة المجتمعية بنسبة 92.50%.',
+      'كما حققت البرامج والأنشطة التربوية الداعمة للسلوك الإيجابي 91.75%، وتعزيز القيم الإسلامية والهوية الوطنية 90.50%، واكتمال عناصر الخطة التشغيلية 90.25%.',
+      'وفي المقابل، سجل تشجيع الحصول على الرخصة المهنية 59.75%، والتطوير المهني للمنسوبين 66.00%، ومتابعة تنفيذ الخطة وتطويرها 70.25%.'],
+    read: ['توضح النتائج وجود مستوى جيد من الممارسات الإدارية المرتبطة بالالتزام المهني والسلوك المدرسي والقيم والشراكة المجتمعية. كما يظهر اهتمام بالجوانب التخطيطية من خلال ارتفاع نتيجة اكتمال عناصر الخطة التشغيلية.',
+      'وفي المقابل، تكشف النتائج عن تفاوت بين اكتمال الخطة ومتابعة تنفيذها، إلى جانب انخفاض نسبي في مؤشرات التنمية المهنية وتشجيع الحصول على الرخصة المهنية.'],
+    str: ['الالتزام بقيم مهنة التعليم وأخلاقياتها.', 'نشر قواعد السلوك والمواظبة.', 'الشراكة المجتمعية.', 'البرامج والأنشطة الداعمة للسلوك الإيجابي.', 'تعزيز القيم الإسلامية والهوية الوطنية.', 'اكتمال عناصر الخطة التشغيلية.'],
+    imp: ['تشجيع الحصول على الرخصة المهنية.', 'تطوير برامج التنمية المهنية للمنسوبين.', 'تعزيز متابعة تنفيذ الخطة التشغيلية وتطويرها.'] },
+
+  { id: 'learn', name: 'التعليم والتعلم', p: 74.5,
+    intro: 'تظهر نتائج هذا المجال وجود ممارسات إيجابية في دافعية المتعلمين ودعم تنفيذ المناهج والتغذية الراجعة والمهارات العاطفية والاجتماعية، مقابل فرص للتحسين في التفكير العليا والتعلم الإلكتروني والمهارات الرقمية.',
+    ind: [['فرص متكافئة للتعلم', 73.75], ['دعم تنفيذ المناهج', 81.5], ['تنويع استراتيجيات التدريس', 72.5], ['تفعيل التعلم الإلكتروني', 65],
+      ['أنشطة تعلم تطبيقية مرتبطة بالحياة', 78], ['تنمية المهارات القرائية والعددية الأساسية', 72], ['تنمية مهارات التفكير العليا', 61.25],
+      ['المهارات العاطفية والاجتماعية', 84], ['المهارات الرقمية', 68.75], ['دافعية المتعلمين للتعلم', 85.25],
+      ['تقويم أداء المتعلمين بأدوات متنوعة', 72.25], ['تحليل نتائج التقويم وتوظيفها', 71.25], ['التغذية الراجعة', 81]],
+    hl: ['سجلت دافعية المتعلمين للتعلم أعلى نتيجة في المجال بنسبة 85.25%، تلتها المهارات العاطفية والاجتماعية بنسبة 84.00%، ثم دعم تنفيذ المناهج بنسبة 81.50%، والتغذية الراجعة بنسبة 81.00%.',
+      'كما بلغت نتيجة أنشطة التعلم التطبيقية المرتبطة بالحياة 78.00%.',
+      'وفي المقابل، سجلت تنمية مهارات التفكير العليا 61.25%، وتفعيل التعلم الإلكتروني 65.00%، والمهارات الرقمية 68.75%.',
+      'أما تحليل نتائج التقويم وتوظيفها فقد سجل 71.25%، وتقويم أداء المتعلمين بأدوات متنوعة 72.25%.'],
+    read: ['تشير النتائج إلى وجود ممارسات إيجابية في تحفيز المتعلمين ودعم تنفيذ المناهج، مع حضور واضح للمهارات العاطفية والاجتماعية والتغذية الراجعة.',
+      'وتظهر فرص التحسين في تنمية مهارات التفكير العليا وتفعيل التعلم الإلكتروني، إلى جانب تطوير المهارات الرقمية. كما تبرز أهمية تعزيز الاستفادة من نتائج التقويم في تحسين الممارسات التدريسية.'],
+    str: ['دافعية المتعلمين للتعلم.', 'المهارات العاطفية والاجتماعية.', 'دعم تنفيذ المناهج.', 'التغذية الراجعة.', 'أنشطة التعلم التطبيقية المرتبطة بالحياة.'],
+    imp: ['تنمية مهارات التفكير العليا.', 'تفعيل التعلم الإلكتروني.', 'تطوير المهارات الرقمية.', 'تعزيز تحليل نتائج التقويم وتوظيفها.', 'تنويع استراتيجيات التدريس وأدوات التقويم.'] },
+
+  { id: 'out', name: 'نواتج التعلم', p: 59, open: true,
+    intro: 'توضح نتائج هذا المجال تفاوتاً بين المؤشرات المرتبطة بالقيم والاتجاهات والممارسات الشخصية والاجتماعية، ومؤشرات التحصيل في الاختبارات الوطنية.',
+    ind: [['القراءة وفق الاختبارات الوطنية', 44.58], ['الرياضيات وفق الاختبارات الوطنية', 52.2], ['العلوم وفق الاختبارات الوطنية', 61.08],
+      ['الاعتزاز بالقيم والهوية الوطنية', 96.5], ['اتجاهات إيجابية نحو الذات', 84], ['الممارسات الصحية السليمة', 85.5],
+      ['المشاركة المجتمعية والأعمال التطوعية', 79], ['السلوك والانضباط المدرسي', 77], ['البحث والتعلم الذاتي', 80.5], ['الاعتزاز بالثقافة واحترام التنوع', 93.5]],
+    hl: ['سجل الاعتزاز بالقيم والهوية الوطنية أعلى نتيجة في المجال بنسبة 96.50%، يليه الاعتزاز بالثقافة واحترام التنوع بنسبة 93.50%.',
+      'كما سجلت الممارسات الصحية السليمة 85.50%، والاتجاهات الإيجابية نحو الذات 84.00%، والبحث والتعلم الذاتي 80.50%.',
+      'وفي مؤشرات الاختبارات الوطنية، سجلت العلوم 61.08%، والرياضيات 52.20%، والقراءة 44.58%.'],
+    tests: [['العلوم', 61.08], ['الرياضيات', 52.2], ['القراءة', 44.58]],
+    testsNote: 'تظهر القراءة أقل نتيجة بين المواد الثلاث، تليها الرياضيات، ثم العلوم.',
+    read: ['توضح النتائج تميزاً في المؤشرات المرتبطة بالقيم والهوية الوطنية والاعتزاز بالثقافة واحترام التنوع، كما تظهر نتائج إيجابية في الممارسات الصحية والاتجاهات نحو الذات والبحث والتعلم الذاتي.',
+      'وفي المقابل، تكشف نتائج الاختبارات الوطنية عن فرص للتحسين في القراءة والرياضيات والعلوم، وبصورة أكثر وضوحاً في القراءة والرياضيات.',
+      'ويبرز هنا اختلاف بين مستوى المؤشرات القيمية والاجتماعية ومستوى نتائج التحصيل الأكاديمي، مما يجعل تحسين نواتج التعلم الأكاديمية من المحاور المهمة عند قراءة هذا المجال.'],
+    str: ['الاعتزاز بالقيم والهوية الوطنية.', 'الاعتزاز بالثقافة واحترام التنوع.', 'الممارسات الصحية السليمة.', 'الاتجاهات الإيجابية نحو الذات.', 'البحث والتعلم الذاتي.'],
+    imp: ['تحسين نتائج القراءة وفق الاختبارات الوطنية.', 'رفع مستوى نتائج الرياضيات.', 'تطوير نواتج تعلم العلوم.', 'توظيف نتائج الاختبارات في تحديد الاحتياجات التعليمية.'] },
+
+  { id: 'env', name: 'البيئة المدرسية', p: 59,
+    intro: 'تظهر نتائج البيئة المدرسية تفاوتاً في مستوى توافر وملاءمة عناصر المبنى وتجهيزاته وخدماته. وقد سجلت النظافة والأمن والسلامة نتائج أفضل نسبياً، بينما جاءت المرافق والخدمات المساندة والفصول والمعامل ضمن أقل المؤشرات.',
+    ind: [['تنظيم المبنى وملاءمته', 52.25], ['الفصول والمعامل الملائمة', 50.75], ['المرافق والخدمات المساندة', 37.5],
+      ['متطلبات الأمن والسلامة', 72.5], ['صيانة المبنى وتجهيزاته', 63.75], ['نظافة المبنى ومرافقه', 76.75]],
+    hl: ['سجلت نظافة المبنى ومرافقه أعلى نتيجة في المجال بنسبة 76.75%، تليها متطلبات الأمن والسلامة بنسبة 72.50%، ثم صيانة المبنى وتجهيزاته بنسبة 63.75%.',
+      'وفي المقابل، سجل تنظيم المبنى وملاءمته 52.25%، والفصول والمعامل الملائمة 50.75%، بينما سجلت المرافق والخدمات المساندة 37.50%.'],
+    read: ['تظهر النتائج مستوى أفضل نسبياً في نظافة المبنى ومتطلبات الأمن والسلامة، مقابل احتياج واضح إلى تطوير المرافق والخدمات المساندة وتحسين ملاءمة الفصول والمعامل.',
+      'وتشير النتيجة المنخفضة للمرافق والخدمات المساندة إلى أنها أبرز مواضع الاحتياج في هذا المجال، تليها الفصول والمعامل وتنظيم المبنى.'],
+    str: ['نظافة المبنى ومرافقه.', 'متطلبات الأمن والسلامة.'],
+    imp: ['معالجة جوانب القصور في المرافق والخدمات المساندة.', 'تحسين ملاءمة الفصول والمعامل.', 'تطوير تنظيم المبنى وملاءمته.', 'تعزيز صيانة المبنى وتجهيزاته.'] }
+];
+
+/* آراء أصحاب المصلحة: بترتيب المجالات (الإدارة، التعليم، نواتج التعلم، البيئة) */
+const STK = [
+  ['المتعلمون', [83, 82, 91, 79]],
+  ['أولياء الأمور', [79, 76, 87, 89]],
+  ['المعلمون', [85, 79, 84, 64]]
+];
+const STK_READ = [
+  'سجل المتعلمون أعلى تقدير لمجال نواتج التعلم بنسبة 91%، بينما سجل أولياء الأمور أعلى تقدير للبيئة المدرسية بنسبة 89%، وسجل المعلمون أعلى تقدير للإدارة المدرسية بنسبة 85%.',
+  'ويظهر التفاوت بصورة واضحة في تقديرات البيئة المدرسية؛ حيث بلغت 89% لدى أولياء الأمور، و79% لدى المتعلمين، و64% لدى المعلمين.',
+  'كما سجلت الفئات الثلاث تقديرات مرتفعة نسبياً لمجال نواتج التعلم مقارنة بنتيجة المجال في التقويم الخارجي البالغة 59%.',
+  'وتشير هذه الاختلافات إلى أهمية قراءة نتائج الاستبانات بصورة مستقلة عن نتائج المؤشرات الفعلية، باعتبار أن كل مجموعة تعبر عن وجهة نظرها وتجربتها في البيئة المدرسية.'
+];
+
+/* أبرز نقاط القوة وفرص التحسين: بالترتيب الوارد في التقرير */
+const TOP = [
+  ['الاعتزاز بالقيم والهوية الوطنية', 'نواتج التعلم', 96.5], ['الالتزام بقيم مهنة التعليم وأخلاقياتها', 'الإدارة المدرسية', 96],
+  ['نشر قواعد السلوك والمواظبة', 'الإدارة المدرسية', 93.75], ['الاعتزاز بالثقافة واحترام التنوع', 'نواتج التعلم', 93.5],
+  ['الشراكة المجتمعية', 'الإدارة المدرسية', 92.5], ['البرامج والأنشطة الداعمة للسلوك الإيجابي', 'الإدارة المدرسية', 91.75],
+  ['تعزيز القيم الإسلامية والهوية الوطنية', 'الإدارة المدرسية', 90.5], ['خطة تشغيلية مكتملة العناصر', 'الإدارة المدرسية', 90.25]
+];
+const LOW = [
+  ['المرافق والخدمات المساندة', 'البيئة المدرسية', 37.5], ['القراءة وفق الاختبارات الوطنية', 'نواتج التعلم', 44.58],
+  ['الفصول والمعامل الملائمة', 'البيئة المدرسية', 50.75], ['الرياضيات وفق الاختبارات الوطنية', 'نواتج التعلم', 52.2],
+  ['تنظيم المبنى وملاءمته', 'البيئة المدرسية', 52.25], ['تشجيع الحصول على الرخصة المهنية', 'الإدارة المدرسية', 59.75],
+  ['العلوم وفق الاختبارات الوطنية', 'نواتج التعلم', 61.08], ['تنمية مهارات التفكير العليا', 'التعليم والتعلم', 61.25],
+  ['صيانة المبنى وتجهيزاته', 'البيئة المدرسية', 63.75], ['تفعيل التعلم الإلكتروني', 'التعليم والتعلم', 65],
+  ['التطوير المهني للمنسوبين', 'الإدارة المدرسية', 66], ['المهارات الرقمية', 'التعليم والتعلم', 68.75]
+];
+
+const PRIORITIES = [
+  { t: 'تحسين نواتج التعلم', txt: 'يرتبط هذا المحور بنتائج القراءة 44.58%، والرياضيات 52.20%، والعلوم 61.08%، مع التركيز على تطوير المهارات الأكاديمية وتحسين نتائج الاختبارات الوطنية.',
+    ind: [['القراءة وفق الاختبارات الوطنية', 44.58], ['الرياضيات وفق الاختبارات الوطنية', 52.2], ['العلوم وفق الاختبارات الوطنية', 61.08]] },
+  { t: 'تطوير البيئة المدرسية', txt: 'يرتبط هذا المحور بالمرافق والخدمات المساندة 37.50%، والفصول والمعامل الملائمة 50.75%، وتنظيم المبنى وملاءمته 52.25%.',
+    ind: [['المرافق والخدمات المساندة', 37.5], ['الفصول والمعامل الملائمة', 50.75], ['تنظيم المبنى وملاءمته', 52.25]] },
+  { t: 'تطوير الممارسات التعليمية', txt: 'يرتبط هذا المحور بتنمية مهارات التفكير العليا 61.25%، وتفعيل التعلم الإلكتروني 65.00%، والمهارات الرقمية 68.75%، وتحليل نتائج التقويم وتوظيفها 71.25%.',
+    ind: [['تنمية مهارات التفكير العليا', 61.25], ['تفعيل التعلم الإلكتروني', 65], ['المهارات الرقمية', 68.75], ['تحليل نتائج التقويم وتوظيفها', 71.25]] },
+  { t: 'تعزيز التنمية المهنية', txt: 'يرتبط هذا المحور بتشجيع الحصول على الرخصة المهنية 59.75%، والتطوير المهني للمنسوبين 66.00%.',
+    ind: [['تشجيع الحصول على الرخصة المهنية', 59.75], ['التطوير المهني للمنسوبين', 66]] },
+  { t: 'تطوير متابعة تنفيذ الخطط', txt: 'يرتبط هذا المحور بمتابعة تنفيذ الخطة وتطويرها 70.25%، مقارنة باكتمال عناصر الخطة التشغيلية 90.25%.',
+    ind: [['متابعة تنفيذ الخطة وتطويرها', 70.25], ['خطة تشغيلية مكتملة العناصر', 90.25]] }
+];
+
+const NOTES = [
+  'جميع النتائج الرقمية الواردة في هذا التحليل منقولة كما وردت في تقرير التقويم الخارجي لعام 2025م.',
+  'لم تتم إعادة احتساب الأداء العام أو متوسطات المجالات.',
+  'القراءات التحليلية منفصلة عن النتائج الرقمية الأصلية.',
+  'نتائج الاستبانات تعكس آراء الفئات المستجيبة، ولا تمثل بديلاً عن نتائج مؤشرات التقويم.',
+  'الأولويات التحليلية مستخلصة من قراءة النتائج، وليست مؤشرات رسمية جديدة.',
+  'يوجد تباين بين حدود مستويات الأداء المذكورة في التقرير والتصنيف الوارد في بطاقة الأداء العام، وقد تم الحفاظ على التصنيف الأصلي كما ورد.',
+  'لا يمكن استنتاج علاقة سببية بين نتائج المجالات المختلفة من هذه البيانات وحدها.',
+  'لا يمكن استنتاج نمو أو تراجع زمني من تقرير خارجي واحد.',
+  'لم تتم إضافة معايير أو رموز مؤشرات غير مثبتة في المصدر الأصلي.'
+];
+/* مستويات الأداء كما وردت في صفحة المستويات بالتقرير: تُستخدم للعرض والتوثيق فقط، ولا يُعاد بها تصنيف أي نتيجة */
+const REPORT_LEVELS = [['التميز', '90% فأعلى', 1], ['التقدم', 'من 75% إلى أقل من 90%', 2], ['التهيئة', 'من 50% إلى أقل من 75%', 3], ['الانطلاق', 'أقل من 50%', 4]];
+
+/* ===== شرائح الألوان (حدود 50 و75 و90) ===== */
+const BANDS = [
+  { k: 1, n: '90 فأعلى', min: 90 }, { k: 2, n: '75 إلى أقل من 90', min: 75 },
+  { k: 3, n: '50 إلى أقل من 75', min: 50 }, { k: 4, n: 'أقل من 50', min: 0 }
+];
+const band = p => BANDS.find(b => p >= b.min);
+const lc = p => 'bd' + band(p).k;
+const nf = (n, d = 2) => Number(n).toLocaleString('ar-SA-u-ca-gregory-nu-latn', { minimumFractionDigits: d, maximumFractionDigits: d });
+const pct = (p, d = 2) => nf(p, d) + '%';
+const badge = p => `<span class="bdg lvb ${lc(p)}">${band(p).n}</span>`;
+const tipOf = (n, p, d = 2) => `${n}: ${pct(p, d)}`;
+const ring = p => `<svg class="gau" viewBox="0 0 100 100" aria-hidden="true"><circle class="rt" cx="50" cy="50" r="42"/><circle class="rf" cx="50" cy="50" r="42" pathLength="100" style="--v:${p}"/></svg>`;
+const bullet = (p, tip, d = 2) => `<div class="bl ${lc(p)}" ${tip ? `data-tip="${tip}"` : ''}><div class="bt"><i class="bv" style="--w:${p}%"></i></div><b class="bn">${pct(p, d)}</b></div>`;
+const paras = a => a.map(t => `<p>${t}</p>`).join('');
+
+/* الرادار: المجالات الأربعة، والحلقات تمثل حدود الشرائح */
+function radar() {
+  const C = 160, R = 100, ang = [-90, 0, 90, 180];
+  const pt = (i, v) => { const a = ang[i] * Math.PI / 180; return [C + R * v / 100 * Math.cos(a), C + R * v / 100 * Math.sin(a)]; };
+  const poly = v => DOMAINS.map((_, i) => pt(i, v).join(',')).join(' ');
+  const bands = [[100, 'c4b'], [90, 'c1b'], [75, 'c3b'], [50, 'c5b']].map(([v, c]) => `<polygon class="band" points="${poly(v)}" style="fill:var(--${c})"/>`).join('');
+  const axes = DOMAINS.map((_, i) => `<line class="ax" x1="${C}" y1="${C}" x2="${pt(i, 100)[0]}" y2="${pt(i, 100)[1]}"/>`).join('');
+  const data = `<polygon class="rd" points="${DOMAINS.map((d, i) => pt(i, d.p).join(',')).join(' ')}"/>`;
+  const dots = DOMAINS.map((d, i) => { const [x, y] = pt(i, d.p); return `<circle class="pt ${lc(d.p)}" cx="${x}" cy="${y}" r="7" tabindex="0" role="button" data-go="d-${d.id}" data-tip="${tipOf(d.name, d.p)}. اضغط للتفاصيل" aria-label="${tipOf(d.name, d.p)}"/>`; }).join('');
+  const lab = DOMAINS.map((d, i) => { const [x, y] = pt(i, 100); const dx = ang[i] === 0 ? 22 : ang[i] === 180 ? -22 : 0, dy = ang[i] === -90 ? -24 : ang[i] === 90 ? 34 : 4;
+    const an = ang[i] === 0 ? 'start' : ang[i] === 180 ? 'end' : 'middle';
+    return `<text x="${x + dx}" y="${y + dy}" style="text-anchor:${an}">${d.name}</text><text class="sc2 ${lc(d.p)}" x="${x + dx}" y="${y + dy + 15}" style="text-anchor:${an}">${pct(d.p)}</text>`; }).join('');
+  const rl = [50, 75, 90].map(v => `<text class="rl" x="${C + 3}" y="${C - R * v / 100 + 10}">${v}</text>`).join('');
+  return `<svg class="radar" viewBox="-60 -20 440 360" role="img" aria-label="رسم رادار لنتائج المجالات الأربعة في التقويم الخارجي">${bands}${axes}${rl}${data}${dots}${lab}</svg>`;
+}
+
+const domSection = d => `<details class="dsec ${lc(d.p)}" id="d-${d.id}" ${d.open ? 'open' : ''}>
+  <summary><b>${d.name}</b><span class="sp"></span><span class="pv">${pct(d.p)}</span>${badge(d.p)}</summary>
+  <div class="dbody">
+    <p>${d.intro}</p>
+    <h4>نتائج المؤشرات</h4>
+    <div class="rows">${d.ind.map(([n, p]) => `<div class="srow"><span class="nm">${n}</span>${bullet(p, tipOf(n, p))}${badge(p)}</div>`).join('')}</div>
+    <h4>أبرز النتائج</h4>${paras(d.hl)}
+    ${d.tests ? `<h4>تحليل مؤشرات الاختبارات الوطنية</h4><div class="rows">${d.tests.map(([n, p]) => `<div class="srow"><span class="nm">${n}</span>${bullet(p, tipOf(n, p))}${badge(p)}</div>`).join('')}</div><p class="muted sm">${d.testsNote}</p>` : ''}
+    <h4>القراءة التحليلية</h4>${paras(d.read)}
+    <div class="blt"><b>نقاط القوة:</b><ul>${d.str.map(t => `<li>${t}</li>`).join('')}</ul></div>
+    <div class="blt"><b>فرص التحسين:</b><ul>${d.imp.map(t => `<li>${t}</li>`).join('')}</ul></div>
+  </div></details>`;
+
+const EXT = DOMAINS.map(d => d.p);
+const stkCard = (d, i) => `<article class="stkc ${lc(d.p)}"><h3>${d.name}</h3>
+  ${STK.map(([g, v]) => `<div class="srow two"><span class="nm">${g}</span>${bullet(v[i], tipOf(g + ' · ' + d.name, v[i], 0), 0)}</div>`).join('')}
+  <div class="ref">نتيجة المجال في التقويم الخارجي: ${pct(d.p)}</div></article>`;
+
+const NAV = [['s-sum', 'بطاقة الأداء'], ['s-dom', 'أداء المجالات'], ['s-det', 'تحليل المجالات'], ['s-stk', 'آراء أصحاب المصلحة'], ['s-sw', 'القوة وفرص التحسين'], ['s-pri', 'الأولويات'], ['s-met', 'الملاحظات المنهجية'], ['s-end', 'الخلاصة']];
+const MINI = DOMAINS.map((d, i) => `<i class="${lc(d.p)}" style="--i:${i}" data-tip="${tipOf(d.name, d.p)}"></i>`).join('');
+
+document.getElementById('app').innerHTML = `
+<nav class="qn" aria-label="أقسام الصفحة">${NAV.map(([id, t]) => `<a href="#${id}" data-spy="${id}">${t}</a>`).join('')}</nav>
+
+<section class="lhero blk-in" id="s-sum">
+  <div><span class="chip">التقويم الخارجي · ${REPORT.year}</span>
+  <h1>تحليل نتائج التقويم الخارجي</h1>
+  <p>${REPORT.school} – ${REPORT.year}</p>
+  <p class="cardnote">صُنّفت في بطاقة التقويم المدرسي ضمن مستوى <b>${REPORT.cardLevel}</b>، وفق الوصف الوارد في التقرير: «${REPORT.cardDesc}».</p></div>
+  <div class="hgau" data-tip="الأداء العام للمدرسة في التقويم الخارجي لعام 2025م">${ring(REPORT.overall)}<div class="mid"><b data-count="${REPORT.overall}" data-p="1">${pct(REPORT.overall)}</b><small>الأداء العام</small></div></div>
+</section>
+
+<div class="kpis2 blk-in">
+  <div class="k"><b data-count="${REPORT.overall}" data-p="1">${pct(REPORT.overall)}</b><span>الأداء العام للمدرسة</span></div>
+  <div class="k"><b data-count="83.25" data-p="1">${pct(83.25)}</b><span>أعلى المجالات: الإدارة المدرسية</span></div>
+  <div class="k"><b data-count="59" data-p="1">${pct(59)}</b><span>أقل المجالات: نواتج التعلم والبيئة المدرسية</span></div>
+  <div class="k"><b data-count="96.5" data-p="1">${pct(96.5)}</b><span>أعلى المؤشرات: الاعتزاز بالقيم والهوية الوطنية (نواتج التعلم)</span></div>
+  <div class="k"><b data-count="37.5" data-p="1">${pct(37.5)}</b><span>أقل المؤشرات: المرافق والخدمات المساندة (البيئة المدرسية)</span></div>
+</div>
+<p class="muted sm" style="margin:-6px 4px 0">جميع الأرقام منقولة كما وردت في تقرير التقويم الخارجي دون إعادة احتساب. تفاصيل ذلك في قسم «الملاحظات المنهجية».</p>
+
+<section class="blk" id="s-dom"><h2>أداء المجالات الأربعة</h2>
+  <p class="txt" style="margin-bottom:6px">بلغت نتيجة الأداء العام للمدرسة في التقويم الخارجي لعام 2025م 70%، وصُنّفت في بطاقة التقويم المدرسي ضمن مستوى الانطلاق، وفق الوصف الوارد في التقرير: «أداء مقبول يحتاج إلى تحسين في بعض المجالات».</p>
+  <p class="txt" style="margin-bottom:14px">وتوزعت نتائج الأداء على المجالات الأربعة كما يأتي:</p>
+  <div class="two">
+    <div>${radar()}</div>
+    <div>
+      <div class="dchart">${DOMAINS.map(d => `<button type="button" class="dbar ${lc(d.p)}" data-go="d-${d.id}" data-tip="${tipOf(d.name, d.p)}. اضغط للتفاصيل" aria-label="${tipOf(d.name, d.p)}. انتقال إلى التفاصيل">
+        <span class="rng">${ring(d.p)}<span>${nf(d.p)}</span></span>
+        <span><span class="dn">${d.name}</span><small>نتيجة الأداء</small></span>${badge(d.p)}</button>`).join('')}</div>
+      <div class="legend">${BANDS.map(b => `<span class="lg bd${b.k}"><i></i>${b.n}</span>`).join('')}</div>
+      <div class="gapw"><div class="top2"><b>${pct(REPORT.overall)}</b><span>الأداء العام، ومستواه في بطاقة التقويم المدرسي: ${REPORT.cardLevel}</span></div></div>
+    </div>
+  </div>
+  <p class="txt" style="margin-top:12px">تظهر النتائج تقدماً نسبياً في مجال الإدارة المدرسية، يليه التعليم والتعلم، بينما سجل مجالا نواتج التعلم والبيئة المدرسية النتيجة الأقل.</p>
+  <p class="muted sm" style="margin-top:8px">مرّر المؤشر فوق أي نقطة أو حلقة لعرض قيمتها، واضغط على المجال للانتقال إلى تفاصيله. ألوان الشرائح تتبع الحدود 50 و75 و90 فقط.</p>
+</section>
+
+<section class="blk" id="s-det"><h2>تحليل نتائج المجالات</h2><div class="dsecs">${DOMAINS.map(domSection).join('')}</div></section>
+
+<section class="blk" id="s-stk"><h2>آراء أصحاب المصلحة</h2>
+  <p class="txt" style="margin-bottom:12px">يتضمن التقرير نتائج استبانات المتعلمين وأولياء الأمور والمعلمين، وتعرض هذه النتائج تقديرات الفئات المستجيبة للمجالات الأربعة.</p>
+  <div class="stkg">${DOMAINS.map(stkCard).join('')}</div>
+  <h3 class="sh" style="margin-top:16px">القراءة التحليلية لآراء أصحاب المصلحة</h3>
+  <div class="dbody" style="padding:0">${paras(STK_READ)}</div>
+</section>
+
+<section class="blk" id="s-sw"><h2>أبرز نقاط القوة وفرص التحسين</h2>
+  <h3 class="sh">أبرز نقاط القوة</h3>
+  <p class="txt" style="margin-bottom:10px">تتركز أبرز النتائج المرتفعة في المؤشرات التالية:</p>
+  <div class="sgrid">${TOP.map(([t, dn, p]) => `<div class="sc ${lc(p)}" data-tip="${tipOf(t, p)}"><span class="rng">${ring(p)}<b>${nf(p)}</b></span><span>${t}<small>${dn}</small></span></div>`).join('')}</div>
+  <p class="txt" style="margin:10px 0 22px">وتتركز جوانب القوة في الالتزام المهني والقيم والهوية الوطنية والسلوك المدرسي والشراكة المجتمعية والتخطيط.</p>
+  <h3 class="sh">أبرز فرص التحسين</h3>
+  <div class="rows">${LOW.map(([t, dn, p]) => `<div class="srow ${lc(p)}"><span class="nm">${t}<small>${dn}</small></span>${bullet(p, tipOf(t, p))}${badge(p)}</div>`).join('')}</div>
+  <p class="txt" style="margin-top:10px">وتتركز أبرز فرص التحسين في نواتج التعلم والبيئة المدرسية، إلى جانب بعض مؤشرات التعليم والتعلم والتنمية المهنية.</p>
+</section>
+
+<section class="blk" id="s-pri"><h2>الأولويات التحليلية</h2>
+  <div class="box" style="margin-bottom:12px"><b>استناداً إلى النتائج السابقة، يمكن تحديد خمسة محاور رئيسية تمثل أولويات تحليلية مقترحة للتحسين:</b>هذه الأولويات استنتاجات تحليلية من نتائج التقرير، وليست ترتيباً رسمياً صادراً عن جهة التقويم.</div>
+  <div class="prios">${PRIORITIES.map((x, n) => `<article class="prio ${lc(Math.min(...x.ind.map(i => i[1])))}"><div class="pn">${n + 1}</div><div>
+    <h3>${x.t}</h3><p class="txt">${x.txt}</p>
+    <div class="rows" style="margin-top:8px">${x.ind.map(([nm, p]) => `<div class="srow two" style="grid-template-columns:minmax(120px,210px) 1fr"><span class="nm">${nm}</span>${bullet(p, tipOf(nm, p))}</div>`).join('')}</div></div></article>`).join('')}</div>
+</section>
+
+<section class="blk" id="s-met"><h2>الملاحظات الفنية والمنهجية</h2>
+  <ol class="notes">${NOTES.map(t => `<li>${t}</li>`).join('')}</ol>
+  <h3 class="sh" style="margin-top:18px">ملاحظة حول تصنيف الأداء العام</h3>
+  <p class="txt">توضح صفحة مستويات الأداء في التقرير أن:</p>
+  <div class="lvt">${REPORT_LEVELS.map(([n, r, k]) => `<div class="bd${k}"><b>${n}</b><span>${r}</span></div>`).join('')}</div>
+  <p class="txt">بينما تصنف بطاقة التقويم المدرسي الأداء العام البالغ 70% ضمن مستوى «الانطلاق».</p>
+  <p class="txt">تم الإبقاء على تصنيف البطاقة كما ورد، مع توثيق هذا التباين دون تصحيحه أو إعادة تصنيف النتيجة.</p>
+</section>
+
+<section class="blk" id="s-end"><h2>الخلاصة العامة</h2>
+  <div class="dbody" style="padding:0">
+    <p>تكشف نتائج التقويم المدرسي الخارجي لعام 2025م عن تفاوت في مستوى أداء متوسطة لبيد بن ربيعة بين المجالات الأربعة.</p>
+    <p>فقد حققت الإدارة المدرسية أعلى نتيجة بنسبة 83.25%، تليها ممارسات التعليم والتعلم بنسبة 74.50%، بينما سجلت نواتج التعلم والبيئة المدرسية 59.00% لكل منهما.</p>
+    <p>وتظهر النتائج قوة نسبية في الممارسات المرتبطة بالالتزام المهني والقيم والهوية الوطنية والشراكة المجتمعية والسلوك المدرسي.</p>
+    <p>وفي المقابل، تبرز فرص للتحسين في نتائج القراءة والرياضيات وفق الاختبارات الوطنية، وفي بعض عناصر البيئة المدرسية، ولا سيما المرافق والخدمات المساندة وملاءمة الفصول والمعامل.</p>
+    <p>كما تظهر فرص لتطوير الممارسات التعليمية المرتبطة بمهارات التفكير العليا والتعلم الإلكتروني والمهارات الرقمية، إلى جانب تعزيز التنمية المهنية ومتابعة تنفيذ الخطط.</p>
+    <div class="box"><b>الاستنتاج الختامي:</b>تمثل نتائج التقويم الخارجي مرجعاً مهماً لفهم واقع الأداء المدرسي وتحديد جوانب القوة وفرص التحسين، وتوفر أساساً يمكن الاستفادة منه في توجيه جهود التطوير والتحسين المستمر.</div>
+  </div>
+  <div class="acts noprint" style="margin-top:14px"><button type="button" class="btn" onclick="window.print()">طباعة الصفحة</button></div>
+</section>`;
+
+/* ===== التفاعل ===== */
+const reduce = matchMedia('(prefers-reduced-motion:reduce)').matches;
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+
+// العد التصاعدي
+function countUp(el) {
+  const t = +el.dataset.count, isP = el.dataset.p;
+  const fin = isP ? pct(t) : nf(t);
+  if (reduce) { el.textContent = fin; return; }
+  const t0 = performance.now(), D = 1100;
+  (function f(now) {
+    const k = Math.min(1, (now - t0) / D), e = 1 - Math.pow(1 - k, 3), v = t * e;
+    el.textContent = k >= 1 ? fin : (isP ? nf(v, 1) + '%' : nf(v, 0));
+    if (k < 1) requestAnimationFrame(f);
+  })(t0);
+}
+// الظهور عند التمرير
+const io = new IntersectionObserver(es => es.forEach(e => {
+  if (!e.isIntersecting) return; io.unobserve(e.target);
+  e.target.classList.add('in'); $$('[data-count]', e.target).forEach(countUp);
+}), { threshold: .15 });
+$$('.blk,.blk-in').forEach(el => io.observe(el));
+if (reduce) $$('.blk,.blk-in').forEach(el => el.classList.add('in'));
+
+// التنقل السريع + تمييز القسم الحالي
+const hdr = document.querySelector('header');
+if (hdr && getComputedStyle(hdr).position === 'sticky') document.documentElement.style.setProperty('--hh', hdr.offsetHeight + 'px');
+const spy = new IntersectionObserver(es => es.forEach(e => {
+  if (e.isIntersecting) $$('.qn a').forEach(a => a.classList.toggle('on', a.dataset.spy === e.target.id));
+}), { rootMargin: '-30% 0px -60% 0px' });
+NAV.forEach(([id]) => { const el = document.getElementById(id); el && spy.observe(el); });
+
+// الانتقال إلى تفاصيل المجال
+document.addEventListener('click', e => {
+  const b = e.target.closest('[data-go]'); if (!b) return;
+  const el = document.getElementById(b.dataset.go); if (!el) return;
+  el.open = true; el.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' });
+  el.classList.add('flash'); setTimeout(() => el.classList.remove('flash'), 1600);
+});
+document.addEventListener('keydown', e => { if ((e.key === 'Enter' || e.key === ' ') && e.target.matches('[data-go]')) { e.preventDefault(); e.target.dispatchEvent(new MouseEvent('click', { bubbles: true })); } });
+
+// التلميحات
+const tip = document.getElementById('tip');
+const showTip = (t, x, y) => { tip.textContent = t; tip.classList.add('on'); const w = tip.offsetWidth; tip.style.left = Math.max(8, Math.min(innerWidth - w - 8, x - w / 2)) + 'px'; tip.style.top = Math.max(8, y - tip.offsetHeight - 14) + 'px'; };
+document.addEventListener('pointermove', e => { const t = e.target.closest?.('[data-tip]'); t ? showTip(t.dataset.tip, e.clientX, e.clientY) : tip.classList.remove('on'); });
+document.addEventListener('focusin', e => { const t = e.target.closest?.('[data-tip]'); if (t) { const r = t.getBoundingClientRect(); showTip(t.dataset.tip, r.left + r.width / 2, r.top); } });
+document.addEventListener('focusout', () => tip.classList.remove('on'));
+document.addEventListener('scroll', () => tip.classList.remove('on'), { passive: true });
+</script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="assets/config.js?v=20261110m"></script>
 <script src="assets/nav.js?v=20261110m"></script>
