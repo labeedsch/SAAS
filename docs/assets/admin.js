@@ -52,7 +52,7 @@ async function boot() {
   S.cid = S.cycles.find(c => c.id === saved)?.id || (S.cycles.find(c => c.status === 'active') || S.cycles[0])?.id || null;
   drawCycles();
   $('#login').hidden = true; $('#shell').hidden = false;
-  put($('#who'), h`${me.display_name || ''} · ${L.role[me.role]}`);
+  (App.drawWho || (() => put($('#who'), h`${me.display_name || ''} · ${L.role[me.role]}`)))();
   route();
   App.alerts().then(drawMenu).catch(() => {});
 }

@@ -105,7 +105,7 @@ Pages.staff = async () => {
   const ext = prof.filter(p => p.role === 'external_evaluator');
   return h`${pageHead('المنسوبون والحسابات', btn('+ منسوب', 'stNew', {}, 'pri'))}
   ${panel('منسوبو المدرسة', table([
-    { h: 'الاسم', f: s => h`<b>${s.full_name}</b><br><small class="muted">${s.job_title || ''}</small>` }, { h: 'الجوال', f: s => h`<span dir="ltr">${s.phone || '—'}</span>` },
+    { h: 'الاسم', f: s => h`<div class="nm">${App.avatarHtml(s, 40)}<div><b>${s.full_name}</b><br><small class="muted">${s.job_title || ''}</small></div></div>` }, { h: 'الجوال', f: s => h`<span dir="ltr">${s.phone || '—'}</span>` },
     { h: 'واتساب', f: s => s.whatsapp_opt_in ? badge('موافق', 'ok') : badge('—') },
     { h: 'الحالة', f: s => s.is_active ? badge('على رأس العمل', 'ok') : badge('غير نشط') },
     { h: 'الحساب', f: s => { const p = pm[s.id]; return p ? h`${badge(L.role[p.role], 'info')} ${p.is_active ? '' : badge('موقوف', 'bad')}${p.username ? h`<br><small class="muted">اسم المستخدم: <span dir="ltr">${p.username}</span></small>` : ''}` : h`<span class="muted">بلا حساب</span>`; } },
@@ -118,8 +118,48 @@ Pages.staff = async () => {
   ], ext, 'لا يوجد مقيم خارجي'), btn('+ مقيم خارجي', 'acExt', {}, 'pri'))}
   <p class="muted">الأدوار: منسق، عضو فريق، مدير المدرسة، مراجع (دخول اللوحة)؛ مقيم خارجي (دخول الموقع العام فقط). المسؤول عن مؤشر لا يحتاج حساباً ويصله رابط خاص.</p>`;
 };
-Act.stNew = async () => { const v = await ask('منسوب جديد', staffFields); if (v && await run(sb.from('staff').insert(v), 'أُضيف المنسوب')) { await App.reloadStaff(); App.refresh(); } };
-Act.stEdit = async ({ id }) => { const v = await ask('تعديل المنسوب', staffFields, S.staff.find(s => s.id === id)); if (v && await run(sb.from('staff').update(v).eq('id', id), 'حُفظ')) { await App.reloadStaff(); App.refresh(); } };
+// صورة المنسوب: تُصغَّر في المتصفح إلى 320px وتُرفع إلى حاوية avatars (الكتابة للمنسق فقط عبر سياسات التخزين)
+const avUrl = p => p ? sb.storage.from('avatars').getPublicUrl(p).data.publicUrl : '';
+const initials = n => (n || '؟').trim().split(/\s+/).slice(0, 2).map(x => x[0]).join('');
+App.avatarHtml = (st, size = 40) => h`<span class="av" style="--s:${size}px">${st?.avatar_path ? h`<img src="${avUrl(st.avatar_path)}" alt="" loading="lazy">` : h`<i>${initials(st?.full_name || st?.display_name)}</i>`}</span>`;
+const shrink = file => new Promise((res, rej) => {
+  const img = new Image(), u = URL.createObjectURL(file);
+  img.onload = () => { const N = 320, k = Math.min(img.width, img.height), c = document.createElement('canvas'); c.width = c.height = N;
+    c.getContext('2d').drawImage(img, (img.width - k) / 2, (img.height - k) / 2, k, k, 0, 0, N, N); URL.revokeObjectURL(u);
+    c.toBlob(b => b ? res(b) : rej(new Error('تعذّر معالجة الصورة')), 'image/jpeg', .85); };
+  img.onerror = () => { URL.revokeObjectURL(u); rej(new Error('الملف ليس صورة صالحة')); }; img.src = u;
+});
+async function savePhoto(id, v, old) {
+  const f = v.photo?.[0], rm = v.rm_photo; delete v.photo; delete v.rm_photo;
+  if (f) {
+    if (!/^image\/(png|jpe?g|webp)$/.test(f.type)) { toast('الصورة يجب أن تكون PNG أو JPG أو WebP', true); return false; }
+    try { const b = await shrink(f), path = `${id}/${crypto.randomUUID()}.jpg`;
+      const up = await sb.storage.from('avatars').upload(path, b, { contentType: 'image/jpeg' });
+      if (up.error) { toast('تعذّر رفع الصورة: ' + up.error.message, true); return false; }
+      v.avatar_path = path;
+    } catch (e) { toast(e.message, true); return false; }
+  } else if (rm && old) v.avatar_path = null;
+  return { oldToDelete: (f || rm) ? old : null };
+}
+const photoFields = [{ k: 'photo', l: 'الصورة الشخصية (اختياري)', t: 'file', accept: 'image/png,image/jpeg,image/webp', hint: 'PNG أو JPG أو WebP؛ تُقصّ مربعة وتُصغَّر تلقائياً' }];
+Act.stNew = async () => {
+  const v = await ask('منسوب جديد', [...staffFields, ...photoFields]); if (!v) return;
+  const f = v.photo; delete v.photo; const { data, error } = await sb.from('staff').insert(v).select('id').single();
+  if (error) return toast(error.message, true);
+  if (f?.length) { const u = { photo: f }; if (await savePhoto(data.id, u, null)) await sb.from('staff').update({ avatar_path: u.avatar_path }).eq('id', data.id); }
+  toast('أُضيف المنسوب'); await App.reloadStaff(); App.refresh();
+};
+Act.stEdit = async ({ id }) => {
+  const cur = S.staff.find(s => s.id === id);
+  const v = await ask('تعديل المنسوب', [...staffFields, ...photoFields, ...(cur.avatar_path ? [{ k: 'rm_photo', l: 'حذف الصورة الحالية', t: 'checkbox' }] : [])], cur); if (!v) return;
+  const r = await savePhoto(id, v, cur.avatar_path); if (!r) return;
+  if (await run(sb.from('staff').update(v).eq('id', id), 'حُفظ')) {
+    if (r.oldToDelete) sb.storage.from('avatars').remove([r.oldToDelete]).catch(() => {});
+    await App.reloadStaff(); App.refresh(); if (S.me.staff_id === id) drawWho();
+  }
+};
+const drawWho = () => put($('#who'), h`${App.avatarHtml(S.staff.find(s => s.id === S.me.staff_id) || { display_name: S.me.display_name }, 28)}<span>${S.me.display_name || ''} · ${L.role[S.me.role]}</span>`);
+App.drawWho = drawWho;
 Act.acNew = async ({ sid }) => {
   const v = await ask(`إنشاء حساب: ${staffName(sid)}`, [
     unameField, { k: 'role', l: 'الدور', t: 'select', req: 1, o: [['team_member', L.role.team_member], ['coordinator', L.role.coordinator], ['principal', L.role.principal], ['reviewer', L.role.reviewer]] },
