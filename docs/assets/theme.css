@@ -226,20 +226,31 @@ form.f{display:grid;gap:12px;max-width:420px}
 @media (max-width:760px){.fsearch{max-width:none;flex-basis:100%}.vbtns{margin-inline-start:0;width:100%}.vbtn{flex:1;justify-content:center}.pills2{flex-basis:100%}.fsel{max-width:none;flex-basis:100%}}
 
 /* ═════ واجهة الموقع العام (body.pub) ═════ */
-body.pub header{background:linear-gradient(90deg,color-mix(in srgb,var(--surface) 88%,transparent),color-mix(in srgb,var(--gold) 9%,color-mix(in srgb,var(--surface) 88%,transparent)));-webkit-backdrop-filter:blur(14px) saturate(1.5);backdrop-filter:blur(14px) saturate(1.5);box-shadow:0 8px 26px rgba(13,59,102,.07)}
 body.pub .top{padding-block:9px;gap:16px}
 body.pub .bm svg{width:46px;height:46px;filter:drop-shadow(0 4px 8px rgba(15,138,148,.28))}
 body.pub .bm b{font-size:1.12rem;letter-spacing:.2px}
-body.pub nav{flex:none;margin-inline:auto;gap:2px;background:var(--soft);border:1px solid var(--line);border-radius:99px;padding:4px}
-body.pub nav a{display:inline-flex;align-items:center;gap:7px;padding:8px 16px;border-radius:99px;font-weight:600;transition:background .15s,color .15s}
+/* القائمة العلوية: الأسلوب المعتاد (خط سفلي للصفحة الحالية) مع أيقونات */
+body.pub nav{flex:1;justify-content:center;gap:4px}
+body.pub nav a{display:inline-flex;align-items:center;gap:7px;padding:8px 14px;font-weight:600;transition:background .15s,color .15s}
 body.pub nav a .ico{width:17px;height:17px}
-body.pub nav a:hover{background:color-mix(in srgb,var(--brand) 10%,transparent)}
-body.pub nav a.on{background:var(--surface);color:var(--brand2);box-shadow:0 2px 10px rgba(13,59,102,.1)}
-body.pub nav a.on::after{display:none}
-body.pub nav a.navbtn{background:var(--grad);color:#fff;margin-inline-start:4px;box-shadow:0 4px 12px rgba(12,111,130,.3)}
-body.pub nav a.navbtn:hover{filter:brightness(1.08)} body.pub nav a.navbtn.on{background:var(--grad);color:#fff}
+body.pub nav a:hover{background:color-mix(in srgb,var(--brand) 8%,transparent)}
+body.pub nav a.navbtn{background:var(--grad);color:#fff;margin-inline-start:6px;box-shadow:0 4px 12px rgba(12,111,130,.3)}
+body.pub nav a.navbtn:hover{filter:brightness(1.08)} body.pub nav a.navbtn.on::after{display:none}
 body.pub #adminLink{color:var(--goldink);background:var(--acc2soft)}
-@media (max-width:760px){body.pub nav{order:3;flex-basis:100%;margin:0;overflow-x:auto;flex-wrap:nowrap;justify-content:flex-start}body.pub .moe{display:none}}
+.navtoggle{display:none;place-items:center;flex:none;width:44px;height:44px;padding:0;border-radius:12px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer}
+.navtoggle .ico{width:24px;height:24px}
+.navtoggle .x{display:none} header.open .navtoggle .x{display:block} header.open .navtoggle .b{display:none}
+@media (max-width:760px){
+  body.pub .top{gap:10px}
+  body.pub .moe{display:none}
+  body.pub .bm svg{width:40px;height:40px} body.pub .bm b{font-size:1rem}
+  .navtoggle{display:inline-grid;margin-inline-start:auto}
+  body.pub nav{display:none;order:3;flex:1 1 100%;flex-direction:column;align-items:stretch;gap:2px;padding:6px;background:var(--surface);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow2);overflow:visible}
+  body.pub header.open nav{display:flex}
+  body.pub nav a{min-height:46px;padding:12px 14px;font-size:1rem;border-radius:10px}
+  body.pub nav a.on{background:var(--brandsoft)} body.pub nav a.on::after{display:none}
+  body.pub nav a.navbtn{margin:4px 0 0;justify-content:center}
+}
 
 /* الهيرو الجديد */
 .hero2{position:relative;display:grid;grid-template-columns:minmax(0,1.35fr) minmax(280px,.8fr);gap:30px;align-items:center;padding:40px 44px;border-radius:34px;background:var(--herobg);color:#fff;overflow:hidden;box-shadow:var(--shadow2);isolation:isolate}
