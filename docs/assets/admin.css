@@ -537,3 +537,13 @@ button.kc{font:inherit;text-align:start;cursor:pointer;width:100%} .kc.on{outlin
 
 .ov{padding:max(4vh,12px) 12px calc(12px + env(safe-area-inset-bottom,0px));overscroll-behavior:contain}
 @media (max-width:600px){.ov{padding-top:12px}.md{border-radius:16px}}
+/* نماذج النوافذ: لا تتمدد الخانات بحسب أطول خيار أو اسم ملف */
+.md{min-width:0;max-width:100%;box-sizing:border-box;overflow:hidden}
+.mb{min-width:0;overflow-wrap:anywhere}
+.frm{grid-template-columns:minmax(0,1fr)}
+.fld{min-width:0}
+.fld select,.fld input:not([type=checkbox]):not([type=radio]),.fld textarea{width:100%;min-width:0;max-width:100%;box-sizing:border-box;text-overflow:ellipsis}
+.fld input[type=file]{font-size:.9rem}
+.multi,.chk{min-width:0}
+.acts{flex-wrap:wrap}
+@media (max-width:600px){.fld select,.fld input,.fld textarea{font-size:16px}.multi{grid-template-columns:minmax(0,1fr)}}
