@@ -96,7 +96,9 @@ async function route() {
   put(view, h`<p class="muted">جارٍ التحميل…</p>`);
   try {
     const r = await Pages[name](parts.slice(1));
-    put(view, r.html || r); if (r.after) r.after(view);
+    const body = r.html || r, dc = App.cycle(), banner = dc?.name === 'الدورة التجريبية' && !dc.results_published
+      ? raw(`<div class="demobar" role="status"><span>أنت تعرض <b>الدورة التجريبية</b>: كل ما فيها بيانات تجريبية للمعاينة وغير منشورة.</span>${isCoord() ? '<button type="button" class="btn sm bad" data-a="demoClear">حذف البيانات التجريبية</button>' : ''}</div>`) : '';
+    put(view, banner ? h`${banner}${body}` : body); if (r.after) r.after(view);
   } catch (e) { console.error(e); put(view, h`<div class="pn"><p class="err">تعذّر تحميل الصفحة: ${App.errMsg(e)}</p></div>`); }
   window.scrollTo(0, 0);
 }

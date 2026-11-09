@@ -75,6 +75,10 @@ const cycleFields = (gv) => [
 Pages.cycles = async () => {
   const gv = await must(sb.from('guide_versions').select('*'));
   const coord = isCoord();
+  const demo = coord ? (await sb.rpc('demo_status')).data : null;
+  const demoPanel = !coord ? '' : panel('البيانات التجريبية', h`<p>${demo?.exists ? 'توجد دورة تجريبية مليئة ببيانات للمعاينة (مؤشرات، تقييمات، شواهد، زيارات فنية، مهام، مواعيد). هي غير منشورة ولا تظهر في الموقع العام.' : 'لا توجد بيانات تجريبية. يمكنك تعبئة دورة تجريبية منفصلة لمعاينة الصفحات كاملة، وتُحذف كلها بزر واحد.'}</p>
+    <div class="chips">${demo?.exists ? h`${btn('عرض الدورة التجريبية', 'demoView', { id: demo.cycle_id }, 'pri')}${btn('حذف البيانات التجريبية', 'demoClear', {}, 'bad')}` : btn('تعبئة بيانات تجريبية', 'demoSeed', {}, 'pri')}</div>
+    <small class="muted">الحذف يزيل الدورة التجريبية وكل ما فيها، والموظفين التجريبيين، والشواهد المقترحة التجريبية فقط. الدورة الحقيقية لا تُمسّ. يبقى أثر العملية في سجل النشاط.</small>`);
   return h`${pageHead('دورات التقويم الذاتي', coord ? btn('+ دورة جديدة', 'cycNew', {}, 'pri') : '')}
   <div class="pn">${table([
     { h: 'الدورة', f: c => h`<b>${c.name}</b><br><small class="muted">${c.school_year}</small>` },
@@ -87,7 +91,22 @@ Pages.cycles = async () => {
       ${c.status !== 'closed' ? btn('إغلاق', 'cycSet', { id: c.id, st: 'closed' }) : ''}
       ${btn(c.results_published ? 'إلغاء النشر' : 'نشر النتائج', 'cycPub', { id: c.id, v: c.results_published ? '' : '1' })}</div>` },
   ], S.cycles, 'لا توجد دورات. ابدأ بإنشاء الدورة الأولى.')}</div>
-  <p class="muted">كل دورة لها تقييماتها وشواهدها ومهامها المستقلة، ولا تُنقل تلقائياً بين الدورات. المجالات والمعايير والمؤشرات مرجع مشترك مثبّت بإصدار الدليل.</p>`;
+  <p class="muted">كل دورة لها تقييماتها وشواهدها ومهامها المستقلة، ولا تُنقل تلقائياً بين الدورات. المجالات والمعايير والمؤشرات مرجع مشترك مثبّت بإصدار الدليل.</p>
+  ${demoPanel}`;
+};
+const demoRefresh = async () => { await Promise.all([App.reloadCycles(), App.reloadStaff()]); try { await App.ref(true); } catch {} App.refresh(); };
+Act.demoSeed = async () => {
+  if (!await sure('ستُنشأ دورة تجريبية منفصلة غير منشورة مع موظفين وتقييمات وشواهد وزيارات ومهام تجريبية. المتابعة؟')) return;
+  const { error } = await sb.rpc('seed_demo_data'); if (error) return toast(App.errMsg(error), true);
+  toast('تمت تعبئة البيانات التجريبية'); await demoRefresh();
+};
+Act.demoView = async ({ id }) => { S.cid = id; try { localStorage.setItem('cyc', id); } catch {} await App.reloadCycles(); location.hash = '#dashboard'; };
+Act.demoClear = async () => {
+  if (!await sure('سيُحذف كل ما هو تجريبي: الدورة التجريبية وتقييماتها وشواهدها وزياراتها ومهامها، والموظفون والشواهد المقترحة التجريبية. الدورة الحقيقية لا تتأثر. المتابعة؟')) return;
+  const { data, error } = await sb.rpc('clear_demo_data'); if (error) return toast(App.errMsg(error), true);
+  toast(data?.staff_kept_inactive ? `حُذفت البيانات التجريبية، وعُطّل ${data.staff_kept_inactive} موظف لاستخدامه خارج الدورة التجريبية` : 'حُذفت البيانات التجريبية');
+  try { if (!S.cycles.find(c => c.id === localStorage.getItem('cyc'))) localStorage.removeItem('cyc'); } catch {}
+  await App.reloadCycles(); await demoRefresh();
 };
 Act.cycNew = async () => {
   const gv = await must(sb.from('guide_versions').select('*'));

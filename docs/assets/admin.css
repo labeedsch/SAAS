@@ -94,3 +94,4 @@ body.noscroll{overflow:hidden}
   body{background:#fff;color:#000} .pn{box-shadow:none;border:0;padding:0}
   #view{max-width:none;padding:0} .noprint{display:none!important}
 }
+.demobar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:14px;padding:10px 16px;border-radius:14px;background:var(--acc2soft);border:1px dashed var(--acc2);color:var(--ink)}
