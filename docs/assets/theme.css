@@ -689,3 +689,12 @@ nav .ng .ngm a.on::after{display:none}
 .iw.dc .iw-gg>section,.iw.dc .iw-gev{background:var(--b);border-color:color-mix(in srgb,var(--f) 28%,var(--line));color:var(--ink)}
 .iw.dc .iw-gg h4,.iw.dc .iw-gev h4{color:var(--f)}
 .iw.dc .iw-gd{border-color:color-mix(in srgb,var(--f) 30%,var(--line))}
+/* بطاقة المؤشر أقصر: صورة أقل ارتفاعاً، وسطرا المسؤول والمقيّم بلا خلفية */
+.pcard .pimg{aspect-ratio:auto;height:104px}
+.pcard .pimg .pill-art{height:92%}
+.pcard .phead{padding:10px 16px}
+.pcard .pbody{gap:5px;padding:10px 16px 12px}
+.pcard .pwho{gap:2px;margin:2px 0}
+.pcard .pwho>.pw{background:none;border:0;padding:4px 0;border-radius:0}
+.pcard .pwho>.pw+.pw{border-top:1px dashed var(--line);padding-top:6px}
+.pcard .pfoot{padding-top:2px}
