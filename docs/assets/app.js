@@ -11,6 +11,7 @@ const IC = {
   doc:'<path d="M7 3h7l4 4v14H7z"/><path d="M14 3v5h5M10 13h5M10 17h5"/>', shield:'<path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M9 12l2 2 4-4"/>',
   bell:'<path d="M6 16v-5a6 6 0 0112 0v5l2 2H4z"/><path d="M10 21h4"/>', cal:'<rect x="4" y="5" width="16" height="15" rx="3"/><path d="M8 3v4M16 3v4M4 10h16"/>',
   bars:'<path d="M5 20V10M12 20V4M19 20v-7"/>', target:'<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/>',
+  leader:'<path d="M12.0 1.4L12.8 3.5L15.0 3.6L13.3 5.0L13.9 7.2L12.0 6.0L10.1 7.2L10.7 5.0L9.0 3.6L11.2 3.5z"/><circle cx="12" cy="12.2" r="2.8"/><path d="M6 21c.5-3.6 2.8-5.4 6-5.4s5.5 1.8 6 5.4"/>', school:'<path d="M3 10.5L12 5l9 5.5"/><path d="M5 10.5V20h14v-9.5"/><path d="M10 20v-5h4v5"/><path d="M12 5V2.5l3 1-3 1"/>',
   book:'<path d="M5 4h9a4 4 0 014 4v12H9a4 4 0 01-4-4z"/><path d="M5 16a4 4 0 014-4h9"/>', eye:'<path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>'
 };
 Object.assign(IC, {
@@ -19,7 +20,7 @@ Object.assign(IC, {
   grid:'<rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="7" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/><rect x="13" y="13" width="7" height="7" rx="1.5"/>',
   list:'<path d="M9 6h11M9 12h11M9 18h11M4 6h.01M4 12h.01M4 18h.01"/>', chev:'<path d="M7 10l5 5 5-5"/>' });
 const ic = n => `<svg class="ico" viewBox="0 0 24 24" aria-hidden="true">${IC[n]}</svg>`;
-const DIC = ['book', 'bars', 'target', 'shield'];
+const DIC = ['leader', 'book', 'bars', 'school'];
 let rows = [], session = null, role = null;
 
 // عتبات المستويات (تُحمَّل من evaluation_levels، وهذه قيم احتياطية مطابقة لها)
@@ -94,14 +95,14 @@ function domCards(id, rs) {
 // رسوم المجالات الأربعة (أصلية، خطوط وتعبئات بدرجات لون المجال الهادئة؛ التنسيق في theme.css)
 const SP = (x, y, c) => `<path transform="translate(${x} ${y})" d="M0-8L2-2 8 0 2 2 0 8-2 2-8 0-2-2z" ${c ? `fill="${c}"` : 'class="ak"'}/>`;
 const ILL = [
-  // الإدارة المدرسية: مبنى المدرسة وعلم
-  `<path class="al" d="M160 52V28"/><path class="ag" d="M160 28l24 8-24 8z"/><path class="af" d="M78 98L160 54l82 44z"/><rect class="aw" x="92" y="98" width="136" height="54" rx="4"/><rect class="af" x="147" y="116" width="26" height="36" rx="4"/><rect class="af" x="106" y="112" width="26" height="18" rx="3"/><rect class="af" x="188" y="112" width="26" height="18" rx="3"/><circle class="ag" cx="160" cy="80" r="6"/>`,
+  // الإدارة المدرسية (القيادة): قائد يتوسط فريقه ونجمة
+  `<path class="ag" d="M160.0 19.0L163.8 28.7L174.3 29.4L166.2 36.0L168.8 46.1L160.0 40.5L151.2 46.1L153.8 36.0L145.7 29.4L156.2 28.7z"/><circle class="aw" cx="160" cy="76" r="15"/><path class="af" d="M122 150c0-28 14-44 38-44s38 16 38 44z"/><circle class="aw" cx="100" cy="100" r="10"/><path class="af" d="M76 150c0-19 10-30 24-30s24 11 24 30z"/><circle class="aw" cx="220" cy="100" r="10"/><path class="af" d="M196 150c0-19 10-30 24-30s24 11 24 30z"/>`,
   // التعليم والتعلم: سبّورة بدروس ومصباح فكرة
   `<rect class="aw" x="78" y="40" width="164" height="92" rx="10"/><path class="al" d="M98 64h64M98 82h96M98 100h52"/><rect class="af" x="176" y="92" width="48" height="26" rx="6"/><path class="al" d="M120 132l-14 28M200 132l14 28M160 132v28"/><circle class="ag" cx="236" cy="48" r="13"/><path class="al" d="M230 66h12"/>`,
   // نواتج التعلم: درجات صاعدة ونجمة تفوّق
   `<rect class="af" x="84" y="108" width="42" height="42" rx="6"/><rect class="aw" x="139" y="84" width="42" height="66" rx="6"/><rect class="af" x="194" y="60" width="42" height="90" rx="6"/><path class="al" d="M92 90l50-20 36 8 44-26"/><path class="ag" d="M215 28l5 10 11 2-8 8 2 11-10-5-10 5 2-11-8-8 11-2z"/>`,
-  // البيئة المدرسية: درع الأمن والسلامة وشجرة
-  `<path class="af" d="M160 38l56 20v38c0 30-24 46-56 56-32-10-56-26-56-56V58z"/><path class="al" d="M134 96l20 20 36-40"/><path class="al" d="M232 150v-34"/><circle class="ag" cx="232" cy="104" r="17" style="fill:#bfe3c9;stroke:#7fbf93"/><path class="al" d="M66 150v-20"/><circle class="aw" cx="66" cy="122" r="11"/>`];
+  // البيئة المدرسية: المبنى المدرسي
+  `<path class="al" d="M160 54V28"/><path class="ag" d="M160 28l24 8-24 8z"/><path class="af" d="M74 100L160 56l86 44z"/><rect class="aw" x="88" y="100" width="144" height="52" rx="4"/><rect class="af" x="146" y="118" width="28" height="34" rx="4"/><rect class="af" x="102" y="114" width="26" height="18" rx="3"/><rect class="af" x="192" y="114" width="26" height="18" rx="3"/><circle class="ag" cx="160" cy="84" r="6"/><path class="al" d="M70 152h180"/>`];
 const illus = i => `<svg class="pill-art" viewBox="0 0 320 190" aria-hidden="true"><ellipse class="ad" cx="160" cy="164" rx="112" ry="9"/>${ILL[i % 4]}${SP(48, 54)}${SP(276, 120)}${SP(282, 40, '#f3c969')}</svg>`;
 const initials = n => String(n).trim().split(/\s+/).slice(0, 2).map(w => (w.replace(/^ال/, '') || w)[0]).join('');
 const firstPlus = a => a.length ? esc(a[0]) + (a.length > 1 ? ` <small>(+${num(a.length - 1)})</small>` : '') : NONE;

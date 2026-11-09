@@ -16,7 +16,7 @@ const IC = {
   lock: '<rect x="4" y="11" width="16" height="9" rx="2"/><path d="M8 11V8a4 4 0 018 0v3"/>', pct: '<path d="M18 6L6 18"/><circle cx="8" cy="8" r="2"/><circle cx="16" cy="16" r="2"/>',
   history: '<path d="M4 12a8 8 0 108-8H7M7 4L4 7l3 3"/><path d="M12 8v4l3 2"/>'
 };
-const DIC = ['book', 'bars', 'target', 'shield'];
+const DIC = ['leader', 'book', 'bars', 'school'];
 const ic = n => `<svg class="ico" viewBox="0 0 24 24" aria-hidden="true">${IC[n] || ''}</svg>`;
 const initials = n => { const p = String(n || '').trim().split(/\s+/); return (p[0]?.[0] || '') + (p[1]?.[0] || ''); };
 const spark = (x, y, c = '#8fc7cd') => `<path d="M${x} ${y - 9}q1.5 7.5 9 9-7.5 1.5-9 9-1.5-7.5-9-9 7.5-1.5 9-9z" fill="${c}" opacity=".85"/>`;
