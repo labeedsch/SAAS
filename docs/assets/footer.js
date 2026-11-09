@@ -7,7 +7,7 @@
 
   const logo = `<svg class="lf-logo" viewBox="0 0 120 120" aria-hidden="true">
     <circle cx="60" cy="60" r="56" fill="#fff"/>
-    <g class="lf-ring"><circle cx="60" cy="60" r="44" fill="none" stroke="#5fa8a0" stroke-width="3.2" stroke-linecap="round" stroke-dasharray="0.1 9.2"/></g>
+    <g class="lf-ring"><circle cx="60" cy="60" r="44" fill="none" stroke="#4fa39a" stroke-width="8" stroke-linecap="round" stroke-dasharray="0.1 13.72"/></g>
     <text x="60" y="76" text-anchor="middle" font-family="Tajawal,sans-serif" font-size="50" font-weight="800" fill="#1b2a3a">ع</text>
     <g class="lf-orb"><circle cx="60" cy="16" r="6.5" fill="#e0955a"/></g>
   </svg>`;
@@ -26,12 +26,12 @@
       <div class="mid"><b>مدرسة لبيد بن ربيعة المتوسطة</b><span>مدير المدرسة: خالد بن عبدالرحمن الباش</span><span>التقويم الذاتي الذكي – 1448هـ</span></div>
     </div>
     <div class="lf-card">
-      <div class="lf-brand">${logo}<div><small>أحد منتجات</small><b>مختبر الأفكار – عبدالعزيز المديني <i class="lf-ai">AI</i></b></div></div>
+      <div class="lf-brand">${logo}<div><small>أحد منتجات مختبر الأفكار</small><b>عبدالعزيز بن يوسف المديني <i class="lf-ai">AI</i></b></div></div>
       <span class="lf-sep" aria-hidden="true"></span>
-      <nav class="lf-links" aria-label="عن المنتج">
+      <div class="lf-links" role="navigation" aria-label="عن المنتج">
         <a href="${ME_URL}" target="_blank" rel="noopener">${ico.user}<span>تعرّف علي</span></a>
         ${how}
-      </nav>
+      </div>
     </div>
   </div></footer>`;
 
