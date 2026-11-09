@@ -318,7 +318,7 @@ Pages.dashboard = async () => {
   ${svcBar(co, role())}
   ${strip.length ? h`<div class="db-strip" role="region" aria-label="الإعلانات">${ico('mega')}<div>${strip.slice(0, 5).map(a => h`<a href="#ann" class="${a.priority}">${a.priority !== 'normal' ? h`<b>${L.prio[a.priority]}:</b> ` : ''}${a.title}${!co && !readSet.has(a.id) ? h` <i class="db-dot" title="لم تطّلع عليه"></i>` : ''}</a>`)}</div><a class="btn sm" href="#ann">كل الإعلانات</a></div>` : ''}
 
-  <section class="db-hero cmp"><div class="db-ht"><small>لوحة التحكم · ${c.name}</small><h1>متابعة التقويم الذاتي</h1>
+  <section class="db-hero cmp"><div class="db-ht"><small>مكتبي الإلكتروني · ${c.name}</small><h1>متابعة التقويم الذاتي</h1>
       <p class="muted">${left == null ? 'لم يُحدَّد تاريخ نهاية الدورة.' : left >= 0 ? 'متبقٍ ' + nf(left) + ' يوماً على نهاية الدورة · ' + dt(c.end_date) : 'تجاوزت الدورة نهايتها بـ ' + nf(-left) + ' يوماً'}</p>
       <div class="chips"><a class="db-chip ${A.total ? 'warn' : 'ok'}" href="#alerts">${ico('bell')} ${A.total ? nf(A.total) + ' تحتاج إجراء' : 'لا إجراءات معلّقة'}</a><span class="db-chip">${ico('layers')} ${nf(stdDone)} معيار منجز من ${nf(stds.length)}</span><span class="db-chip">${ico('task')} ${nf(tkDone)} مهمة منجزة من ${nf(tk.length)}</span></div></div>
     <div class="db-rings">${ring(pct, 'إنجاز المؤشرات', nf(nOk) + ' من ' + nf(nInd) + ' معتمد', 'info')}${ring(doms.length ? domDone / doms.length * 100 : 0, 'المجالات المنجزة', nf(domDone) + ' من ' + nf(doms.length) + ' · متبقٍ ' + nf(doms.length - domDone), 'ok')}${ring(evid.length ? evOk / evid.length * 100 : 0, 'الشواهد المعتمدة', nf(evOk) + ' من ' + nf(evid.length), '')}</div></section>

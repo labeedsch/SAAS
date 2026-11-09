@@ -632,3 +632,7 @@ button.kc{font:inherit;text-align:start;cursor:pointer;width:100%} .kc.on{outlin
 .desk3 .db-hero,.desk3 .kcs{margin-bottom:18px}
 .desk3>.w-cal{margin-bottom:18px}
 .desk3 .w-cal .wc{display:grid;align-items:start}.desk3 .agbox{min-width:0}
+
+/* التقويم المصغّر: لا تتجاوز الخلايا عرض الشاشة الضيقة */
+.cal-g{grid-template-columns:repeat(7,minmax(0,1fr))}.cc{min-width:0}
+@media (max-width:420px){.cc{min-height:0;aspect-ratio:auto;height:38px;font-size:.84rem}.desk3 .calbox{padding:10px}.cal-g{gap:2px}}

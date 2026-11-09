@@ -79,14 +79,14 @@ function showLogin(msg = '') {
 
 /* ===== الترويسة الثابتة: اسم الصفحة وما تحويه، بنمط واحد في كل صفحات لوحة التحكم ===== */
 const DETAIL = {
-  alerts: ['لوحة التحكم', 'التنبيهات', 'كل الإجراءات المعلّقة عليك مرتبة بدرجة الاستعجال: اعتمادات ومتابعات ومواعيد، وتتجدد عند كل إجراء.'],
+  alerts: ['مكتبي الإلكتروني', 'التنبيهات', 'كل الإجراءات المعلّقة عليك مرتبة بدرجة الاستعجال: اعتمادات ومتابعات ومواعيد، وتتجدد عند كل إجراء.'],
   ind: ['المؤشرات', 'صفحة المؤشر', 'النص الرسمي للمؤشر ومسؤوله ومقيّمه وشواهده وتقييمه ومبرراته وزياراته ومهامه وسجل تعديلاته.', 'inds'],
   meeting: ['الاجتماعات', 'تفاصيل الاجتماع', 'المحاور والدعوات وتأكيد الحضور والحضور الفعلي والمحضر والقرارات.', 'team'],
   visit: ['الزيارات الفنية', 'تفاصيل الزيارة', 'بطاقات المؤشرات والملاحظات والتوصيات والإجراءات المطلوبة ومتابعتها.', 'team'],
 };
 function headFor(name, args) {
   const d = DETAIL[name]; if (d) return { kick: App.HUBS?.[role() === 'team_member' && d[3] === 'team' ? 'desk' : d[3]]?.title || d[0], title: d[1], desc: d[2] };
-  const hub = App.HUBS?.[name]; if (!hub) { const m = MENU.find(x => x[0] === name); return { kick: 'لوحة التحكم', title: m?.[1] || '', desc: '' }; }
+  const hub = App.HUBS?.[name]; if (!hub) { const m = MENU.find(x => x[0] === name); return { kick: 'مكتبي الإلكتروني', title: m?.[1] || '', desc: '' }; }
   const tabs = hub.tabs.filter(t => allowed(t[2])), t = tabs.find(x => x[0] === args[0]) || tabs[0];
   return { kick: hub.title, title: t?.[1] || hub.title, desc: t?.[3] || '' };
 }
