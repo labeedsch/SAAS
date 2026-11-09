@@ -701,3 +701,16 @@ button.kc{font:inherit;text-align:start;cursor:pointer;width:100%} .kc.on{outlin
 .flt>*{max-width:100%}.flt select,.flt input{max-width:100%;min-width:0}
 .hm-c{min-width:0;flex:0 0 auto}
 @media (max-width:600px),(pointer:coarse){.btn.sm,.adm .btn.sm{min-height:38px;padding-block:8px}.chips .btn,.tl-a .btn{min-height:38px}}
+
+/* إدارة المنصة: نظرة عامة */
+.pv-b{display:grid;gap:10px;padding:4px 2px 2px;min-width:0}
+.pv-r{display:grid;grid-template-columns:1fr auto;gap:4px 10px;align-items:center;font-size:.92rem}
+.pv-r small{color:var(--muted,#667);font-weight:400}
+.pv-bar{grid-column:1/-1;height:8px;border-radius:99px;background:rgba(0,0,0,.08);overflow:hidden;display:block}
+.pv-bar i{display:block;height:100%;background:var(--teal,#0f766e);border-radius:99px}
+.pv-bar.ok i{background:#15803d}.pv-bar.info i{background:#0369a1}
+.pv-i{display:flex;gap:8px;align-items:center;padding:8px 10px;border-radius:10px;background:rgba(180,120,0,.1);text-decoration:none;color:inherit;font-size:.9rem;min-width:0}
+.pv-i span{flex:1;min-width:0;overflow-wrap:anywhere}.pv-i em{font-style:normal;font-size:.75rem;opacity:.8}
+.pv-i svg{width:16px;height:16px;flex:none}
+.pv-ok{color:#15803d;display:flex;gap:6px;align-items:center;margin:0}
+.pv-c{display:flex;justify-content:space-between;gap:8px;align-items:center;flex-wrap:wrap}
