@@ -46,7 +46,7 @@ Pages.inds = async (parts = []) => {
   if (tab === 'list' && parts[1] && App.indFilter) App.indFilter({ st: parts[1] === 'mine' ? '' : parts[1], mine: parts[1] === 'mine' });
   if (tab === 'evidence' && parts[1] && App.evFilter) App.evFilter(parts[1]);
   const r = await (tab === 'list' ? indList() : Pages[tab === 'map' ? 'indmap' : tab](parts.slice(1)));
-  return App.shell('إدارة المؤشرات', 'المؤشرات والتقييم والشواهد وخريطة التقدم', 'inds', tabs, tab, { list: cnt(A, ['eval', 'myeval']), evidence: cnt(A, ['evid', 'myfix']) }, '', r?.html || r, r?.after);
+  return App.shell('إدارة المؤشرات', 'المؤشرات والتقييم والشواهد وخريطة التقدم', 'inds', tabs, tab, { list: cnt(A, ['eval', 'myeval']), evidence: cnt(A, ['evid', 'myfix']) }, tab === 'list' && S.cid && App.domCards ? await App.domCards() : '', r?.html || r, r?.after);
 };
 
 /* ===== خريطة التقدم: معيار فمؤشر، بالتفصيل ===== */

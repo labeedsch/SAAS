@@ -84,10 +84,12 @@ function agenda(D) {
   });
   return out.sort((a, b) => a.d.localeCompare(b.d) || a.time.localeCompare(b.time));
 }
+const agItem = (x, k) => h`<li class="db-it ${x.tone}"><div class="db-itx"><b><span class="bdg ${x.tone === 'bad' ? 'bad' : x.kind === 'مهمة' || x.kind === 'إغلاق' || x.kind === 'متابعة زيارة' ? 'warn' : 'info'}">${x.kind}</span> ${x.title}</b><small>${k === 'late' || k === 'week' || k === 'month' ? dt(x.d) + ' · ' : ''}${x.time ? x.time + ' · ' : ''}${x.sub}</small></div><div class="chips">${x.acts.map(a => a.href ? h`<a class="btn sm ${a.cls || ''}" href="${a.href}">${a.label}</a>` : btn(a.label, a.a, a.data || {}, a.cls || ''))}</div></li>`;
 function agendaSections(items) {
   return DAYS.map(([k, label, f]) => { const xs = items.filter(x => f(dayDiff(x.d))); return xs.length ? h`<section class="tm-day ${k}"><h3>${label}${k === 'today' || k === 'tomorrow' ? h` <small>${longDate(xs[0].d)}</small>` : ''}</h3>
-    <ul class="tm-ul">${xs.map(x => h`<li class="db-it ${x.tone}"><div class="db-itx"><b><span class="bdg ${x.tone === 'bad' ? 'bad' : x.kind === 'مهمة' || x.kind === 'إغلاق' || x.kind === 'متابعة زيارة' ? 'warn' : 'info'}">${x.kind}</span> ${x.title}</b><small>${k === 'late' || k === 'week' || k === 'month' ? dt(x.d) + ' · ' : ''}${x.time ? x.time + ' · ' : ''}${x.sub}</small></div><div class="chips">${x.acts.map(a => a.href ? h`<a class="btn sm ${a.cls || ''}" href="${a.href}">${a.label}</a>` : btn(a.label, a.a, a.data || {}, a.cls || ''))}</div></li>`)}</ul></section>` : ''; });
+    <ul class="tm-ul">${xs.map(x => agItem(x, k))}</ul></section>` : ''; });
 }
+App.agendaItems = agenda; App.agendaFlat = xs => h`<ul class="tm-ul">${xs.map(x => agItem(x, 'week'))}</ul>`;
 App.agendaHtml = (D, days, max = 999) => { const xs = agenda(D).filter(x => dayDiff(x.d) <= days).slice(0, max); return xs.length ? agendaSections(xs) : null; };
 const KCOL = [['new', 'جديدة'], ['in_progress', 'قيد التنفيذ'], ['awaiting_review', 'بانتظار المراجعة'], ['late', 'متأخرة']];
 

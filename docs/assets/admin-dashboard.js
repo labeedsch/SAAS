@@ -27,6 +27,7 @@ const IC = {
   mega: '<path d="M4 10v4l12 5V5z"/><path d="M16 9a3 3 0 010 6M7 15l1 5h3l-1-4"/>', flag: '<path d="M6 21V4M6 5h11l-2 4 2 4H6"/>', doc: '<path d="M7 3h7l4 4v14H7z"/><path d="M14 3v5h5M10 13h5M10 17h5"/>',
   visit: '<path d="M12 21s-6-5.5-6-10a6 6 0 0112 0c0 4.5-6 10-6 10z"/><circle cx="12" cy="11" r="2"/>', user: '<circle cx="12" cy="8" r="3.5"/><path d="M5 20c0-4 3-6 7-6s7 2 7 6"/>',
   clock: '<circle cx="12" cy="12" r="8"/><path d="M12 8v4l3 2"/>', history: '<path d="M4 12a8 8 0 108-8H7M7 4L4 7l3 3"/><path d="M12 8v4l3 2"/>', bars: '<path d="M5 20V10M12 20V4M19 20v-7"/>',
+  next: '<path d="M15 6l-6 6 6 6"/>', prev: '<path d="M9 6l6 6-6 6"/>',
   star: '<path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z"/>', alert: '<path d="M12 4l9 16H3z"/><path d="M12 10v4M12 17h.01"/>',
 };
 const ico = n => raw(`<svg class="ico" viewBox="0 0 24 24" aria-hidden="true">${IC[n] || ''}</svg>`);
@@ -221,6 +222,48 @@ const ring = (p, label, sub, tone) => {
 };
 /* بطاقة مؤشر بنمط بطاقات الخطط الذكية: أيقونة، رقم كبير، شريط مع نسبة، وصف */
 const kc = (tone, icon, label, value, p, cap, href, solid) => h`<${raw(href ? 'a' : 'div')} ${raw(href ? `href="${href}"` : '')} class="kc ${tone} ${solid ? 'solid' : ''}"><header><span class="kc-i">${ico(icon)}</span><span class="kc-l">${label}</span></header><b class="kc-v">${value}</b><div class="kc-b"><span class="kc-pc">${nf(Math.round(p || 0))}%</span><i><u style="width:${Math.max(0, Math.min(100, p || 0))}%"></u></i></div><small>${cap}</small></${raw(href ? 'a' : 'div')}>`;
+/* شريط إشعارات صغير أسفل النافذة: أيقونة وعدد وعنوان */
+const nstrip = xs => h`<div class="ns" role="group" aria-label="ملخص سريع">${xs.map(x => { const inner = h`${ico(x.ico)}<b>${nf(x.v)}</b><span>${x.label}</span>`; return x.href ? h`<a class="np ${x.v ? x.tone : ''}" href="${x.href}">${inner}</a>` : h`<span class="np ${x.v ? x.tone : ''}">${inner}</span>`; })}</div>`;
+
+/* التقويم الشهري مع نقاط الأحداث، وبجواره الأجندة */
+const CAL = { y: null, m: null, sel: null }, WD = ['أحد', 'اثنين', 'ثلاثاء', 'أربعاء', 'خميس', 'جمعة', 'سبت'];
+const DOT = { 'اجتماع': 'info', 'زيارة فنية': 'ok', 'متابعة زيارة': 'ok', 'مهمة': 'warn', 'إغلاق': 'bad' };
+let calD = null;
+const ymd = (y, m, d) => `${y}-${pad(m + 1)}-${pad(d)}`;
+function calHtml() {
+  const now = new Date(); if (CAL.y == null) { CAL.y = now.getFullYear(); CAL.m = now.getMonth(); }
+  const items = App.agendaItems ? App.agendaItems(calD) : [], by = {};
+  items.forEach(x => (by[x.d] ||= []).push(x));
+  const first = new Date(CAL.y, CAL.m, 1), start = first.getDay(), days = new Date(CAL.y, CAL.m + 1, 0).getDate(), T = tod();
+  const title = first.toLocaleDateString('ar-SA-u-ca-gregory-nu-latn', { month: 'long', year: 'numeric' });
+  const cells = [];
+  for (let i = 0; i < start; i++) cells.push(h`<span class="cc off"></span>`);
+  for (let d = 1; d <= days; d++) {
+    const k = ymd(CAL.y, CAL.m, d), ev = by[k] || [], kinds = [...new Set(ev.map(e => e.tone === 'bad' && dayDiff(k) < 0 ? 'bad' : DOT[e.kind] || 'info'))].slice(0, 3);
+    cells.push(h`<button type="button" class="cc ${k === T ? 'today' : ''} ${k === CAL.sel ? 'sel' : ''} ${ev.length ? 'has' : ''}" data-a="calSel" data-d="${k}" aria-label="${d} ${title}${ev.length ? '، ' + ev.length + ' حدث' : ''}" ${k === CAL.sel ? raw('aria-pressed="true"') : ''}><span>${nf(d)}</span><i>${kinds.map(t => h`<u class="${t}"></u>`)}</i></button>`);
+  }
+  return h`<div class="cal-h"><button type="button" class="btn sm" data-a="calNav" data-v="1" aria-label="الشهر التالي">${ico('next')}</button><b>${title}</b><button type="button" class="btn sm" data-a="calNav" data-v="-1" aria-label="الشهر السابق">${ico('prev')}</button></div>
+  <div class="cal-g" role="grid">${WD.map(w => h`<span class="cw">${w}</span>`)}${cells}</div>
+  <div class="cal-l"><span class="info">اجتماع</span><span class="ok">زيارة</span><span class="warn">مهمة</span><span class="bad">إغلاق / متأخر</span><button type="button" class="btn sm" data-a="calToday">اليوم</button></div>`;
+}
+function agHtml() {
+  const items = App.agendaItems ? App.agendaItems(calD) : [];
+  if (CAL.sel) { const xs = items.filter(x => x.d === CAL.sel); return h`<div class="ag-h"><h3>${new Date(CAL.sel + 'T00:00:00').toLocaleDateString('ar-SA-u-ca-gregory-nu-latn', { weekday: 'long', day: 'numeric', month: 'long' })}</h3><button type="button" class="btn sm" data-a="calSel" data-d="${CAL.sel}">عرض الأسبوع القادم</button></div>${xs.length ? App.agendaFlat(xs) : h`<p class="muted empty">لا أحداث في هذا اليوم.</p>`}`; }
+  const hh = App.agendaHtml(calD, 7, 8);
+  return h`<div class="ag-h"><h3>الأسبوع القادم</h3><a class="btn sm" href="#team/overview">أجندة الفريق</a></div>${hh || h`<p class="muted empty">لا اجتماعات ولا زيارات ولا مواعيد ولا مهام خلال الأسبوع القادم.</p>`}`;
+}
+const calRedraw = () => { put($('#wcal'), calHtml()); put($('#wag'), agHtml()); };
+Act.calNav = ({ v }) => { let m = CAL.m + Number(v), y = CAL.y; if (m < 0) { m = 11; y--; } if (m > 11) { m = 0; y++; } CAL.m = m; CAL.y = y; put($('#wcal'), calHtml()); };
+Act.calSel = ({ d }) => { CAL.sel = CAL.sel === d ? null : d; if (CAL.sel) { const x = new Date(d + 'T00:00:00'); CAL.y = x.getFullYear(); CAL.m = x.getMonth(); } calRedraw(); };
+Act.calToday = () => { const n = new Date(); CAL.y = n.getFullYear(); CAL.m = n.getMonth(); CAL.sel = null; calRedraw(); };
+
+/* بطاقات المجالات الأربعة: تُعرض في صفحة إدارة المؤشرات */
+App.domCards = async () => {
+  const D = await App.data(), { ref, om } = D, stOf = i => om[i.id]?.eval_status || 'not_evaluated';
+  return h`<div class="kcs d4">${ref.domains.map((d, i) => { const dx = ref.inds.filter(x => x.dom?.id === d.id), n = dx.length, ok = dx.filter(x => stOf(x) === 'approved').length, sb2 = dx.filter(x => stOf(x) === 'submitted').length, nv = dx.filter(x => stOf(x) === 'not_evaluated').length;
+    return kc('d' + (i % 4), 'flag', d.name_ar, h`${nf(ok)}<span class="of"> / ${nf(n)}</span>`, n ? ok / n * 100 : 0, n && ok === n ? 'منجز بالكامل' : [sb2 ? nf(sb2) + ' بانتظار الاعتماد' : '', nv ? nf(nv) + ' لم يبدأ' : ''].filter(Boolean).join(' · ') || 'متبقٍ ' + nf(n - ok) + ' مؤشراً', '#inds/map/' + d.id); })}</div>`;
+};
+
 const win = (cls, icon, title, href, linkLabel, body) => h`<section class="win ${cls}"><header><span class="db-gi">${ico(icon)}</span><h2>${title}</h2><a class="btn sm" href="${href}">${linkLabel}</a></header>${body}</section>`;
 const ms = (label, v, tone = '', href = '') => href ? h`<a class="ms ${tone}" href="${href}"><b>${nf(v)}</b><small>${label}</small></a>` : h`<div class="ms ${tone}"><b>${nf(v)}</b><small>${label}</small></div>`;
 const mini = (xs, empty) => xs.length ? h`<ul class="wl">${xs}</ul>` : h`<p class="muted empty">${empty}</p>`;
@@ -255,6 +298,7 @@ Pages.dashboard = async () => {
   const evNoAcc = new Set(resp.filter(r => r.kind === 'evaluator' && !accSet.has(r.staff_id)).map(r => r.staff_id)).size;
   // الإجراءات: أهم العناصر عبر المجموعات
   const items = A.groups.flatMap(g => g.items.map(i => ({ ...i, _g: g.title }))).sort((a, b) => SEV[b.tone] - SEV[a.tone]);
+  calD = D;
   const stf = id => S.staff.find(x => x.id === id);
   const evOf = id => resp.filter(r => r.kind === 'evaluator' && r.indicator_id === id).map(r => staffName(r.staff_id));
   const moves = [
@@ -276,31 +320,31 @@ Pages.dashboard = async () => {
     <div class="db-rings">${ring(pct, 'إنجاز المؤشرات', nf(nOk) + ' من ' + nf(nInd) + ' معتمد', 'info')}${ring(doms.length ? domDone / doms.length * 100 : 0, 'المجالات المنجزة', nf(domDone) + ' من ' + nf(doms.length) + ' · متبقٍ ' + nf(doms.length - domDone), 'ok')}${ring(evid.length ? evOk / evid.length * 100 : 0, 'الشواهد المعتمدة', nf(evOk) + ' من ' + nf(evid.length), '')}</div></section>
 
   <div class="kcs">${kc('teal', 'layers', 'كل المؤشرات', nf(nInd), pct, 'المعتمد منها ' + nf(nOk) + ' · افتح خريطة التقدم', '#inds/map', true)}${kc('ok', 'check', 'معتمد', nf(nOk), nInd ? nOk / nInd * 100 : 0, 'عرض المؤشرات المعتمدة', '#inds/list/approved')}${kc('info', 'clock', 'بانتظار الاعتماد', nf(nSub), nInd ? nSub / nInd * 100 : 0, nSub ? (co ? 'راجع واعتمد الآن' : 'أُرسلت للمراجعة') : 'لا شيء ينتظر', '#inds/list/submitted')}${kc('mute', 'note', 'مسودة', nf(nDr), nInd ? nDr / nInd * 100 : 0, nDr ? 'تقييمات تحتاج إكمالاً' : 'لا مسودات', '#inds/list/draft')}${kc('warn', 'alert', 'لم يُقيَّم', nf(nNo), nInd ? nNo / nInd * 100 : 0, nNo ? 'ابدأ التقييم' : 'اكتمل التقييم', '#inds/list/not_evaluated')}${kc('bad', 'users', 'بلا مقيّم', nf(noEv), nInd ? noEv / nInd * 100 : 0, noEv ? (co ? 'أسنِد مقيّماً الآن' : 'يحتاج إسناداً') : 'كل المؤشرات مسندة', '#platform/assign')}</div>
-  <div class="kcs d4">${doms.map(({ d, n, ok, done }, i) => { const dx = ref.inds.filter(x => x.dom?.id === d.id), sb2 = dx.filter(x => stOf(x) === 'submitted').length, nv = dx.filter(x => stOf(x) === 'not_evaluated').length;
-    return kc('d' + (i % 4), 'flag', d.name_ar, h`${nf(ok)}<span class="of"> / ${nf(n)}</span>`, n ? ok / n * 100 : 0, done ? 'منجز بالكامل' : [sb2 ? nf(sb2) + ' بانتظار الاعتماد' : '', nv ? nf(nv) + ' لم يبدأ' : ''].filter(Boolean).join(' · ') || 'متبقٍ ' + nf(n - ok) + ' مؤشراً', '#inds/map/' + d.id); })}</div>
 
   <div class="wins">
   ${win('w-act ' + (A.bySev.bad ? 'bad' : A.total ? 'warn' : 'ok'), 'bell', 'إجراءات تحتاج قرارك', '#dashboard/alerts', 'كل التنبيهات (' + nf(A.total) + ')',
-    h`<div class="ms-row">${ms('عاجل', A.bySev.bad, A.bySev.bad ? 'bad' : '', '#dashboard/alerts')}${ms('يحتاج متابعة', A.bySev.warn, A.bySev.warn ? 'warn' : '', '#dashboard/alerts')}${ms('للعلم', A.bySev.info, '', '#dashboard/alerts')}</div>${mini(items.slice(0, 4).map(itemHtml), 'لا توجد إجراءات معلّقة. كل شيء منجز.')}${items.length > 4 ? h`<a class="db-more" href="#dashboard/alerts">وعرض ${nf(items.length - 4)} آخر</a>` : ''}`)}
-
-  ${win('w-week', 'cal', 'الأسبوع القادم', '#team/overview', 'أجندة الفريق', (App.agendaHtml && App.agendaHtml(D, 7, 6)) || h`<p class="muted empty">لا اجتماعات ولا زيارات ولا مواعيد ولا مهام خلال الأسبوع القادم.</p>`)}
+    h`${mini(items.slice(0, 4).map(itemHtml), 'لا توجد إجراءات معلّقة. كل شيء منجز.')}${items.length > 4 ? h`<a class="db-more" href="#dashboard/alerts">وعرض ${nf(items.length - 4)} آخر</a>` : ''}
+    ${nstrip([{ ico: 'alert', label: 'عاجل', v: A.bySev.bad, tone: 'bad', href: '#dashboard/alerts' }, { ico: 'clock', label: 'يحتاج متابعة', v: A.bySev.warn, tone: 'warn', href: '#dashboard/alerts' }, { ico: 'bell', label: 'للعلم', v: A.bySev.info, tone: 'info', href: '#dashboard/alerts' }])}`)}
 
   ${win('w-ind', 'note', 'إدارة المؤشرات', '#inds/list', 'فتح المؤشرات',
-    h`<div class="ms-row">${ms('شواهد بانتظار المراجعة', evPend, evPend ? 'info' : '', '#inds/evidence/new')}${ms('شواهد تحتاج استكمالاً', evFix, evFix ? 'warn' : '', '#inds/evidence/needs_completion')}</div>
-    ${moves.length ? h`<h3 class="wh">مؤشرات تحتاج تحرّكاً</h3>` : ''}${mini(moves.slice(0, 4).map(itemHtml), 'كل المؤشرات مسندة وبدأ تقييمها.')}${moves.length > 4 ? h`<a class="db-more" href="#inds/list/not_evaluated">وعرض ${nf(moves.length - 4)} آخر</a>` : ''}
-    <div class="wb"><a class="btn sm" href="#inds/evidence">مراجعة الشواهد</a><a class="btn sm" href="#inds/map">خريطة التقدم</a></div>`)}
+    h`${moves.length ? h`<h3 class="wh">مؤشرات تحتاج تحرّكاً</h3>` : ''}${mini(moves.slice(0, 4).map(itemHtml), 'كل المؤشرات مسندة وبدأ تقييمها.')}${moves.length > 4 ? h`<a class="db-more" href="#inds/list/not_evaluated">وعرض ${nf(moves.length - 4)} آخر</a>` : ''}
+    <div class="wb"><a class="btn sm" href="#inds/evidence">مراجعة الشواهد</a><a class="btn sm" href="#inds/map">خريطة التقدم</a></div>
+    ${nstrip([{ ico: 'clip', label: 'شواهد بانتظار المراجعة', v: evPend, tone: 'info', href: '#inds/evidence/new' }, { ico: 'alert', label: 'شواهد تحتاج استكمالاً', v: evFix, tone: 'warn', href: '#inds/evidence/needs_completion' }])}`)}
+
+  <section class="win w-cal"><header><span class="db-gi">${ico('cal')}</span><h2>التقويم والأجندة</h2><a class="btn sm" href="#team/cal">تقويم الفريق</a></header>
+    <div class="wc"><div id="wcal" class="calbox">${calHtml()}</div><div id="wag" class="agbox">${agHtml()}</div></div></section>
 
   ${win('w-team', 'task', 'إدارة الفريق', '#team/overview', 'فتح إدارة الفريق',
-    h`<div class="ms-row">${ms('قيد التنفيذ', Math.max(tkRun, 0), 'info', '#team/tasks')}${ms('متأخرة', tkLate, tkLate ? 'bad' : '', '#team/tasks')}${ms(co ? 'بانتظار المراجعة' : 'مقترحة', co ? tkRev : tkProp, (co ? tkRev : tkProp) ? 'warn' : '', '#team/tasks')}${ms('مكتملة', tkDone, 'ok', '#team/tasks')}</div>
-    <ul class="wl"><li><span>${ico('cal')} الاجتماع القادم</span><b>${nextM ? h`<a href="#meeting/${nextM.id}">${nextM.title}</a> <small class="muted">${dt(nextM.meeting_date)}${nextM.start_time ? ' · ' + String(nextM.start_time).slice(0, 5) : ''}</small>` : h`<small class="muted">لا يوجد</small>`}</b></li>
+    h`<ul class="wl"><li><span>${ico('cal')} الاجتماع القادم</span><b>${nextM ? h`<a href="#meeting/${nextM.id}">${nextM.title}</a> <small class="muted">${dt(nextM.meeting_date)}${nextM.start_time ? ' · ' + String(nextM.start_time).slice(0, 5) : ''}</small>` : h`<small class="muted">لا يوجد</small>`}</b></li>
     <li><span>${ico('visit')} الزيارة القادمة</span><b>${nextV ? h`<a href="#visit/${nextV.id}">${nextV.target_party || 'زيارة فنية'}</a> <small class="muted">${dt(nextV.visit_date)}</small>` : h`<small class="muted">لا يوجد</small>`}</b></li>
     <li><span>${ico('clip')} إجراءات زيارات مفتوحة</span><b>${nf(openCards)}</b></li></ul>
-    <div class="wb"><a class="btn sm" href="#team/tasks">المهام</a><a class="btn sm" href="#team/meetings">الاجتماعات</a><a class="btn sm" href="#team/visits">الزيارات</a></div>`)}
+    <div class="wb"><a class="btn sm" href="#team/tasks">المهام</a><a class="btn sm" href="#team/meetings">الاجتماعات</a><a class="btn sm" href="#team/visits">الزيارات</a></div>
+    ${nstrip([{ ico: 'clock', label: 'قيد التنفيذ', v: Math.max(tkRun, 0), tone: 'info', href: '#team/tasks' }, { ico: 'alert', label: 'متأخرة', v: tkLate, tone: 'bad', href: '#team/tasks' }, { ico: 'note', label: co ? 'بانتظار المراجعة' : 'مقترحة', v: co ? tkRev : tkProp, tone: 'warn', href: '#team/tasks' }, { ico: 'check', label: 'مكتملة', v: tkDone, tone: 'ok', href: '#team/tasks' }])}`)}
 
   ${win('w-plat', 'users', 'إدارة المنصة', '#platform/staff', 'فتح إدارة المنصة',
     h`${setup.length ? h`<h3 class="wh">يحتاج إعداداً</h3><ul class="wl">${setup.map(itemHtml)}</ul>` : h`<p class="muted empty">إعدادات المنصة مكتملة: كل المقيّمين لهم حسابات وكل المؤشرات مسندة.</p>`}
-    <p class="wnote muted">${nf(staffAct)} منسوباً${App.teamTabAllowed('staff') || role() === 'principal' ? ' · ' + nf(accounts) + ' حساباً فعّالاً' : ''} · ${nf(D.anns.length)} إعلاناً ساريّاً</p>
-    <div class="wb">${[['assign', 'الإسناد'], ['cycles', 'الدورات'], ['ann', 'الإعلانات'], ['wa', 'واتساب']].filter(([t]) => App.teamTabAllowed(t)).map(([t, l]) => h`<a class="btn sm" href="#platform/${t}">${l}</a>`)}</div>`)}
+    <div class="wb">${[['assign', 'الإسناد'], ['cycles', 'الدورات'], ['ann', 'الإعلانات'], ['wa', 'واتساب']].filter(([t]) => App.teamTabAllowed(t)).map(([t, l]) => h`<a class="btn sm" href="#platform/${t}">${l}</a>`)}</div>
+    ${nstrip([{ ico: 'users', label: 'منسوبون', v: staffAct, tone: 'info' }, ...(App.teamTabAllowed('staff') || role() === 'principal' ? [{ ico: 'user', label: 'حسابات فعّالة', v: accounts, tone: 'ok' }] : []), { ico: 'mega', label: 'إعلانات سارية', v: D.anns.length, tone: 'info', href: '#ann' }])}`)}
 
   ${win('w-rep', 'doc', 'التقارير وسجل النشاط', '#dashboard/reports', 'التقارير',
     log.length ? h`<ul class="wl log">${log.slice(0, 4).map(l => { const x = logLine(l, D); return h`<li><span><b>${x.who}</b> · ${x.what}</span><small class="muted">${ago(x.t)}</small></li>`; })}</ul><div class="wb"><a class="btn sm" href="#dashboard/log">سجل النشاط كاملاً</a></div>`
