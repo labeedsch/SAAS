@@ -336,3 +336,14 @@ a.np:hover{filter:brightness(.97);box-shadow:var(--shadow)}
 .cal-l span::before{content:"";display:inline-block;width:8px;height:8px;border-radius:50%;margin-inline-end:4px;background:var(--muted)} .cal-l .info::before{background:var(--c1f)} .cal-l .ok::before{background:var(--c4f)} .cal-l .warn::before{background:var(--c3f)} .cal-l .bad::before{background:var(--c5f)} .cal-l .btn{margin-inline-start:auto}
 .agbox{min-width:0} .ag-h{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px} .ag-h h3{margin:0;font-size:1rem}
 @media (max-width:820px){.wc{grid-template-columns:1fr}}
+
+/* ===== المؤشرات والتقييم: فرز آني ===== */
+button.kc{font:inherit;text-align:start;cursor:pointer;width:100%} .kc.on{outline:3px solid var(--f);outline-offset:2px;box-shadow:0 10px 24px color-mix(in srgb,var(--f) 28%,transparent)}
+.sec-h{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:4px 0 10px}
+.icards{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,330px),1fr));gap:12px;margin-bottom:16px}
+.icard{display:grid;gap:6px;padding:14px 16px;border-radius:18px;background:var(--surface);border:1px solid var(--line);border-inline-start:5px solid var(--line);color:var(--ink);text-decoration:none;box-shadow:var(--shadow);transition:transform .15s}
+.icard:hover{transform:translateY(-2px)} .icard.approved{border-inline-start-color:var(--c4f)} .icard.submitted{border-inline-start-color:var(--c1f)} .icard.draft{border-inline-start-color:var(--c3f)}
+.icard>header{display:flex;align-items:center;justify-content:space-between;gap:8px} .icard p{margin:0;line-height:1.6} .icard small{color:var(--muted)} .icard footer{display:flex;flex-wrap:wrap;gap:8px;align-items:center;font-size:.85rem}
+.igrp>h3{margin:16px 0 8px;font-size:1.02rem}
+.pills2 .spill{min-height:38px}
+@media (prefers-reduced-motion:reduce){.icard{transition:none}.icard:hover{transform:none}}

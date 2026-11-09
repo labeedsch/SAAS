@@ -8,17 +8,18 @@ const CP = ['coordinator', 'principal'], CPR = ['coordinator', 'principal', 'rev
 // القائمة العلوية: أربعة أقسام رئيسية فقط. الصفحات الداخلية (علامة 1) تُعرض كتبويبات داخل قسمها وتبقى روابطها القديمة تعمل وصلاحياتها كما هي
 const MENU = [
   ['dashboard', 'لوحة متابعة شاملة', '*'],
+  ['alerts', 'التنبيهات', '*'],
   ['inds', 'إدارة المؤشرات', '*'],
   ['team', 'إدارة الفريق', '*'],
   ['platform', 'إدارة المنصة', '*'],
-  ['alerts', 'التنبيهات', '*', 1], ['reports', 'التقارير', '*', 1], ['log', 'سجل النشاط', CP, 1],
+  ['reports', 'التقارير', '*', 1], ['log', 'سجل النشاط', CP, 1],
   ['evidence', 'الشواهد', '*', 1], ['indmap', 'خريطة التقدم', '*', 1],
   ['cycles', 'دورات التقويم', CPR, 1], ['wa', 'واتساب', ['coordinator'], 1],
   ['staff', 'المنسوبون والحسابات', ['coordinator'], 1], ['assign', 'المسؤوليات', CP, 1], ['ann', 'الإعلانات', '*', 1],
   ['meetings', 'الاجتماعات', '*', 1], ['visits', 'الزيارات الفنية', '*', 1], ['tasks', 'المهام والتكليفات', '*', 1], ['cal', 'التقويم والمواعيد', '*', 1],
 ];
 // اسم الصفحة الداخلية ← القسم الذي يحويها
-const HUB_OF = { alerts: 'dashboard', reports: 'dashboard', log: 'dashboard', evidence: 'inds', indmap: 'inds', ind: 'inds', cycles: 'platform', wa: 'platform', staff: 'platform', assign: 'platform', ann: 'platform', tasks: 'team', meetings: 'team', meeting: 'team', visits: 'team', visit: 'team', cal: 'team' };
+const HUB_OF = { reports: 'dashboard', log: 'dashboard', evidence: 'inds', indmap: 'inds', ind: 'inds', cycles: 'platform', wa: 'platform', staff: 'platform', assign: 'platform', ann: 'platform', tasks: 'team', meetings: 'team', meeting: 'team', visits: 'team', visit: 'team', cal: 'team' };
 const allowed = (r) => r === '*' || r.includes(role());
 
 // القائمة العلوية: عناصر قبل أول مجموعة تظهر مباشرة، وكل مجموعة تُفتح كقائمة منسدلة
@@ -74,6 +75,7 @@ function showLogin(msg = '') {
 
 /* ===== الترويسة الثابتة: اسم الصفحة وما تحويه، بنمط واحد في كل صفحات لوحة التحكم ===== */
 const DETAIL = {
+  alerts: ['لوحة التحكم', 'التنبيهات', 'كل الإجراءات المعلّقة عليك مرتبة بدرجة الاستعجال: اعتمادات ومتابعات ومواعيد، وتتجدد عند كل إجراء.'],
   ind: ['المؤشرات', 'صفحة المؤشر', 'النص الرسمي للمؤشر ومسؤوله ومقيّمه وشواهده وتقييمه ومبرراته وزياراته ومهامه وسجل تعديلاته.', 'inds'],
   meeting: ['الاجتماعات', 'تفاصيل الاجتماع', 'المحاور والدعوات وتأكيد الحضور والحضور الفعلي والمحضر والقرارات.', 'team'],
   visit: ['الزيارات الفنية', 'تفاصيل الزيارة', 'بطاقات المؤشرات والملاحظات والتوصيات والإجراءات المطلوبة ومتابعتها.', 'team'],
@@ -131,7 +133,7 @@ App.refresh = async () => { App.dropCache?.(); await route({ keep: true }); };
 
 /* ===== تحديث حيّ: شارات القائمة تتجدد دورياً، والصفحات التشغيلية تتجدد صامتة عند عدم انشغال المستخدم ===== */
 let lastPoll = Date.now();
-const LIVE = new Set(['dashboard/overview', 'dashboard/alerts', 'dashboard/', 'team/overview', 'team/']);
+const LIVE = new Set(['dashboard/overview', 'alerts/', 'dashboard/', 'team/overview', 'team/']);
 async function poll() {
   if (document.hidden || !S.me || !S.cid) return;
   lastPoll = Date.now(); App.dropCache?.();

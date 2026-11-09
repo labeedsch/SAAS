@@ -7,7 +7,6 @@ const ok = r => r === '*' || r.includes(role());
 
 const DASH = [
   ['overview', 'نظرة عامة', '*', 'ما ينتظرك الآن من اعتمادات ومتابعات، وما هو قادم في الأسبوع.'],
-  ['alerts', 'التنبيهات', '*', 'كل الإجراءات المعلّقة مرتبة بدرجة الاستعجال، وتتجدد عند كل إجراء.'],
   ['reports', 'التقارير', '*', 'تقارير الدورة والمجالات والمعايير والمؤشرات والشواهد والمسؤوليات والمهام، للعرض والطباعة والتصدير.'],
   ['log', 'سجل النشاط', CP, 'من أنشأ ومن عدّل ومن اعتمد ومتى، لكل العمليات الحساسة.'],
 ];
@@ -23,7 +22,7 @@ App.INDS_TABS = INDS.map(t => t[0]).filter(t => t !== 'list');
 /* شارات التبويبات من تنبيهات حقيقية */
 const cnt = (A, keys) => { const s = new Set(); (A?.groups || []).filter(g => keys.includes(g.key)).forEach(g => g.items.forEach(i => s.add(i.uid))); return s.size; };
 App.hubBadges = A => ({
-  dashboard: A?.total || 0,
+  alerts: A?.total || 0,
   inds: cnt(A, ['evid', 'eval', 'myeval', 'myfix', 'myresp']),
   team: cnt(A, ['tprop', 'trev', 'min', 'tlate', 'mytask', 'rsvp', 'visit', 'dl']),
   platform: cnt(A, ['noassign', 'ann']),
@@ -36,7 +35,7 @@ Pages.dashboard = async (parts = []) => {
   if (!tabs.some(t => t[0] === tab)) return h`<div class="pn"><p>هذه الصفحة غير متاحة لدورك.</p></div>`;
   const A = S.cid ? await App.alerts().catch(() => null) : null;
   const r = await (tab === 'overview' ? dashOverview() : Pages[tab](parts.slice(1)));
-  return App.shell('لوحة المتابعة الشاملة', 'الإجراءات والتنبيهات والتقارير وسجل النشاط', 'dashboard', tabs, tab, { alerts: A?.total || 0 }, '', r?.html || r, r?.after);
+  return App.shell('لوحة المتابعة الشاملة', 'نظرة شاملة على المنصة والتقارير وسجل النشاط', 'dashboard', tabs, tab, {}, '', r?.html || r, r?.after);
 };
 
 /* ===== إدارة المؤشرات ===== */
@@ -46,7 +45,7 @@ Pages.inds = async (parts = []) => {
   if (tab === 'list' && parts[1] && App.indFilter) App.indFilter({ st: parts[1] === 'mine' ? '' : parts[1], mine: parts[1] === 'mine' });
   if (tab === 'evidence' && parts[1] && App.evFilter) App.evFilter(parts[1]);
   const r = await (tab === 'list' ? indList() : Pages[tab === 'map' ? 'indmap' : tab](parts.slice(1)));
-  return App.shell('إدارة المؤشرات', 'المؤشرات والتقييم والشواهد وخريطة التقدم', 'inds', tabs, tab, { list: cnt(A, ['eval', 'myeval']), evidence: cnt(A, ['evid', 'myfix']) }, tab === 'list' && S.cid && App.domCards ? await App.domCards() : '', r?.html || r, r?.after);
+  return App.shell('إدارة المؤشرات', 'المؤشرات والتقييم والشواهد وخريطة التقدم', 'inds', tabs, tab, { list: cnt(A, ['eval', 'myeval']), evidence: cnt(A, ['evid', 'myfix']) }, '', r?.html || r, r?.after);
 };
 
 /* ===== خريطة التقدم: معيار فمؤشر، بالتفصيل ===== */
