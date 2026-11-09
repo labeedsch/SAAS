@@ -279,9 +279,9 @@ Pages.dashboard = async () => {
     <div class="wb"><a class="btn sm" href="#team/tasks">المهام</a><a class="btn sm" href="#team/meetings">الاجتماعات</a><a class="btn sm" href="#team/visits">الزيارات</a></div>`)}
 
   ${win('w-plat', 'users', 'إدارة المنصة', '#platform/staff', 'فتح إدارة المنصة',
-    h`<div class="ms-row">${ms('منسوبون', staffAct)}${ms('حسابات فعّالة', accounts)}${ms('مقيّمون بلا حساب', evNoAcc, evNoAcc ? 'warn' : '')}${ms('إعلانات سارية', D.anns.length)}</div>
+    h`<div class="ms-row">${ms('منسوبون', staffAct)}${App.teamTabAllowed('staff') || role() === 'principal' ? h`${ms('حسابات فعّالة', accounts)}${ms('مقيّمون بلا حساب', evNoAcc, evNoAcc ? 'warn' : '')}` : ''}${ms('إعلانات سارية', D.anns.length)}</div>
     <ul class="wl"><li><span>${ico('note')} الدورة الحالية</span><b>${c.name} <small class="muted">${L.cycle[c.status] || ''}</small></b></li><li><span>${ico('cal')} عدد الدورات</span><b>${nf(S.cycles.length)}</b></li></ul>
-    <div class="wb"><a class="btn sm" href="#platform/assign">الإسناد</a><a class="btn sm" href="#platform/cycles">الدورات</a>${co ? h`<a class="btn sm" href="#platform/wa">واتساب</a>` : ''}</div>`)}
+    <div class="wb">${[['assign', 'الإسناد'], ['cycles', 'الدورات'], ['ann', 'الإعلانات'], ['wa', 'واتساب']].filter(([t]) => App.teamTabAllowed(t)).map(([t, l]) => h`<a class="btn sm" href="#platform/${t}">${l}</a>`)}</div>`)}
 
   ${win('w-rep', 'doc', 'التقارير وسجل النشاط', '#dashboard/reports', 'التقارير',
     log.length ? h`<ul class="wl log">${log.slice(0, 4).map(l => { const x = logLine(l, D); return h`<li><span><b>${x.who}</b> · ${x.what}</span><small class="muted">${ago(x.t)}</small></li>`; })}</ul><div class="wb"><a class="btn sm" href="#dashboard/log">سجل النشاط كاملاً</a></div>`
