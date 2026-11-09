@@ -1,0 +1,23 @@
+/* طبقة الحركة المشتركة (صفحة المقارنة + لوحة التحكم): يتحكم بها assets/motion.js، وتُعطَّل عند تفضيل تقليل الحركة */
+.mo-r{opacity:0;transform:translateY(16px) scale(.97)}
+.mo-r.mo-in{opacity:1;transform:none;transition:opacity .55s var(--mo-d,0ms) ease,transform .6s var(--mo-d,0ms) cubic-bezier(.2,.8,.2,1)}
+@keyframes mo-flash{0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--f,var(--brand)) 55%,transparent)}100%{box-shadow:0 0 0 14px transparent}}
+.mo-flash{animation:mo-flash 1.1s ease-out 2}
+.mo-live{display:inline-flex;align-items:center;gap:6px;margin-inline-start:8px;padding:2px 10px;border-radius:99px;font-size:.76rem;font-weight:700;background:rgba(31,157,99,.12);color:var(--ok);vertical-align:middle}
+.mo-live i{width:8px;height:8px;border-radius:50%;background:var(--ok);animation:mo-pulse 1.8s infinite}
+@keyframes mo-pulse{0%{box-shadow:0 0 0 0 rgba(31,157,99,.55)}70%{box-shadow:0 0 0 8px transparent}100%{box-shadow:0 0 0 0 transparent}}
+@keyframes mo-drift{to{transform:translate(18%,-14%) scale(1.18)}}
+@keyframes mo-breathe{50%{filter:drop-shadow(0 0 14px rgba(251,227,165,.6))}}
+@keyframes mo-shift{to{background-position:100% 50%}}
+@keyframes mo-wig{25%{transform:rotate(-9deg) scale(1.08)}60%{transform:rotate(7deg) scale(1.08)}}
+@keyframes mo-pt{50%{transform:scale(1.28)}}
+/* هيدر المقارنة: توهّج متحرك وحلقة تتنفس */
+body .lhero::after{content:"";position:absolute;z-index:-1;width:46%;aspect-ratio:1;inset:auto auto -40% -6%;border-radius:50%;background:radial-gradient(closest-side,rgba(251,227,165,.42),transparent);animation:mo-drift 12s ease-in-out infinite alternate;pointer-events:none}
+.hgau{animation:mo-breathe 4s ease-in-out infinite}
+.radar .pt{transform-box:fill-box;transform-origin:center}
+.in .radar .pt{animation:mo-pt 2.6s 1.4s ease-in-out infinite}
+/* لوحة التحكم: خلفية الهيدر تتحرك بهدوء، وأيقونات البطاقات تتمايل عند المرور */
+.db-hero{background-size:200% 200%;animation:mo-shift 14s ease-in-out infinite alternate}
+.kc:hover .kc-i,.db-k:hover .db-ki,.db-g:hover .db-gi{animation:mo-wig .6s ease}
+.k:hover,.sc:hover{transition:transform .2s,box-shadow .2s}
+@media (prefers-reduced-motion:reduce){.mo-r{opacity:1;transform:none}.mo-flash,.mo-live i,body .lhero::after,.hgau,.in .radar .pt,.db-hero{animation:none}}
