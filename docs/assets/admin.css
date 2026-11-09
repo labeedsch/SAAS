@@ -497,3 +497,13 @@ button.kc{font:inherit;text-align:start;cursor:pointer;width:100%} .kc.on{outlin
 .iw-h .iw-own>div{background:var(--soft)}
 .iw-h .iw-ring{width:124px;height:124px;box-shadow:0 8px 20px rgba(13,59,74,.14)} .iw-h .iw-ring b{width:94px;height:94px;font-size:1.4rem}
 @media (max-width:900px){.iw-h{grid-template-columns:1fr}.iw-h>.iw-hc{padding:20px}.iw-h>.iw-lvbox{grid-column:1;grid-row:3;border-inline-start:0;border-top:1px solid var(--line);min-width:0;padding:16px 20px}.iw-h h1{font-size:1.35rem}}
+
+/* القائمة العامة في لوحة التحكم مطابقة لقائمة الموقع: الأيقونات والمقاسات والألوان نفسها */
+.adm header .top{padding-block:9px;gap:16px}
+.adm .bm svg{width:46px;height:46px;filter:drop-shadow(0 4px 8px rgba(15,138,148,.28))} .adm .bm b{font-size:1.12rem;letter-spacing:.2px}
+#pubnav{flex:1;justify-content:center;gap:4px}
+#pubnav a{display:inline-flex;align-items:center;gap:7px;padding:8px 14px;font-weight:600;transition:background .15s,color .15s}
+#pubnav a .ico{width:17px;height:17px}
+#pubnav a:hover{background:color-mix(in srgb,var(--brand) 8%,transparent)}
+#pubnav #adminLink{color:var(--goldink);background:var(--acc2soft)}
+@media (max-width:760px){.adm .bm svg{width:40px;height:40px}.adm .bm b{font-size:1rem}}
