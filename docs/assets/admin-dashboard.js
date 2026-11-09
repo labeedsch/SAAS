@@ -314,6 +314,7 @@ Pages.dashboard = async () => {
   ] : [];
   const strip = D.anns.slice().sort((a, b) => (b.priority !== 'normal') - (a.priority !== 'normal'));
 
+  let mapBody = ''; try { mapBody = await Pages.indmap(); } catch (e) { console.warn('map', e); }
   return h`<div class="desk3">
   ${svcBar(co, role())}
   ${strip.length ? h`<div class="db-strip" role="region" aria-label="الإعلانات">${ico('mega')}<div>${strip.slice(0, 5).map(a => h`<a href="#ann" class="${a.priority}">${a.priority !== 'normal' ? h`<b>${L.prio[a.priority]}:</b> ` : ''}${a.title}${!co && !readSet.has(a.id) ? h` <i class="db-dot" title="لم تطّلع عليه"></i>` : ''}</a>`)}</div><a class="btn sm" href="#ann">كل الإعلانات</a></div>` : ''}
@@ -339,6 +340,8 @@ Pages.dashboard = async () => {
     <div class="wb"><a class="btn sm" href="#inds/evidence">مراجعة الشواهد</a><a class="btn sm" href="#inds/map">خريطة التقدم</a></div>
     ${nstrip([{ ico: 'clip', label: 'شواهد بانتظار المراجعة', v: evPend, tone: 'info', href: '#inds/evidence/new' }, { ico: 'alert', label: 'شواهد تحتاج استكمالاً', v: evFix, tone: 'warn', href: '#inds/evidence/needs_completion' }])}`)}
 
+
+  <details class="win w-map" open><summary><span class="db-gi">${ico('flag')}</span><h2>خريطة التقدم للمؤشرات</h2><span class="wm-s">${nf(nOk)} معتمد من ${nf(nInd)} · ${nf(nInd ? Math.round(nOk / nInd * 100) : 0)}%</span><a class="btn sm" href="#inds/map">فتح الخريطة</a><span class="wm-t" aria-hidden="true">${ico('chev')}</span></summary>${mapBody}</details>
 
   <div class="wins3">
   ${win('w-team', 'task', 'إدارة الفريق', '#team/overview', 'فتح إدارة الفريق',

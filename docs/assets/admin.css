@@ -722,3 +722,17 @@ button.kc{font:inherit;text-align:start;cursor:pointer;width:100%} .kc.on{outlin
 .win.w-act>header .btn{background:#fff;border-color:#c9961a;color:#7a5200}
 .win.w-act>header{flex-wrap:wrap;min-width:0;padding:10px 12px}.win.w-act>header h2{min-width:0}
 .win.w-act>header h2{overflow-wrap:anywhere;flex:1 1 auto}
+
+/* خريطة التقدم في المكتب: شريط كامل العرض قابل للطي */
+.wins>.w-map{grid-column:1/-1;padding:0}
+.w-map>summary{list-style:none;display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:16px 18px;cursor:pointer;min-height:48px}
+.w-map>summary::-webkit-details-marker{display:none}
+.w-map>summary h2{margin:0;font-size:1.1rem;flex:1 1 auto;min-width:0}
+.w-map .wm-s{color:var(--muted);font-size:.9rem}
+.w-map .wm-t{display:inline-flex;transition:transform .2s}.w-map .wm-t svg{width:20px;height:20px}
+.w-map[open] .wm-t{transform:rotate(180deg)}
+.w-map>summary:focus-visible{outline:3px solid var(--c3f);outline-offset:-3px;border-radius:18px}
+.w-map[open]>summary{border-bottom:1px solid var(--line)}
+.w-map>.tl-sum,.w-map>.hm-leg,.w-map>.hm-grid{margin-inline:18px}
+.w-map>.tl-sum{margin-top:16px}.w-map>.hm-grid{margin-bottom:18px}
+.hm-c{min-width:max-content}
