@@ -752,3 +752,15 @@ button.kc{font:inherit;text-align:start;cursor:pointer;width:100%} .kc.on{outlin
 .hm-d>header{display:flex!important;justify-content:space-between!important;align-items:center!important;width:100%}
 .hm-d>header>div:first-child{text-align:start;flex:1;min-width:0}.hm-pc{text-align:end;flex:none}
 .hm-cs{justify-content:flex-start!important}
+
+/* ألوان هادئة لخريطة التقدم: خلفيات فاتحة بحدود ونص بلون الحالة */
+.hm-c{color:var(--ink)!important;border:1.5px solid transparent;font-weight:700}
+.hm-c.approved{background:color-mix(in srgb,var(--c4f) 16%,var(--surface))!important;border-color:color-mix(in srgb,var(--c4f) 45%,var(--surface));color:color-mix(in srgb,var(--c4f) 75%,var(--ink))!important}
+.hm-c.submitted{background:color-mix(in srgb,var(--c1f) 13%,var(--surface))!important;border-color:color-mix(in srgb,var(--c1f) 40%,var(--surface));color:color-mix(in srgb,var(--c1f) 75%,var(--ink))!important}
+.hm-c.draft{background:color-mix(in srgb,var(--c3f) 15%,var(--surface))!important;border-color:color-mix(in srgb,var(--c3f) 42%,var(--surface));color:color-mix(in srgb,var(--c3f) 70%,var(--ink))!important}
+.hm-c.not_evaluated{background:color-mix(in srgb,var(--muted) 8%,var(--surface))!important;border-color:var(--line);color:var(--ink2)!important;font-weight:600}
+.hm-bar .ok{background:color-mix(in srgb,var(--c4f) 60%,var(--surface))}.hm-bar .info{background:color-mix(in srgb,var(--c1f) 50%,var(--surface))}.hm-bar .warn{background:color-mix(in srgb,var(--c3f) 55%,var(--surface))}
+.hm-d{border-inline-start-width:5px;border-inline-start-color:color-mix(in srgb,var(--f) 55%,var(--surface))}
+.hm-dc .approved::before,.hm-leg .approved::before{background:color-mix(in srgb,var(--c4f) 60%,var(--surface))}
+.hm-dc .submitted::before,.hm-leg .submitted::before{background:color-mix(in srgb,var(--c1f) 50%,var(--surface))}
+.hm-dc .draft::before,.hm-leg .draft::before{background:color-mix(in srgb,var(--c3f) 55%,var(--surface))}
