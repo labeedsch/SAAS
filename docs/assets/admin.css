@@ -306,7 +306,7 @@ a.kc:hover{transform:translateY(-3px);box-shadow:var(--shadow2)}
 .ms{--f:var(--c0f);--b:var(--c0b);padding:12px 14px;border-radius:18px;border:1px solid color-mix(in srgb,var(--f) 24%,var(--line));background:linear-gradient(160deg,var(--b),var(--surface) 140%)}
 .ms b{color:var(--f)!important;font-size:1.5rem;font-weight:800}
 .ms.ok{--f:var(--c4f);--b:var(--c4b)} .ms.warn{--f:var(--c3f);--b:var(--c3b)} .ms.bad{--f:var(--c5f);--b:var(--c5b)} .ms.info{--f:var(--c1f);--b:var(--c1b)}
-.db-hero.cmp{grid-template-columns:1.2fr 1.3fr;padding:22px 24px} .db-hero.cmp .db-rings{gap:14px}
+.db-hero.cmp{grid-template-columns:1fr;padding:22px 24px} .db-hero.cmp .db-rings{gap:14px}
 .win{border-radius:24px}
 .kc>header,.win>header{background:none;border:0;box-shadow:none;padding:0;margin:0;position:static;backdrop-filter:none;min-height:0}
 a.ms{display:block;text-decoration:none;transition:transform .15s,box-shadow .15s} a.ms:hover{transform:translateY(-2px);box-shadow:var(--shadow)} a.ms small{color:var(--ink2)}
