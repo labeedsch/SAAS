@@ -26,7 +26,7 @@
       <div class="mid"><b>مدرسة لبيد بن ربيعة المتوسطة</b><span>مدير المدرسة: خالد بن عبدالرحمن الباش</span><span>التقويم الذاتي الذكي – 1448هـ</span></div>
     </div>
     <div class="lf-card">
-      <div class="lf-brand">${logo}<div><small>أحد منتجات مختبر الأفكار</small><b>عبدالعزيز بن يوسف المديني <i class="lf-ai">AI</i></b></div></div>
+      <div class="lf-brand">${logo}<div><small>أحد منتجات</small><b>مختبر الأفكار – عبدالعزيز المديني <i class="lf-ai">AI</i></b></div></div>
       <span class="lf-sep" aria-hidden="true"></span>
       <div class="lf-links" role="navigation" aria-label="عن المنتج">
         <a href="${ME_URL}" target="_blank" rel="noopener">${ico.user}<span>تعرّف علي</span></a>

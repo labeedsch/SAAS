@@ -716,25 +716,26 @@ nav .ng .ngm a.on::after{display:none}
 :root:not([data-theme="light"]) .iw .iw-gg>section,:root:not([data-theme="light"]) .iw .iw-gev{background:#2a230f;border-color:#6b5517}
 :root:not([data-theme="light"]) .iw .iw-guide>h2,:root:not([data-theme="light"]) .iw .iw-gg h4,:root:not([data-theme="light"]) .iw .iw-gev h4{color:#f0d36a}}
 
-/* تذييل «أحد منتجات مختبر الأفكار» الموحّد (footer.js) */
-.lab-foot{border-top:1px solid var(--line);border-image:none;background:var(--surface);margin-top:20px}
-.lab-foot .lf{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;padding-block:9px}
+/* تذييل «أحد منتجات مختبر الأفكار» الموحّد (footer.js)
+   بطاقة ثابتة المقاس في كل المواقع: 487×81 بكسل (مقاس معتمد من المرجع) */
+.lab-foot{border-top:1px solid var(--line);border-image:none;background:var(--surface);margin-top:28px}
+.lab-foot .lf{display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap;padding-block:15px}
 .lf-id{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
 body .lab-foot .moe,.astick~* .lab-foot .moe{display:flex;border-inline-start-color:#e0955a}
-.lf-id .mid{display:flex;flex-direction:column;font-size:.74rem;color:var(--ink2)} .lf-id .mid b{color:var(--ink);font-size:.82rem}
-.lf-card{display:flex;align-items:center;gap:11px;background:#1b2a3a;color:#fff;border-radius:14px;padding:7px 13px;box-shadow:0 5px 15px rgba(13,43,69,.19)}
-.lf-brand{display:flex;align-items:center;gap:8px}
-.lf-logo{width:40px;height:40px;flex:none;margin-block:-2px}
-.lf-brand small{display:block;font-size:.62rem;color:#9fb3c4;line-height:1.2} .lf-brand b{display:block;font-size:.79rem;font-weight:800;line-height:1.28}
-.lf-ai{font-style:normal;font-size:.63rem;font-weight:800;padding:0 6px;border-radius:6px;color:#fff;background:linear-gradient(135deg,#3f8f98,#d99a5e);vertical-align:middle;margin-inline-start:4px}
-.lf-sep{align-self:stretch;width:1px;background:rgba(255,255,255,.16)}
-.lf-links{display:flex;flex-direction:column;gap:4px}
-.lf-links a,.lf-soon{display:flex;align-items:center;gap:10px;color:#fff;text-decoration:none;font-weight:700;font-size:.75rem}
-.lf-links a:hover{color:#f0b34a} .lf-links .ico{width:14px;height:14px}
-.lf-soon{opacity:.7;cursor:default} .lf-soon em{font-style:normal;font-size:.68rem;background:rgba(255,255,255,.16);border-radius:6px;padding:0 6px}
+.lf-id .mid{display:flex;flex-direction:column;font-size:.85rem;color:var(--ink2)} .lf-id .mid b{color:var(--ink);font-size:.95rem}
+.lf-card{box-sizing:border-box;display:flex;align-items:center;gap:12px;width:487px;max-width:100%;min-height:81px;background:#1b2a3a;color:#fff;border-radius:20px;padding:15px 20px 15px 18px;box-shadow:0 10px 26px rgba(13,43,69,.22)}
+.lf-brand{display:flex;align-items:center;gap:10px;flex:1 1 auto;min-width:0}
+.lf-logo{width:41px;height:41px;flex:none}
+.lf-brand small{display:block;font-size:.78rem;color:#9fb3c4;line-height:1.2} .lf-brand b{display:block;font-size:.96rem;font-weight:800;line-height:1.35;white-space:nowrap}
+.lf-ai{font-style:normal;font-size:.68rem;font-weight:800;padding:1px 7px;border-radius:7px;color:#fff;background:linear-gradient(135deg,#3f8f98,#d99a5e);vertical-align:middle;margin-inline-start:4px}
+.lf-sep{align-self:stretch;width:1px;background:rgba(255,255,255,.16);flex:none}
+.lf-links{display:flex;flex-direction:column;gap:9px;flex:none}
+.lf-links a,.lf-soon{display:flex;align-items:center;gap:9px;color:#fff;text-decoration:none;font-weight:700;font-size:.84rem;white-space:nowrap}
+.lf-links a:hover{color:#f0b34a} .lf-links .ico{width:16px;height:16px}
+.lf-soon{opacity:.7;cursor:default} .lf-soon em{display:none}
 .lf-ring{transform-box:view-box;transform-origin:60px 60px;animation:lfspin 18s linear infinite}
 .lf-orb{transform-box:view-box;transform-origin:60px 60px;animation:lfspin 7s linear infinite}
 @keyframes lfspin{to{transform:rotate(360deg)}}
 @media (prefers-reduced-motion:reduce){.lf-ring,.lf-orb{animation:none}}
-@media (max-width:760px){.lab-foot .lf{flex-direction:column;align-items:stretch}.lf-card{flex-wrap:wrap;justify-content:space-between;border-radius:18px}.lf-sep{display:none}.lf-links{flex-direction:row;flex-wrap:wrap;gap:14px}}
+@media (max-width:760px){.lab-foot .lf{flex-direction:column;align-items:stretch}.lf-card{width:100%;flex-wrap:wrap;justify-content:space-between;border-radius:18px}.lf-brand b{white-space:normal}.lf-sep{display:none}.lf-links{flex-direction:row;flex-wrap:wrap;gap:14px}}
 @media print{.lab-foot{display:none}}
