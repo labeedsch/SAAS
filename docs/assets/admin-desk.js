@@ -17,7 +17,8 @@ const taskRow = (t, mine) => {
     if (['new', 'overdue'].includes(t.status)) acts.push(btn('بدء', 'dbTkStart', { i: t.id }, 'sm'));
     if (['new', 'in_progress', 'overdue'].includes(t.status)) acts.push(btn('إرسال للمراجعة', 'dbTkSubmit', { i: t.id }, 'sm pri'));
   }
-  return h`<li class="db-it ${isLate(t) ? 'bad' : t.status === 'awaiting_review' ? 'warn' : 'info'}"><div class="db-itx"><b>${t.title}</b><small>${t.approval === 'approved' ? L.task[t.status] : L.appr[t.approval]}${t.due_date ? ' · ' + dt(t.due_date) + ' · ' + dueTxt(t.due_date) : ' · بلا موعد'}</small></div><div class="db-ia">${acts}</div></li>`;
+  const tone = isLate(t) ? 'bad' : t.status === 'awaiting_review' ? 'warn' : 'info', n = t.due_date ? dayDiff(t.due_date) : null;
+  return h`<li class="db-it tk ${tone}"><span class="tk-dot" aria-hidden="true"></span><div class="db-itx"><b>${t.title}</b><div class="tk-meta"><span class="tk-st">${t.approval === 'approved' ? L.task[t.status] : (L.appr[t.approval] || 'بانتظار القرار')}</span>${t.due_date ? h`<span class="tk-due ${n < 0 ? 'bad' : n <= 1 ? 'warn' : ''}">${App.ico('clock')} ${dt(t.due_date)} · ${dueTxt(t.due_date)}</span>` : h`<span class="tk-due none">بلا موعد</span>`}</div></div>${acts.length ? h`<div class="db-ia">${acts}</div>` : ''}</li>`;
 };
 
 async function overview() {
@@ -44,11 +45,11 @@ async function overview() {
     <p class="muted">${App.cycle()?.name || ''} — ما أُسند إليك، وما اقترحته، وما ينتظرك اليوم.</p>
     <div class="chips"><a class="db-chip ${late.length ? 'warn' : 'ok'}" href="#desk/tasks">${App.ico('task')} ${late.length ? nf(late.length) + ' مهام متأخرة' : 'لا مهام متأخرة'}</a>${rsvp.length ? h`<a class="db-chip warn" href="#desk/meetings">${App.ico('cal')} ${nf(rsvp.length)} دعوة تنتظر ردّك</a>` : ''}${needFix.length ? h`<a class="db-chip warn" href="#inds/evidence/needs_completion">${App.ico('clip')} ${nf(needFix.length)} شواهد تحتاج استكمالاً</a>` : ''}</div></div></section>
   <div class="kcs">${kc('info', 'task', 'مهامي الجارية', nf(run.length), pct(run.length, act.length), `${nf(act.length)} مهمة نشطة مسندة إليّ`, '#desk/tasks')}${kc('bad', 'alert', 'متأخرة', nf(late.length), pct(late.length, act.length), 'تجاوزت موعدها', '#desk/tasks')}${kc('warn', 'clock', 'بانتظار المراجعة', nf(rev.length), pct(rev.length, act.length), 'أرسلتها للمنسق', '#desk/tasks')}${kc('ok', 'check', 'مكتملة', nf(done.length), pct(done.length, mineT.length), `من ${nf(mineT.length)} مهمة`, '#desk/tasks')}${kc('teal', 'flag', 'مؤشراتي', nf(mi.length), pct(evDone, mi.length), `${nf(evDone)} معتمد`, '#inds/list')}${kc('d2', 'note', 'مهام اقترحتها', nf(myProp.length), pct(propOk.length, myProp.length), `${nf(propOk.length)} اعتُمدت من المنسق`, '#desk/tasks')}</div>
-  <div class="wins d3">
+  <div class="wins d3 desk3">
     <section class="win w-cal"><header><span class="db-gi">${App.ico('cal')}</span><h2>التقويم والأجندة</h2><a class="btn sm" href="#desk/cal">تقويمي</a></header><div class="wc">${App.calWin(D)}</div></section>
-    ${win('', 'task', 'المهام المسندة إليّ', '#desk/tasks', 'كل مهامي', list(act, true, 'لا مهام نشطة مسندة إليك الآن.'))}
-    ${win('', 'note', 'مهام اقترحتها', '#desk/tasks', 'اقتراح مهمة', list(prop, false, 'لم تقترح مهام بعد، أو لا مقترحات بانتظار القرار.'))}
-    ${win('', 'flag', 'مؤشراتي', '#inds/list', 'إدارة المؤشرات', mi.length ? h`<ul class="wl">${mi.slice(0, 8).map(o => h`<li><a href="#ind/${o.id}"><b>${o.i.code}</b> <span>${App.short(o.i.official_text, 60)}</span> ${badge(L.eval[o.st], o.st === 'approved' ? 'ok' : o.st === 'submitted' ? 'warn' : '')}<small>${o.ev ? 'مقيّم' : ''}${o.ev && o.rs ? ' + ' : ''}${o.rs ? 'مسؤول' : ''}</small></a></li>`)}</ul>${mi.length > 8 ? h`<a class="db-more" href="#inds/list">+ ${nf(mi.length - 8)} أخرى</a>` : ''}` : h`<p class="muted empty">لم يُسنَد إليك مؤشر في هذه الدورة بعد.</p>`)}
+    ${win('dwin t-task', 'task', h`المهام المسندة إليّ <span class="cnt">${nf(act.length)}</span>`, '#desk/tasks', 'كل مهامي', list(act, true, 'لا مهام نشطة مسندة إليك الآن.'))}
+    ${win('dwin t-prop', 'note', h`مهام اقترحتها <span class="cnt">${nf(prop.length)}</span>`, '#desk/tasks', 'اقتراح مهمة', list(prop, false, 'لم تقترح مهام بعد، أو لا مقترحات بانتظار القرار.'))}
+    ${win('dwin t-ind', 'flag', h`مؤشراتي <span class="cnt">${nf(mi.length)}</span>`, '#inds/list', 'إدارة المؤشرات', mi.length ? h`<ul class="wl">${mi.slice(0, 8).map(o => h`<li><a class="ix" href="#ind/${o.id}"><span class="ix-c">${o.i.code}</span><span class="ix-t">${App.short(o.i.official_text, 70)}</span><span class="ix-m">${o.ev ? h`<span class="ix-r ev">مقيّم</span>` : ''}${o.rs ? h`<span class="ix-r rs">مسؤول</span>` : ''}${badge(L.eval[o.st], o.st === 'approved' ? 'ok' : o.st === 'submitted' ? 'warn' : '')}</span></a></li>`)}</ul>${mi.length > 8 ? h`<a class="db-more" href="#inds/list">+ ${nf(mi.length - 8)} أخرى</a>` : ''}` : h`<p class="muted empty">لم يُسنَد إليك مؤشر في هذه الدورة بعد.</p>`)}
   </div>`;
 }
 
