@@ -262,13 +262,8 @@ Act.calToday = () => { const n = new Date(); CAL.y = n.getFullYear(); CAL.m = n.
 
 /* خدمات سريعة: أزرار إنشاء لكل ما في لوحة التحكم، بحسب صلاحية الدور */
 const svcBar = (co, rl) => {
-  const G = [
-    ['المؤشرات', [['qEvidence', 'clip', 'إضافة شاهد', co || rl === 'team_member']]],
-    ['الفريق', [['qTask', 'task', co ? 'إضافة مهمة' : 'اقتراح مهمة', co || rl === 'team_member'], ['qMeeting', 'cal', 'إضافة اجتماع', co], ['qVisit', 'visit', 'إضافة زيارة فنية', co], ['qDeadline', 'flag', 'موعد إغلاق', co]]],
-    ['المنصة', [['qStaff', 'users', 'إضافة عضو', co], ['qAnn', 'mega', 'إضافة إعلان', co]]],
-  ].map(([t, xs]) => [t, xs.filter(x => x[3])]).filter(([, xs]) => xs.length);
-  const all = G.flatMap(([, xs]) => xs);
-  return all.length ? h`<nav class="svc" aria-label="خدمات سريعة"><b class="svc-t">${ico('star')} روابط مختصرة</b>${all.map(([a, i, l]) => h`<button type="button" class="svc-b" data-a="${a}">${ico(i)}<span>${l}</span></button>`)}</nav>` : '';
+  const all = [['qEvidence', '+ شاهد', co || rl === 'team_member'], ['qTask', co ? '+ مهمة' : '+ اقتراح مهمة', co || rl === 'team_member'], ['qMeeting', '+ اجتماع', co], ['qVisit', '+ زيارة فنية', co], ['qDeadline', '+ موعد إغلاق', co], ['qStaff', '+ عضو', co], ['qAnn', '+ إعلان', co]].filter(x => x[2]);
+  return all.length ? h`<nav class="svc" aria-label="روابط مختصرة">${all.map(([a, l]) => h`<button type="button" class="btn pri sm" data-a="${a}">${l}</button>`)}</nav>` : '';
 };
 const win = (cls, icon, title, href, linkLabel, body) => h`<section class="win ${cls}"><header><span class="db-gi">${ico(icon)}</span><h2>${title}</h2><a class="btn sm" href="${href}">${linkLabel}</a></header>${body}</section>`;
 const ms = (label, v, tone = '', href = '') => href ? h`<a class="ms ${tone}" href="${href}"><b>${nf(v)}</b><small>${label}</small></a>` : h`<div class="ms ${tone}"><b>${nf(v)}</b><small>${label}</small></div>`;
