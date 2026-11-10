@@ -50,17 +50,29 @@ async function load() {
   if (lv && lv.length) THR = lv.filter(x => x.min_pct != null).map(x => [x.code, +x.min_pct]).sort((a, b) => b[1] - a[1]);
   await loadOwners();
 }
-// المسؤولون والمقيمون: تقرؤهم قاعدة البيانات للفريق فقط (RLS)؛ الزائر والمقيم الخارجي لا يصلهم شيء.
+// المسؤولون والمقيمون: الفريق يقرأ الجداول مباشرة (RLS)، والزائر عبر الدالة العامة public_owners.
 const newOw = () => ({ resp: { ind: new Map(), dom: new Map() }, eval: { ind: new Map(), dom: new Map() } });
 let owners = newOw();
 const avByName = new Map();   // الاسم ← رابط الصورة (للفريق فقط، كالأسماء نفسها)
 const ini = n => { const w = String(n || '؟').trim().split(/\s+/), l = w.length > 1 ? w[w.length - 1].replace(/^ال/, '') : ''; return w[0][0] + (l ? l[0] : ''); };
 const pav = (n, sz = 26) => `<span class="pav${avByName.has(n) ? '' : ' ini'}" style="--s:${sz}px">${avByName.has(n) ? `<img src="${esc(avByName.get(n))}" alt="" loading="lazy">` : `<i>${esc(ini(n))}</i>`}</span>`;
 window.PAV = pav; window.AVURL = n => avByName.get(n) || '';
+// قرار المالك: المسؤول والمقيّم (الاسم والصورة) يظهران لكل الزوار عبر الدالة العامة public_owners (هجرة 020)
+const showOwners = () => true;
 const isTeam = () => !!(role && ['coordinator','team_member','principal','reviewer'].includes(role.role));
 async function loadOwners() {
   owners = newOw();
-  if (!isTeam()) return;
+  if (!isTeam()) {   // الزائر: عبر دالة عامة تكشف الاسم والصورة والنوع فقط
+    const { data, error } = await sb.rpc('public_owners');
+    if (error) { console.error(error); return; }
+    const add = (m, k, n) => m.set(k, [...new Set([...(m.get(k) || []), n])]);
+    (data || []).forEach(a => {
+      if (a.avatar_path) avByName.set(a.full_name, sb.storage.from('avatars').getPublicUrl(a.avatar_path).data.publicUrl);
+      const o = owners[a.kind === 'evaluator' ? 'eval' : 'resp'];
+      if (a.indicator_id) add(o.ind, a.cycle_id + '|' + a.indicator_id, a.full_name); else add(o.dom, a.cycle_id + '|' + a.domain_id, a.full_name);
+    });
+    return;
+  }
   const [st, ia, da] = await Promise.all([
     sb.from('staff').select('id,full_name,avatar_path'),
     sb.from('indicator_assignments').select('cycle_id,indicator_id,staff_id,kind'),
@@ -103,7 +115,7 @@ function domCards(id, rs) {
       <div class="dchips"><span>${ic('bars')} ${num(nst)} معايير</span><span>${ic('target')} ${num(dr.length)} مؤشراً</span><span>${ic('eye')} ${num(p)} منشور</span></div>
       <div class="dseg" role="img" aria-label="توزيع المستويات">${keys.map(([key, c]) => `<i class="sg ${key}" style="flex:${c}" title="${STL[key]}: ${num(c)}"></i>`).join('')}</div>
       <div class="dleg">${keys.map(([key, c]) => `<span><i class="dot ${key}"></i>${STL[key]} <b>${num(c)}</b></span>`).join('')}</div>
-      ${isTeam() ? `<div class="dppl"><span>${ic('users')} المقيم: ${names(peopleOf(dr, 'eval'))}</span></div>` : ''}
+      ${showOwners() ? `<div class="dppl"><span>${ic('users')} المقيم: ${names(peopleOf(dr, 'eval'))}</span></div>` : ''}
       <div class="dgo2"><span class="dfil">${ic('search')} فرز المؤشرات</span><a class="dgo" href="#domain/${id}/${d.domain_id}" data-go>الانتقال إلى صفحة المجال ${ic('arrow')}</a></div></div>`;
   }).join('')}</div>`;
 }
@@ -128,14 +140,14 @@ function pcard(r) {
   const k = dColor(r), i = Math.max(0, domIdx(r.cycle_id, r.domain_id)), pub = r.publish_state === 'published';
   const rp = ownersOf(r, 'resp'), ev = ownersOf(r, 'eval'), pct = pub ? Number(r.achievement_pct) || 0 : 0;
   const badge = pub ? `<span class="sbadge ${LV[r.level_label] || 'none'}"><b>${esc(r.level_label || 'منشور')}</b><i>${ic('check')}</i></span>` : `<span class="sbadge none"><b>غير منشور</b><i>${ic('cal')}</i></span>`;
-  const person = isTeam()
+  const person = showOwners()
     ? `<span class="av">${rp.length ? esc(initials(rp[0])) : ic('users')}</span><div><b title="${esc(rp.join('، '))}">${firstPlus(rp)}</b><small>${ic('users')} المقيم: <span title="${esc(ev.join('، '))}">${firstPlus(ev)}</span></small></div>`
     : `<span class="av">${ic(DIC[i % 4])}</span><div><b>${esc(r.standard_name)}</b><small>${ic('layers')} المعيار ${esc(r.standard_code)}</small></div>`;
   const stat = pub
     ? `<div class="pstat ${LV[r.level_label] || 'none'}"><span class="pst-l">${ic('check')} تم التقييم</span><b class="pst-v">${esc(r.level_label || 'منشور')}</b><span class="pst-p">${r.achievement_pct != null ? num(Math.round(r.achievement_pct)) + '%' : '—'}</span></div>`
     : `<div class="pstat none"><span class="pst-l">${ic('cal')} لم يُنشر التقييم بعد</span></div>`;
   const pw = (label, a, sz = 40) => `<div class="pw"><span class="pw-st">${a.slice(0, 2).map(n => pav(n, sz)).join('')}${a.length > 2 ? `<span class="pav more" style="--s:${sz}px"><i>+${num(a.length - 2)}</i></span>` : ''}${a.length ? '' : `<span class="pav" style="--s:${sz}px">${ic('users')}</span>`}</span><div class="pw-t"><small>${label}</small><b title="${esc(a.join('، '))}">${a.length ? esc(a.join('، ')) : NONE}</b></div></div>`;
-  const who = isTeam() ? `<div class="pwho">${pw('مسؤول المؤشر', rp)}${pw('المقيّم', ev)}</div>` : '';
+  const who = showOwners() ? `<div class="pwho">${pw('مسؤول المؤشر', rp)}${pw('المقيّم', ev)}</div>` : '';
   return `<a class="pcard" style="--b:var(--c${k}b);--f:var(--c${k}f)" href="#ind/${r.cycle_id}/${r.indicator_id}">
     <div class="phead sm" data-fdom="${r.domain_id}" title="فرز حسب هذا المجال"><span>${ic('layers')} المجال ${num(r.domain_code)}</span><b>${esc(r.domain_name)}</b><em class="pgo" data-go="#domain/${r.cycle_id}/${r.domain_id}" title="الانتقال إلى صفحة المجال">${ic('arrow')}</em></div>
     <div class="pimg">${illus(i)}${badge}</div>
@@ -160,7 +172,7 @@ let hm = freshHm();
 const fvals = (r, k) => { if (k === 'dom') return [r.domain_id]; if (k === 'std') return [r.standard_id]; const o = ownersOf(r, k); return o.length ? o : [NOP]; };
 function pass(r, skip) {
   if (skip !== 'st' && hm.st && stOf(r) !== hm.st) return false;
-  for (const [k, , , team] of FACETS) { if (k === skip || !hm.f[k].length || (team && !isTeam())) continue; if (!fvals(r, k).some(v => hm.f[k].includes(v))) return false; }
+  for (const [k, , , team] of FACETS) { if (k === skip || !hm.f[k].length || (team && !showOwners())) continue; if (!fvals(r, k).some(v => hm.f[k].includes(v))) return false; }
   const q = hm.q.trim().toLowerCase();
   return !q || [r.indicator_code, r.official_text, r.domain_name, r.standard_name, ...ownersOf(r, 'resp'), ...ownersOf(r, 'eval')].join(' ').toLowerCase().includes(q);
 }
@@ -180,7 +192,7 @@ function sortRows(rs) {
   return a;
 }
 function groupRows(rs) {
-  const g = hm.group; if (g === 'none' || (!isTeam() && (g === 'resp' || g === 'eval'))) return [[null, rs]];
+  const g = hm.group; if (g === 'none' || (!showOwners() && (g === 'resp' || g === 'eval'))) return [[null, rs]];
   const m = new Map(), add = (key, label, r) => { const e = m.get(key) || { label, list: [] }; e.list.push(r); m.set(key, e); };
   rs.forEach(r => {
     if (g === 'dom') add(r.domain_code, r.domain_name, r);
@@ -195,7 +207,7 @@ function groupRows(rs) {
 function lrow(r) {
   const k = dColor(r), pub = r.publish_state === 'published', pct = pub ? Number(r.achievement_pct) || 0 : 0;
   const li = Math.max(0, domIdx(r.cycle_id, r.domain_id));
-  const team = isTeam();
+  const team = showOwners();
   const st = pub ? `<div class="lr-st">${lvl(r.level_label)}<span class="lr-pct">${r.achievement_pct != null ? num(Math.round(r.achievement_pct)) + '%' : '—'}</span></div>`
     : `<div class="lr-st"><span class="lvl none">غير منشور</span></div>`;
   return `<a class="lrow2" style="--b:var(--c${k}b);--f:var(--c${k}f)" href="#ind/${r.cycle_id}/${r.indicator_id}">
@@ -209,7 +221,7 @@ function lrow(r) {
 // تصفية سريعة باختيار فرد واحد: مجال معيّن | مقيّم معيّن | مسؤول معيّن. المقيم والمسؤول لفريق التقويم فقط (خصوصية الأسماء).
 const QUICK = [['dom', 'layers', 'كل المجالات', false], ['eval', 'users', 'كل المقيّمين', true], ['resp', 'users', 'كل المسؤولين', true]];
 function pillsHtml(all) {
-  return QUICK.filter(q => !q[3] || isTeam()).map(([k, ico, all0]) => {
+  return QUICK.filter(q => !q[3] || showOwners()).map(([k, ico, all0]) => {
     const cur = hm.f[k], multi = cur.length > 1;
     const opts = facetOpts(k, all).map(([v, t]) => { const c = all.filter(r => pass(r, k) && fvals(r, k).includes(v)).length;
       return `<option value="${esc(v)}"${cur.length === 1 && cur[0] === v ? ' selected' : ''}>${esc(t)} (${num(c)})</option>`; }).join('');
@@ -218,8 +230,8 @@ function pillsHtml(all) {
 }
 function panelHtml(all) {
   const sel = (id, ico, opts, cur) => `<label class="fsel">${ic(ico)}<select id="${id}">${opts.map(o => `<option value="${o[0]}"${cur === o[0] ? ' selected' : ''}>${o[1]}</option>`).join('')}</select></label>`;
-  return `<div class="frow">${sel('f-sort', 'bars', SORTS, hm.sort)}${sel('f-group', 'layers', GROUPS.filter(g => !g[2] || isTeam()), hm.group)}<button type="button" class="btn soft" data-reset>${ic('reset')} إعادة ضبط</button></div>
-    <div class="fgrid">${FACETS.filter(f => !f[3] || isTeam()).map(([k, title, icon]) => {
+  return `<div class="frow">${sel('f-sort', 'bars', SORTS, hm.sort)}${sel('f-group', 'layers', GROUPS.filter(g => !g[2] || showOwners()), hm.group)}<button type="button" class="btn soft" data-reset>${ic('reset')} إعادة ضبط</button></div>
+    <div class="fgrid">${FACETS.filter(f => !f[3] || showOwners()).map(([k, title, icon]) => {
       const open = hm.open[k], n = hm.f[k].length;
       return `<section class="facet${open ? ' open' : ''}"><button type="button" class="fhead" data-fh="${k}" aria-expanded="${open}">${ic(icon)}<b>${title}</b>${n ? `<em class="fn">${num(n)}</em>` : ''}<span class="chev">${ic('chev')}</span></button>` +
         (open ? `<div class="fbody">${facetOpts(k, all).map(([v, t]) => { const c = all.filter(r => pass(r, k) && fvals(r, k).includes(v)).length;
@@ -230,7 +242,7 @@ function renderList(cid) {
   const all = byCycle(cid), rs = sortRows(all.filter(r => pass(r)));
   $('#icount').textContent = `${num(rs.length)} من ${num(all.length)} مؤشراً`;
   hm.st = ''; $('#pills').innerHTML = pillsHtml(all);
-  const nf = Object.entries(hm.f).filter(([k]) => isTeam() || k === 'dom' || k === 'std').reduce((n, [, a]) => n + a.length, 0);
+  const nf = Object.entries(hm.f).filter(([k]) => showOwners() || k === 'dom' || k === 'std').reduce((n, [, a]) => n + a.length, 0);
   $('#advbtn').className = 'fbtn' + (hm.adv ? ' on' : ''); $('#advbtn').setAttribute('aria-expanded', hm.adv);
   $('#advbtn').innerHTML = `${ic('layers')} الفرز المتقدم${nf ? ` <em class="fn">${num(nf)}</em>` : ''}`;
   $('#vbtns').innerHTML = [['list', 'عرض القائمة'], ['cards', 'عرض البطاقات']].map(([v, t]) => `<button type="button" class="vbtn${hm.view === v ? ' on' : ''}" data-view="${v}" aria-pressed="${hm.view === v}">${ic(v === 'cards' ? 'grid' : 'list')} <span>${t}</span></button>`).join('');
@@ -245,7 +257,7 @@ function home() {
   const cs = cycles(), first = cs[0], rs = first ? byCycle(first[0]) : [];
   const pub = pubCount(rs);
   const cnt = k => new Set(rs.map(r => r[k])).size;
-  if (!isTeam()) { hm.f.eval = []; hm.f.resp = []; if (hm.group === 'resp' || hm.group === 'eval') hm.group = 'none'; }
+  if (!showOwners()) { hm.f.eval = []; hm.f.resp = []; if (hm.group === 'resp' || hm.group === 'eval') hm.group = 'none'; }
   const pp = pctOf(pub, rs.length);
   view.innerHTML = `<section class="hero3"><div class="h3-txt"><span class="chip">${ic('cal')} ${first ? esc(first[1]) : 'التقويم الذاتي المدرسي'}</span>
     <h1><span class="gold">التقويم الذاتي</span> الذكي</h1>
@@ -263,7 +275,7 @@ function home() {
       <div class="fbar" id="fbar" role="search"><label class="fsearch">${ic('search')}<input type="search" id="iq" placeholder="ابحث بالرمز أو النص أو المسؤول أو المقيم" value="${esc(hm.q)}" aria-label="بحث في المؤشرات"></label>
         <div class="pills2" id="pills" role="group" aria-label="تصفية سريعة"></div><button type="button" class="fbtn" id="advbtn" aria-expanded="false"></button><div class="vbtns" id="vbtns"></div></div>
       <div class="fpanel" id="fpanel" hidden></div>
-      ${isTeam() ? '' : '<p class="muted tnote">الفلترة والتجميع بالمسؤول وبالمقيم متاحة لفريق التقويم بعد تسجيل الدخول.</p>'}<div id="ilist"></div>` : noResults());
+      ${showOwners() ? '' : '<p class="muted tnote">الفلترة والتجميع بالمسؤول وبالمقيم متاحة لفريق التقويم بعد تسجيل الدخول.</p>'}<div id="ilist"></div>` : noResults());
   if (first && rs.length) {
     const cid = first[0], again = () => renderList(cid);
     $('#goInd').onclick = () => { const h = $('#ihead'); if (h && h.scrollIntoView) h.scrollIntoView({ behavior: 'smooth', block: 'start' }); };
@@ -334,7 +346,7 @@ function domain(cid, did) {
       <div class="h2-panel"><div class="h2-ring" style="--p:${resOf(rs).p}" role="img" aria-label="نتيجة المجال ${resOf(rs).txt}، ${resOf(rs).name}"><div><b>${resOf(rs).txt}</b><small class="lvn">${resOf(rs).name}</small></div></div>
         <div class="h2-stats"><div><b>${num(sts.length)}</b><span>معايير</span></div><div><b>${num(rs.length)}</b><span>مؤشراً</span></div>
           <div><b>${num(p)}</b><span>منشورة</span></div><div><b>${num(rs.length - p)}</b><span>غير منشورة</span></div></div></div></section>` +
-    (isTeam() ? `<div class="people"><div class="pp"><h3>مقيمو المجال</h3><div>${chips(ev)}</div></div><div class="pp"><h3>مسؤولو المجال</h3><div>${chips(rp)}</div></div></div>`
+    (showOwners() ? `<div class="people"><div class="pp"><h3>مقيمو المجال</h3><div>${chips(ev)}</div></div><div class="pp"><h3>مسؤولو المجال</h3><div>${chips(rp)}</div></div></div>`
       : `<p class="muted tnote">بيانات المقيمين والمسؤولين متاحة لفريق التقويم بعد تسجيل الدخول.</p>`) +
     `<div class="sec" id="shead"><div><h2>معايير المجال</h2><p class="muted sub">اضغط على أي معيار لعرض مؤشراته.</p></div><div class="vbtns" id="svbtns"></div></div><div id="slist"></div>
     <div class="sec"><div><h2>مؤشرات المجال</h2><p class="muted sub">ملوّنة بمستوى كل مؤشر.</p></div></div><div class="irows">${rs.slice().sort((a, b) => sortCodes(a.indicator_code, b.indicator_code)).map(r => { const pub = r.publish_state === 'published';
@@ -347,13 +359,13 @@ function domain(cid, did) {
       <div class="wmain"><h3>${esc(s.standard_name)}</h3>
         <div class="dchips"><span>${ic('target')} ${num(sr.length)} مؤشراً</span><span>${ic('eye')} ${num(sp)} منشور</span></div>
         ${segHtml(sr)}
-        ${isTeam() ? `<div class="dppl"><span>${ic('users')} المقيم: ${names(peopleOf(sr, 'eval'))}</span><span>${ic('users')} المسؤول: ${names(peopleOf(sr, 'resp'))}</span></div>` : ''}</div>
+        ${showOwners() ? `<div class="dppl"><span>${ic('users')} المقيم: ${names(peopleOf(sr, 'eval'))}</span><span>${ic('users')} المسؤول: ${names(peopleOf(sr, 'resp'))}</span></div>` : ''}</div>
       <div class="wside"><div class="dres" role="img" aria-label="النتيجة ${resOf(sr).txt}، ${resOf(sr).name}"><b>${resOf(sr).txt}</b><span>${resOf(sr).name}</span></div><span class="dgo">عرض المؤشرات ${ic('arrow')}</span></div></a>`;
   };
   const row = s => {
     const sr = rs.filter(r => r.standard_id === s.standard_id), sp = pubCount(sr), sc = pctOf(sp, sr.length), ks = lcounts(sr);
     const g = grpLevel(sr); return `<a class="srow glv ${g.key}" style="--b:var(--c${k}b)" href="#standard/${cid}/${s.standard_id}"><code>${esc(s.standard_code)}</code>
-      <div class="sname"><b>${esc(s.standard_name)}</b>${isTeam() ? `<small>المقيم: ${names(peopleOf(sr, 'eval'))} · المسؤول: ${names(peopleOf(sr, 'resp'))}</small>` : ''}</div>
+      <div class="sname"><b>${esc(s.standard_name)}</b>${showOwners() ? `<small>المقيم: ${names(peopleOf(sr, 'eval'))} · المسؤول: ${names(peopleOf(sr, 'resp'))}</small>` : ''}</div>
       <span class="scnt">${num(sr.length)} مؤشراً · ${num(sp)} منشور</span>
       <div class="dseg" role="img" aria-label="توزيع المستويات">${ks.map(([key, c]) => `<i class="sg ${key}" style="flex:${c}" title="${STL[key]}: ${num(c)}"></i>`).join('')}</div>
       <b class="spct">${resOf(sr).txt}<small>${resOf(sr).name}</small></b>${ic('arrow')}</a>`;
