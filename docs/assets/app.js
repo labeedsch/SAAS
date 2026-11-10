@@ -206,11 +206,11 @@ function lrow(r) {
       ${team ? `<div class="lr-people">${personBlk('المسؤول', ownersOf(r, 'resp'))}${personBlk('المقيّم', ownersOf(r, 'eval'))}</div>` : ''}</div>
     <div class="lr-side">${st}<div class="lr-bar"><span style="width:${pct}%"></span></div><span class="lr-go">عرض التفاصيل ${ic('arrow')}</span></div></a>`;
 }
-function pillsHtml(all) {
-  const base = all.filter(r => pass(r, 'st'));
-  const keys = [...ST.map(x => x[0])]; if (all.some(r => stOf(r) === 'nolevel')) keys.splice(4, 0, 'nolevel');
-  const mk = (key, label, n) => `<button type="button" class="spill${hm.st === key ? ' on' : ''}${n ? '' : ' zero'}" data-st="${key}" aria-pressed="${hm.st === key}"><i class="dot ${key || 'all'}"></i>${label}<em>${num(n)}</em></button>`;
-  return mk('', 'الكل', base.length) + keys.map(k => mk(k, STL[k], base.filter(r => stOf(r) === k).length)).join('');
+// فرز سريع بالتجميع: المؤشر (بلا تجميع) | المجال | المقيم | المسؤول. المقيم والمسؤول لفريق التقويم فقط (خصوصية).
+const QUICK = [['none', 'المؤشر', 'bars', false], ['dom', 'المجال', 'layers', false], ['eval', 'المقيم', 'users', true], ['resp', 'المسؤول', 'users', true]];
+function pillsHtml() {
+  return `<span class="fgl">فرز حسب</span>` + QUICK.filter(q => !q[3] || isTeam()).map(([g, t, i]) =>
+    `<button type="button" class="spill${hm.group === g ? ' on' : ''}" data-grp="${g}" aria-pressed="${hm.group === g}">${ic(i)}${t}</button>`).join('');
 }
 function panelHtml(all) {
   const sel = (id, ico, opts, cur) => `<label class="fsel">${ic(ico)}<select id="${id}">${opts.map(o => `<option value="${o[0]}"${cur === o[0] ? ' selected' : ''}>${o[1]}</option>`).join('')}</select></label>`;
@@ -225,7 +225,7 @@ function panelHtml(all) {
 function renderList(cid) {
   const all = byCycle(cid), rs = sortRows(all.filter(r => pass(r)));
   $('#icount').textContent = `${num(rs.length)} من ${num(all.length)} مؤشراً`;
-  $('#pills').innerHTML = pillsHtml(all);
+  hm.st = ''; $('#pills').innerHTML = pillsHtml();
   const nf = Object.entries(hm.f).filter(([k]) => isTeam() || k === 'dom' || k === 'std').reduce((n, [, a]) => n + a.length, 0);
   $('#advbtn').className = 'fbtn' + (hm.adv ? ' on' : ''); $('#advbtn').setAttribute('aria-expanded', hm.adv);
   $('#advbtn').innerHTML = `${ic('layers')} الفرز المتقدم${nf ? ` <em class="fn">${num(nf)}</em>` : ''}`;
@@ -257,7 +257,7 @@ function home() {
     (first && rs.length ? ''+
       `<div class="sec" id="ihead"><div><h2>مؤشرات التقويم</h2><p class="muted sub">ابحث وافرز وجمّع المؤشرات كما تريد.</p></div><span class="chip" id="icount"></span></div>
       <div class="fbar" id="fbar" role="search"><label class="fsearch">${ic('search')}<input type="search" id="iq" placeholder="ابحث بالرمز أو النص أو المسؤول أو المقيم" value="${esc(hm.q)}" aria-label="بحث في المؤشرات"></label>
-        <button type="button" class="fbtn" id="advbtn" aria-expanded="false"></button><div class="pills2" id="pills"></div><div class="vbtns" id="vbtns"></div></div>
+        <div class="pills2" id="pills" role="group" aria-label="الفرز حسب"></div><button type="button" class="fbtn" id="advbtn" aria-expanded="false"></button><div class="vbtns" id="vbtns"></div></div>
       <div class="fpanel" id="fpanel" hidden></div>
       ${isTeam() ? '' : '<p class="muted tnote">الفلترة والتجميع بالمسؤول وبالمقيم متاحة لفريق التقويم بعد تسجيل الدخول.</p>'}<div id="ilist"></div>` : noResults());
   if (first && rs.length) {
@@ -265,8 +265,8 @@ function home() {
     $('#goInd').onclick = () => { const h = $('#ihead'); if (h && h.scrollIntoView) h.scrollIntoView({ behavior: 'smooth', block: 'start' }); };
     $('#iq').oninput = e => { hm.q = e.target.value; again(); };
     $('#fbar').onclick = e => {
-      const st = e.target.closest('[data-st]'), vw = e.target.closest('[data-view]'), ab = e.target.closest('#advbtn');
-      if (st) hm.st = st.dataset.st === hm.st ? '' : st.dataset.st; else if (vw) hm.view = vw.dataset.view; else if (ab) hm.adv = !hm.adv; else return;
+      const gp = e.target.closest('[data-grp]'), vw = e.target.closest('[data-view]'), ab = e.target.closest('#advbtn');
+      if (gp) hm.group = gp.dataset.grp; else if (vw) hm.view = vw.dataset.view; else if (ab) hm.adv = !hm.adv; else return;
       again();
     };
     $('#fpanel').onclick = e => {

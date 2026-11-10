@@ -739,3 +739,7 @@ body .lab-foot .moe,.astick~* .lab-foot .moe{display:flex;border-inline-start-co
 @media (prefers-reduced-motion:reduce){.lf-ring,.lf-orb{animation:none}}
 @media (max-width:760px){.lab-foot .lf{flex-direction:column;align-items:stretch}.lf-card{width:100%;flex-wrap:wrap;justify-content:space-between;border-radius:18px}.lf-brand b{white-space:normal}.lf-sep{display:none}.lf-links{flex-direction:row;flex-wrap:wrap;gap:14px}}
 @media print{.lab-foot{display:none}}
+
+/* فرز سريع حسب المؤشر / المجال / المقيم / المسؤول */
+.pills2 .fgl{align-self:center;font-weight:700;color:var(--muted);font-size:.9rem;margin-inline-end:2px}
+.pills2 .spill .ico{width:17px;height:17px}
